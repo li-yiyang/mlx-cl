@@ -1,0 +1,380 @@
+;;;; utils.lisp --- Some functional codes
+
+(in-package :mlx)
+
+
+;;; Condition
+
+(define-condition mlx-error () ())
+
+(define-condition mlx-runtime-error (mlx-error)
+  ((message :initarg :message))
+  (:report (lambda (cond stream)
+             (write-string "MLX Runtim Error: "       stream)
+             (write-string (slot-value cond 'message) stream))))
+
+(define-condition mlx-cffi-error (mlx-error)
+  ((function :initarg :message)
+   (return   :initarg :return))
+  (:report
+   (lambda (cond stream)
+     (format stream
+             "MLX CFFI Calling Error: FFI function `~A' returned error code ~D. "
+             (slot-value cond 'function)
+             (slot-value cond 'return)))))
+
+(define-condition mlx-debugging-error (mlx-runtime-error) ())
+
+
+;;; CFFI libraries
+
+;; TODO: build CFFI libraries if cannot load
+;; or ship with pre-built binaries (.dylib)
+
+(mlx-cl.lib:load-libmlxc)
+
+;; Design of MLX CFFI Error Callback
+;;
+;; + msg: raise from MLX C library
+;; + data: provided
+
+(defcallback mlx-error :void
+    ((msg  :string)
+     (data :pointer))
+  (declare (ignorable data))
+  (error 'mlx-runtime-error :message msg))
+
+(foreign-funcall "mlx_set_error_handler"
+                 :pointer (callback mlx-error)
+                 :pointer (null-pointer)
+                 :pointer (null-pointer)
+                 :void)
+
+(defmacro ensure-success (cffi-calling &body {type-arg}*-ignore-error-p?)
+  "Ensure CFFI-CALLING form returns zero.
+Otherwise, raise ERROR expression.
+
+Syntax:
+
+    (ensure-success \"foreign-function\"
+      { type arg }*
+      ignore-error-p?)
+
+"
+  (declare (type string cffi-calling))
+  (let* ((res            (gensym "RES"))
+         (err            `(error 'mlx-cffi-error
+                                 :function ,cffi-calling
+                                 :return   ,res))
+         (arg            (if (evenp (length {type-arg}*-ignore-error-p?))
+                             {type-arg}*-ignore-error-p?
+                             (butlast {type-arg}*-ignore-error-p?)))
+         (ignore-error-p (if (oddp (length {type-arg}*-ignore-error-p?))
+                             (car (last {type-arg}*-ignore-error-p?))
+                             nil)))
+    (assert (symbolp ignore-error-p))
+    `(let ((,res (foreign-funcall ,cffi-calling ,@arg :int)))
+       ,(cond ((null ignore-error-p) `(if (zerop ,res) t ,err))
+              ((eq ignore-error-p t) t)
+              (t `(if (zerop ,res) t (unless ,ignore-error-p ,err)))))))
+
+(defmacro defcsetfun (cffi-function type-alloc?-free? &body type-args)
+  "Define a CFFI function that return :int as success mark.
+The CFFI function should change the first element of TYPE.
+Defined new function should retrun setted type result.
+
+Syntax:
+
+   (defcsetfun \"cffi_calling\" { type
+                                | (type &key alloc free)
+                                }
+      {type args}*)
+"
+  (let ((result  (gensym "RESULT"))
+        (result& (gensym "RESULT&")))
+    (destructuring-bind (type &key alloc free)
+        (if (listp type-alloc?-free?) type-alloc?-free?
+            (list type-alloc?-free?))
+      `(defun ,(intern (string-upcase cffi-function))
+           ,(loop for (type arg) on type-args by #'cddr
+                  collect arg)
+         (with-elem& (,result ,result& :type  ,type
+                                       :free  ,free
+                                       :alloc ,alloc)
+           (ensure-success ,cffi-function
+             :pointer ,result&
+             ,@type-args)
+           ,result)))))
+
+
+;;; OOP
+;; Base class of all the MLX objects
+
+(defclass mlx-object ()
+  ((pointer :initarg :pointer
+            :reader  mlx-object-pointer))
+  (:documentation
+   "Base object of MLX objects. "))
+
+(defgeneric string<- (elem)
+  (:documentation
+   "Turn ELEM into string. "))
+
+(defmethod print-object ((obj mlx-object) stream)
+  (write-string (string<- obj) stream))
+
+;; DEV Note:
+;; subclasses of mlx-object should define a function
+;; called `wrap-as-mlx-*' to convert CFFI pointer
+;; to `mlx-object', which should do:
+;; 1. make a new `mlx-object' from pointer
+;; 2. bind its finalized process to free the pointer
+;;    and other possible foreign data
+;;
+
+
+;;; CL API mask
+
+(defgeneric equal (x y)
+  (:documentation
+   "Test if X and Y is equal to each other.
+Returns `t' if X and Y are equal in value, and `nil' if not.
+
+Note:
+This calls `cl:equal' to test if two elements are same.
+And it would perform enhanced test on the nested data structure
+to ensure that the X and Y are equal in value.
+
+Dev Note:
+Use `eq' for fast comparing.
+")
+  (:method (x y)
+    (cl:equal x y))
+  (:method ((str1 string) (str2 string))
+    (cl:string= str1 str2))
+  (:method ((arr1 array) (arr2 array))
+    "If two `array' is equal:
++ (shape ARR1) are equal to (shape ARR2)
++ every element in ARR1 and ARR2 are equal to each other"
+    (cl:and (cl:equal (array-dimensions arr1)
+                      (array-dimensions arr2))
+            (loop :for idx :below (size arr1)
+                  :if (cl:not (equal (row-major-aref arr1 idx)
+                                     (row-major-aref arr2 idx)))
+                    :return nil
+                  :finally (return t)))))
+
+(defgeneric eq (x y)
+  (:documentation
+   "Test if X and Y is equal to each other.
+
+Note:
+This calls `cl:eq' to test if two elements are same in
+pointer level. Use this for fast comparing.
+
+Dev Note:
+Use `equal' to test in value. ")
+  (:method (x y)
+    (cl:eq x y))
+  (:method ((obj1 mlx-object) (obj2 mlx-object))
+    (cl:and (cl:eq obj1 obj2)
+            (pointer-eq (mlx-object-pointer obj1)
+                        (mlx-object-pointer obj2)))))
+
+(defgeneric copy (elem)
+  (:documentation
+   "Duplicate ELEM.
+
+Dev: should implement `copy' method for each different type. ")
+  (:method ((num number))
+    num)
+  (:method ((list list))
+    (copy-tree list))
+  (:method ((seq sequence))
+    (copy-seq seq))
+  (:method ((arr array))
+    (make-array (array-dimensions arr)
+                :initial-contents arr
+                :element-type     (array-element-type arr))))
+
+
+;;; Dev Shortcuts
+
+;; DEV Note:
+;; the `string<-' function should be used to `print-object'
+;;
+
+(defun sequencefy (elem)
+  "Turn ELEM as a sequence if ELEM is not a sequence. "
+  (if (typep elem 'sequence) elem (list elem)))
+
+(defun listfy (elem)
+  "Turn ELEM as a list if it's atom. "
+  (if (atom elem) (list elem) elem))
+
+(defun atomize (elem)
+  "Turn ELEM as a ATOM if it's a list. "
+  (if (listp elem) (car elem) elem))
+
+(defun intern* (&rest components)
+  "Concate COMPONENTS and intern it as a symbol.
+Return a symbol of MLX-C.CFFI package. "
+  (flet ((string<- (elem)
+           (etypecase elem
+             (symbol (symbol-name elem))
+             (number (format nil "~A" elem))
+             (string (string-upcase elem)))))
+    (intern (apply #'concatenate 'string (mapcar #'string<- components))
+            :mlx-cl)))
+
+(defun split-args-keys (args)
+  "Split ARGS and return ARGS and KEYS.
+
+Example:
+
+    (split-args-keys '(x y :z z))
+    ;; => (x y), (:z z)
+"
+  (loop :for (arg . rest) :on args
+        :if (keywordp arg)
+          :do (if (oddp (cl:length rest))
+                  (return (values arg* (cons arg rest)))
+                  (error "Odd number of function key calling arguments ~A. " args))
+        :else
+          :collect arg :into arg*
+        :finally (return (values arg* nil))))
+
+(defun alias-symbol-function (symbol function &optional documentation)
+  "See `defalias'. "
+  (declare (type symbol symbol)
+           (type (cl:or function symbol) function)
+           (type (cl:or null string) documentation))
+  (macrolet ((fn   (sym) `(symbol-function ,sym))
+             (ma   (sym) `(macro-function  ,sym))
+             (doc  (fn)  `(documentation ,fn 'function)))
+    (cond ((functionp function)
+           (setf (fn symbol)  function
+                 (doc symbol) (cl:or documentation (doc function))))
+          ((ignore-errors (fn function))
+           (setf (fn  symbol) (fn function)
+                 (doc symbol) (cl:or documentation (doc function))))
+          ((ignore-errors (ma function))
+           (setf (ma  symbol) (ma  function)
+                 (doc symbol) (cl:or documentation (doc function))))
+          (t (error "Undefined ~S. " function)))))
+
+(defmacro defalias (name function &optional documentation)
+  "Define NAME alias for FUNCTION. "
+  `(alias-symbol-function ',name ',function ,documentation))
+
+
+;;; CFFI Shortcuts
+
+;; (string<- array) is provided only for `metal-device-info'
+
+(defun string<-c-array (c-array)
+  "Turn C-ARRAY into lisp string.
+Return string. "
+  (with-output-to-string (stream)
+    (loop :for code :across c-array
+          :if (zerop code)
+            :return t
+          :do (write-char (code-char code) stream))))
+
+(defmacro with-elem& ((elem elem& &key (type :pointer) free alloc) &body body)
+  "With ELEM and pointer to ELEM&.
+
+Syntax:
+
+    (with-elem& (elem elem& :type   cffi-type
+                            {:free  free}?
+                            {:alloc alloc}?)
+       body)
+
+Parameters:
++ ELEM:  variable as elem value
++ ELEM&: variable as pointer to ELEM (like &elem in C)
++ TYPE:  CFFI foreign types
++ FREE:  if given, will free ELEM after execution
++ ALLOC: if given, will alloc ELEM before execution
+"
+  `(with-foreign-object (,elem& ',type)
+     (symbol-macrolet ((,elem (mem-aref ,elem& ',type)))
+       ,@(when alloc
+           `((setf ,elem ,alloc)))
+       ,(if free
+            `(unwind-protect (progn ,@body) ,free)
+            `(progn ,@body)))))
+
+;; TODO: accelerate the data coping and data reading
+
+(defmacro with-foreign<-sequence ((pointer sequence type
+                                   &optional
+                                     (length (gensym "LENGTH"))
+                                     (elem (gensym "ELEM"))
+                                     elem-convert)
+                                  &body body
+                                  &aux
+                                    (seq   (gensym "SEQUENCE"))
+                                    (ctype (gensym "TYPE")))
+  "Wrap SEQUENCE as foreign array POINTER of TYPE. "
+  `(let* ((,seq    ,sequence)
+          (,ctype  ,type)
+          (,length (cl:length ,seq)))
+     (with-foreign-pointer (,pointer (cl:* ,length (foreign-type-size ,ctype)))
+       (let ((idx -1))
+         (map nil
+              (lambda (,elem)
+                (setf (mem-aref ,pointer ,ctype (incf idx))
+                      ,(if elem-convert
+                           elem-convert
+                           elem)))
+              ,seq))
+       ,@body)))
+
+(defmacro with-foreign<-array ((pointer array type
+                                &optional
+                                  (shape (gensym "SHAPE"))
+                                  (size  (gensym "SIZE"))
+                                  (elem  (gensym "ELEM"))
+                                  elem-convert)
+                               &body body
+                               &aux
+                                 (arr   (gensym "ARRAY"))
+                                 (ctype (gensym "TYPE"))
+                                 (idx   (gensym "IDX")))
+  "Wrap ARRAY as foreign array POINTER of TYPE. "
+  `(let* ((,arr   ,array)
+          (,ctype ,type)
+          (,shape (array-dimensions ,arr))
+          (,size  (cl:reduce #'cl:* ,shape)))
+     (with-foreign-pointer (,pointer (cl:* ,size (foreign-type-size ,ctype)))
+       (loop :for ,idx :below ,size
+             :for ,elem := (row-major-aref ,arr ,idx)
+             :do (setf (mem-aref ,pointer ,ctype ,idx)
+                       ,(if elem-convert
+                            elem-convert
+                            elem)))
+       ,@body)))
+
+(defun sequence<-foreign (pointer type length &optional (lisp-type 'list))
+  "Convert foreign POINTER with TYPE and LENGTH into lisp sequence. "
+  (cond ((subtypep lisp-type 'list)
+         (loop :for i :below length
+               :collect (mem-aref pointer type i)))
+        ((subtypep lisp-type 'array)
+         (loop :with arr := (make-array length)
+               :for i :below length
+               :do (setf (aref arr i) (mem-aref pointer type i))
+               :finally (return arr)))
+        (t
+         (error "Invalid LISP-TYPE ~A, should be list, array. " lisp-type))))
+
+(defun array<-foreign (pointer type shape &optional (element-type t))
+  "Convert foreign POINTER with TYPE and SHAPE into lisp array. "
+  (loop :with array := (make-array shape :element-type element-type)
+        :for i :below (reduce #'cl:* shape)
+        :do (setf (row-major-aref array i) (mem-aref pointer type i))
+        :finally (return array)))
+
+;;;; utils.lisp ends here
