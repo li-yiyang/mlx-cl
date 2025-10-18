@@ -28,7 +28,12 @@
                         :collect `(defcsetfun ,(format nil "mlx_vector_~(~A~)_get" mlx-name)
                                       (,dtype ,@(when alloc `(:alloc (,alloc))))
                                     ,ctype ,ctype
-                                    :size  idx)))))
+                                    :size  idx)
+                        :collect `(defcfun (,(intern* 'mlx_vector_ type '_new_data)
+                                            ,(format nil "mlx_vector_~(~A~)_new_data" mlx-name))
+                                      ,ctype
+                                    (,ctype ,ctype)
+                                    (size :size))))))
   (mlx-vector-*
    (array        array         mlx-array        mlx_array_new)
    (vector-array vector_array  mlx-vector-array mlx_vector_array_new)
@@ -43,5 +48,14 @@
   (loop :for idx :below (mlx_vector_array_size mlx-vector-array)
         :collect (wrap-as-mlx-array
                   (mlx_vector_array_get mlx-vector-array idx))))
+
+(defmacro with-array-vector<-sequence
+    ((vector sequence &optional (len (gensym "LEN"))) &body body)
+  "Turn SEQUENCE of `mlx-array' into VECTOR. "
+  (let ((data (gensym "DATA")))
+    `(with-foreign<-sequence (,data (map 'list #'mlx-object-pointer ,sequence) :pointer ,len)
+       (let ((,vector (mlx_vector_array_new_data ,data ,len)))
+         (unwind-protect (progn ,@body)
+           (mlx_vector_array_free ,vector))))))
 
 ;;;; vector.lisp ends here

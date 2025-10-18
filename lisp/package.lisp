@@ -18,7 +18,8 @@
    #:min #:max #:sort
    #:and #:or #:not
    #:logand #:logior #:lognot #:logxor
-   #:trace)
+   #:trace #:identity #:imagpart #:realpart #:ash
+   #:expt #:round)
   (:reexport #:common-lisp)
   (:export
    ;; utils
@@ -52,6 +53,7 @@
 
    ;; array
    #:mlx-array
+   #:mlx-dtype
 
    #:size
    #:nbytes
