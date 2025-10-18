@@ -414,7 +414,7 @@ but if LIST is empty, the type of LIST would be "
 
 ;;; NDIM
 
-(defgeneric ndim (object)
+(defgeneric dim (object)
   (:documentation
    "Return the dimension of OBJECT.
 
@@ -609,13 +609,10 @@ Otherwise, the LIST should be in valid shape. "
                  (dump list)))
              (with-foreign<-sequence (shape* shape :int ndim)
                (mlx_array_new_data data shape* ndim dtype!)))))))
-  (:method ((arr mlx-array) &key dtype
-            &aux (dtype! (ensure-mlx-dtype dtype)))
-    ;; TODO: use copy if same dtype?
-    ;; TODO: use view
-    (if (cl:eq dtype! (mlx-dtype arr))
-        arr
-        (dtype<- arr dtype!))))
+  (:method ((arr mlx-array) &key dtype)
+    (if dtype
+        (as-type arr dtype)
+        arr)))
 
 (defmethod mlx-object-pointer (elem)
   (mlx-object-pointer (mlx-array elem)))
