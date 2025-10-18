@@ -38,6 +38,18 @@
     :components ((:file "package")
                  (:file "build")))))
 
+(defsystem #:mlx-cl/dev
+  :author ("凉凉")
+  :license "GPL"
+  :version "0"
+  :description "For developping `mlx-cl', here's some dev tools. "
+  :depends-on (:trivial-indent :mlx-cl)
+  :pathname "dev"
+  :components
+  ((:file "package")
+   (:file "indent")))
+
+
 ;; TODO: tests mlx-cl/test
 
 ;;;; mlx-cl.asd ends here

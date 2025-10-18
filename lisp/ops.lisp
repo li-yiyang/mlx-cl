@@ -63,7 +63,6 @@ Syntax:
            :pointer (mlx-object-pointer (default-mlx-stream)))
          (,wrap ,res)))))
 
-;; (trivial-indent:define-indentation defmlx-method (2 &lambda &body))
 (defmacro defmlx-method (name lambda-list docstring &body body)
   "Define a MLX method with name.
 
