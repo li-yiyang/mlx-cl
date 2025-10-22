@@ -20,7 +20,22 @@
    (:file "ops"     :depends-on ("array" "vector"))
    (:file "version" :depends-on ("string"))
    (:file "metal"   :depends-on ("utils"))
-   ))
+   )
+  :in-order-to ((test-op (test-op :mlx-cl/test))))
+
+(defsystem #:mlx-cl/test
+  :author ("凉凉")
+  :license "GPL"
+  :version "0"
+  :description "Test for MLX-CL"
+  :depends-on (:mlx-cl :fiveam)
+  :pathname "test"
+  :components
+  ((:file "package")
+   (:file "device" :depends-on ("package"))
+   (:file "ops"    :depends-on ("package")))
+  :perform (test-op (op c)
+             (symbol-call :mlx-cl.test :run-tests)))
 
 ;;; MLX-CL/Lib
 
@@ -49,7 +64,21 @@
   ((:file "package")
    (:file "indent")))
 
+
+;;;; Submodules
 
-;; TODO: tests mlx-cl/test
+(defsystem #:mlx-cl/image
+  :author ("凉凉")
+  :license "GPL"
+  :version "0"
+  :description "Use mlx-cl for image processing. "
+  :depends-on (:mlx-cl)
+  :pathname "image"
+  :components
+  ((:file "package")
+   (:file "colorspace" :depends-on ("package"))
+   (:file "image"      :depends-on ("colorspace"))
+   (:file "io"         :depends-on ("image"))))
+
 
 ;;;; mlx-cl.asd ends here

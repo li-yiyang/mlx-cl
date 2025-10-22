@@ -128,8 +128,9 @@ Or use `mlx-device' to define a new device. "))
   (equal dev type))
 
 (defmethod equal ((dev mlx-device) (type symbol))
-  (declare (type (cl:or null mlx-device-type) type))
-  (when type (cl:eq (mlx-device-type dev) type)))
+  "For testing `mlx-device' DEV with device TYPE. "
+  (when (typep type '(cl:or null mlx-device-type))
+    (when type (cl:eq (mlx-device-type dev) type))))
 
 (defmethod equal ((dev mlx-device) (idx integer))
   (cl:= (mlx-device-index dev) idx))

@@ -16,7 +16,7 @@
    #:abs #:sqrt
    #:equal #:eq
    #:min #:max #:sort
-   #:and #:or #:not
+   #:and #:or #:not #:bit-and #:bit-ior #:bit-not #:bit-xor
    #:logand #:logior #:lognot #:logxor
    #:trace #:identity #:imagpart #:realpart #:ash
    #:expt #:round)
@@ -52,8 +52,14 @@
    #:default-mlx-gpu-stream
 
    ;; array
+   #:*default-mlx-int-dtype*
+   #:*default-mlx-dtype*
+   #:*default-mlx-float-dtype*
+   #:*default-mlx-uint-dtype*
    #:mlx-array
    #:mlx-dtype
+   #:dtype
+   #:lisp<-
 
    #:size
    #:nbytes

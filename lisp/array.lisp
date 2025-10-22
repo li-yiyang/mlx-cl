@@ -412,6 +412,10 @@ but if LIST is empty, the type of LIST would be "
      :pointer (mlx-object-pointer arr)
      mlx-dtype)))
 
+(defalias dtype mlx-dtype
+  "Alias of `mlx-dtype'.
+Return `mlx-dtype' of given OBJECT. ")
+
 ;;; NDIM
 
 (defgeneric dim (object)
@@ -526,7 +530,7 @@ where nil is considered as boolean.
                             "mlx_array_shape"
                             :pointer (mlx-object-pointer array)
                             :pointer)
-                           :int (ndim array)))))
+                           :int (dim array)))))
 
 (defgeneric size (object)
   (:documentation
@@ -628,27 +632,29 @@ The output array would be declared with MLX-DTYPE. ")
     "Lisp OBJECT as lisp element"
     object)
   (:method ((arr mlx-array))
-    (mlx_array_eval (mlx-object-pointer arr))
-    (let ((shape (shape arr))
-          (dtype (mlx-dtype arr)))
-      (if (endp shape) ;; scalar
-          (macrolet ((convert ()
-                       `(ecase dtype
-                          ,@(loop :for dtype :in +supported-mlx-dtypes+
-                                  :collect
-                                  `(,dtype (,(intern* 'mlx_array_item_ dtype)
-                                            (mlx-object-pointer arr)))))))
-            (convert))
-          (macrolet ((convert ()
-                       `(ecase dtype
-                          ,@(loop :for dtype :in +supported-mlx-dtypes+
-                                  :collect
-                                  `(,dtype (,(intern* 'mlx_array_data_ dtype)
-                                            (mlx-object-pointer arr)))))))
-            (array<-foreign (convert)
-                            (cffi-type<-mlx-dtype dtype)
-                            shape
-                            (lisp-type<-mlx-dtype dtype)))))))
+    (let ((arr (as-strided arr)))
+      (mlx_array_eval  (mlx-object-pointer arr))
+      (mlx_synchronize (mlx-object-pointer *mlx-stream*))
+      (let ((shape (shape arr))
+            (dtype (mlx-dtype arr)))
+        (if (endp shape) ;; scalar
+            (macrolet ((convert ()
+                         `(ecase dtype
+                            ,@(loop :for dtype :in +supported-mlx-dtypes+
+                                    :collect
+                                    `(,dtype (,(intern* 'mlx_array_item_ dtype)
+                                              (mlx-object-pointer arr)))))))
+              (convert))
+            (macrolet ((convert ()
+                         `(ecase dtype
+                            ,@(loop :for dtype :in +supported-mlx-dtypes+
+                                    :collect
+                                    `(,dtype (,(intern* 'mlx_array_data_ dtype)
+                                              (mlx-object-pointer arr)))))))
+              (array<-foreign (convert)
+                              (cffi-type<-mlx-dtype dtype)
+                              shape
+                              (lisp-type<-mlx-dtype dtype))))))))
 
 (defmethod equal ((arr1 mlx-array) (arr2 mlx-array))
   (cl:or (cl:eq arr1 arr2)
