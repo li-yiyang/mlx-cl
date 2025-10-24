@@ -118,7 +118,10 @@ Syntax:
 
 (defgeneric string<- (elem)
   (:documentation
-   "Turn ELEM into string. "))
+   "Turn ELEM into string. ")
+  (:method (obj)
+    "By default print OBJ as string. "
+    (princ-to-string obj)))
 
 (defmethod print-object ((obj mlx-object) stream)
   (write-string (string<- obj) stream))
@@ -135,6 +138,14 @@ Syntax:
 
 ;;; CL API mask
 
+(deftype or (&rest forms)
+  "Fallback to Common Lisp `cl:or' type. "
+  `(cl:or ,@forms))
+
+(deftype and (&rest forms)
+  "Fallback to Common Lisp `cl:and' type. "
+  `(cl:and ,@forms))
+
 (defgeneric equal (x y)
   (:documentation
    "Test if X and Y is equal to each other.
@@ -150,6 +161,8 @@ Use `eq' for fast comparing.
 ")
   (:method (x y)
     (cl:equal x y))
+  (:method ((num1 number) (num2 number))
+    (cl:= num1 num2))
   (:method ((str1 string) (str2 string))
     (cl:string= str1 str2))
   (:method ((arr1 array) (arr2 array))
@@ -208,6 +221,12 @@ Dev: should implement `copy' method for each different type. ")
   "Turn ELEM as a sequence if ELEM is not a sequence. "
   (if (typep elem 'sequence) elem (list elem)))
 
+(defun len<=2-listfy (elem)
+  "Turn ELEM as a list with length <= 2. "
+  (cond ((atom elem) (list elem))
+        ((cl:<= (length elem) 2) elem)
+        (t (subseq elem 0 2))))
+
 (defun listfy (elem)
   "Turn ELEM as a list if it's atom. "
   (if (atom elem) (list elem) elem))
@@ -226,6 +245,145 @@ Return a symbol of MLX-C.CFFI package. "
              (string (string-upcase elem)))))
     (intern (apply #'concatenate 'string (mapcar #'string<- components))
             :mlx-cl)))
+
+(defun sconc (&rest strings)
+  "Concat STRINGS. "
+  (apply #'concatenate 'string strings))
+
+(defun alist-union (alist &rest alists)
+  "Union ALISTS like `cl:union', but keep orders. "
+  (let ((alist (reverse alist)))
+    (loop :for insert :in alists :do
+      (loop :for (car . cdr) :in insert
+            :if (assoc car alist)
+              :do (setf (cdr (assoc car alist)) cdr)
+            :else
+              :do (push (cons car cdr) alist)))
+    (reverse alist)))
+
+(defun gen-doc (shortline
+                &key
+                  (return "`mlx-array'")
+                  syntax aliases
+                  note dev-note examples
+                  definition parameters
+                &allow-other-keys)
+  "Generate documents from DOCSTRING. "
+  (flet ((trim (str)
+           ;; trivial implementation of string trim
+           ;; trim only first character
+           (if (cl:and (cl:> (cl:length str) 0)
+                       (cl:char= (aref str 0) #\Newline))
+               (subseq str 1)
+               str)))
+    (with-output-to-string (doc)
+      (write-line shortline doc)
+      (etypecase return
+        (symbol              (format doc "Return `~S'. ~%" return))
+        ((cl:or null string) (format doc "Return ~A. ~%" return))
+        (list                (format doc "Return values are ~{~A~^, ~}. " return)))
+      (when syntax
+        (format doc "~%Syntax:~%    ~A~%" syntax))
+      (when definition
+        (format doc "~%Definition:~%~A~%" (trim definition)))
+      (typecase parameters
+        (string (format doc "~%Parameters:~%~A~%" parameters))
+        (list   (format doc "~%Parameters:~%~{~{+ ~@:(~A~): ~A~}~%~}" parameters)))
+      (when note
+        (format doc "~%Note:~%~A~%" (trim note)))
+      (when dev-note
+        (format doc "~%Dev Note:~%~A~%" (trim dev-note)))
+      (when examples
+        (format doc "~%Examples:~%~{~A~%~{    ~A~^~%~}~^~%~}~%" examples))
+      (when aliases
+        (format doc "~%See also ~{`~A'~^, ~}. ~%" aliases)))))
+
+(defun split-doc-body (progn)
+  "Split PROGN like (doc { keyword value }* . body) pattern.
+Return doc, plist, body. "
+  (let ((doc (first progn)))
+    (if (stringp doc)
+        (loop :for (key . val-body) :on (rest progn) :by #'cddr
+              :if (endp val-body)
+                :return (values doc plist (cons key val-body))
+              :if (keywordp key)
+                :collect key :into plist
+                :and :collect (car val-body) :into plist
+              :else
+                :return (values doc plist (cons key val-body)))
+        (values nil nil progn))))
+
+(defun parse-lambda-list (lambda-list
+                          &key
+                            (normal   #'cl:identity)
+                            (optional #'cl:identity)
+                            (aux      #'cl:identity)
+                            (key      #'cl:identity)
+                          &allow-other-keys)
+  "Trivial implementation to parse LAMBDA-LIST.
+Return values are required, optional, rest, keys, others, aux.
+
+Example:
+
+    (x y (z type) &optional (y 2 y?) &key (bala 3 bala?) &aux ...)
+
+    ;; => (x y (z type)), ((y 2 y?)), ((bala 3 bala?)), nil, (...)
+"
+  (let (normal* optional* rest* keys* others* aux*)
+    (labels ((normal (lst)
+               (loop :for (arg . rst) :on lst
+                     :if (member arg '(&optional &key &rest &aux &allow-other-keys))
+                       :do (setf normal* normals)
+                       :and :return (case arg
+                                      (&optional (optional rst))
+                                      (&rest     (rst      rst))
+                                      (&aux      (aux      rst))
+                                      (&key      (key      rst))
+                                      (&allow-other-keys
+                                       (setf others* t)
+                                       (assert (endp rst))))
+                     :collect (funcall normal arg) :into normals
+                     :finally (setf normal* normals)))
+             (optional (lst)
+               (loop :for (arg . rst) :on lst
+                     :if (member arg '(&optional &allow-other-keys))
+                       :do (error "Invalid lambda list ~A. " lambda-list)
+                     :if (member arg '(&rest &aux &key))
+                       :do (setf optional* optionals)
+                       :and :return (case arg
+                                      (&rest (rst rst))
+                                      (&aux  (aux rst))
+                                      (&key  (key rst)))
+                     :collect (funcall optional arg) :into optionals
+                     :finally (setf optional* optionals)))
+             (rst (lst)
+               (setf rest* (first lst))
+               (case (second lst)
+                 (&key (key (cddr lst)))
+                 (&allow-other-keys
+                  (setf others* t)
+                  (assert (endp (cddr lst))))
+                 (&aux (aux (cddr lst)))))
+             (aux (lst)
+               (loop :for arg :in lst
+                     :if (member arg '(&optional &key &rest &aux &allow-other-keys))
+                       :do (error "Invalid lambda list ~A. " lambda-list)
+                     :collect (funcall aux arg) :into auxs
+                     :finally (setf aux* auxs)))
+             (key (lst)
+               (loop :for (arg . rst) :on lst
+                     :if (member arg '(&optional &rest &key))
+                       :do (error "Invalid lambda list ~A. " lambda-list)
+                     :if (cl:eq arg '&allow-other-keys)
+                       :do (setf others* t)
+                       :and :do (assert (endp rst))
+                     :if (cl:eq arg '&aux)
+                       :do (setf keys* keys)
+                       :and :return (aux rst)
+                     :collect (funcall key arg) :into keys
+                     :finally (setf keys* keys))))
+      (normal lambda-list)
+      (values normal* optional* rest* keys* others* aux*))))
 
 (defun split-args-keys (args)
   "Split ARGS and return ARGS and KEYS.
@@ -266,6 +424,10 @@ Example:
 (defmacro defalias (name function &optional documentation)
   "Define NAME alias for FUNCTION. "
   `(alias-symbol-function ',name ',function ,documentation))
+
+(defmacro docollect ((arg list) &body body)
+  "Map over LIST with element as ARG and result as BODY. "
+  `(loop :for ,arg :in ,list :collect (progn ,@body)))
 
 
 ;;; CFFI Shortcuts

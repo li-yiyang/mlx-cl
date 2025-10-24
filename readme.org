@@ -1,0 +1,9 @@
+#+title: MLX-CL
+#+subtitle: Common Lisp bindings for MLX
+* About
+MLX-CL is a Common Lisp binding for MLX, together with a set of trivial
+data processing library.
+
+*WARNING*: currently is still unstable, API may crash,
+lake of sufficient test cases, may have unhandled FFI pointer memory leak.
+
