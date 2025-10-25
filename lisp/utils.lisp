@@ -165,6 +165,15 @@ Use `eq' for fast comparing.
     (cl:= num1 num2))
   (:method ((str1 string) (str2 string))
     (cl:string= str1 str2))
+  (:method ((arr mlx-array) (num number))
+    (cl:and (null (shape arr))
+            (cl:= (lisp<- arr) num)))
+  (:method ((num number) (arr mlx-array))
+    (equal arr num))
+  (:method ((arr1 mlx-array) (arr2 array))
+    (equal (lisp<- arr1) arr2))
+  (:method ((arr2 array) (arr1 mlx-array))
+    (equal (lisp<- arr1) arr2))
   (:method ((arr1 array) (arr2 array))
     "If two `array' is equal:
 + (shape ARR1) are equal to (shape ARR2)
@@ -294,7 +303,9 @@ Return a symbol of MLX-C.CFFI package. "
       (when dev-note
         (format doc "~%Dev Note:~%~A~%" (trim dev-note)))
       (when examples
-        (format doc "~%Examples:~%~{~A~%~{    ~A~^~%~}~^~%~}~%" examples))
+        (format doc "~%Examples:~%")
+        (loop :for (docstr in out) :in examples :do
+          (format doc "~A~%    ~S~%    ;; => ~S~%" docstr in out)))
       (when aliases
         (format doc "~%See also ~{`~A'~^, ~}. ~%" aliases)))))
 

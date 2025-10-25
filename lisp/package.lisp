@@ -22,24 +22,24 @@
    #:expt #:round)
   (:reexport #:common-lisp)
   (:export
-   ;; utils
+   ;;;; utils
 
-   ;; error
+   ;;;; error
    #:mlx-error
 
-   ;; string
+   ;;;; string
 
-   ;; version
+   ;;;; version
    #:mlx-version
 
-   ;; device
+   ;;;; device
    #:*mlx-device*
    #:mlx-device
    #:mlx-device-type
    #:mlx-device-index
    #:with-mlx-device
 
-   ;; stream
+   ;;;; stream
    #:*mlx-stream*
    #:mlx-stream
    #:mlx-cpu-stream
@@ -47,11 +47,10 @@
    #:mlx-stream-equal
    #:mlx-stream-device
    #:mlx-stream-index
-   #:synchronize
    #:default-mlx-cpu-stream
    #:default-mlx-gpu-stream
 
-   ;; array
+   ;;;; array
    #:*default-mlx-int-dtype*
    #:*default-mlx-dtype*
    #:*default-mlx-float-dtype*
@@ -67,176 +66,126 @@
    #:shape
    #:strides
 
-   ;; ops
-   #:add
-   #:sub
-   #:div
-   #:mul
+   ;;;; ops
+   ;;; config
+   #:*relative-tolerance*
+   #:*absolute-tolerance*
+   #:*nan-equal-p*
+   #:*keep-dim-p*
 
-   #:+
-   #:-
-   #:*
-   #:/
+   ;;; wraping
+   #:add #:+
+   #:sub #:-
+   #:div #:*
+   #:mul #:/
 
-   #:abs
-   #:addmm
-   #:all-axes
-   #:all-axis
-   #:all
-   #:all-close
-   #:any-axes
-   #:any-axis
-   #:any
-   #:arange
-   #:arccos
-   #:arccosh
-   #:arcsin
-   #:arcsinh
-   #:arctan
-   #:arctan2
-   #:arctanh
-   #:argmax
-   #:argmin
-   #:argpartition
-   #:argsort
+   ;; (op ARRAY)
+   #:abs #:erfinv #:square #:sqrt #:rsqrt
+   #:sin #:cos #:tan #:sinh #:cosh #:tanh
+   #:asin #:acos #:atan #:asinh #:acosh #:atanh
+   #:expm1 #:loge #:log10 #:log2 #:sign
+   #:imagpart #:realpart #:copy
+   #:degrees #:radians
+   #:inf-p #:finite-p #:nan-p #:neg-inf-p #:pos-inf-p
+   #:not #:¬ #:negative #:reciprocal #:erf #:stop-gradient
+   #:hadamard-transform #:conjugate #:lognot #:log1+
+   #:sigmoid
+
+   ;; (op ARRAY &optional (DTYPE *default-mlx-dtype*))
+   #:as-type #:view
+
+   ;; (op A B)
+   #:add #:sub #:mul #:div #:mod #:remainder #:expt
+   #:matmul #:inner #:outter #:kron #:logaddexp
+   #:atan2 #:op2< #:op2<= #:op2> #:op2>=
+   #:op2and #:logical-and #:op2or #:logical-or
+   #:logand #:bit-and #:logxor #:bit-xor #:logior #:bit-ior #:bit-or
+
+   ;; (op ELEM &rest MORE-ELEM)
+   #:+ #:- #:* #:/ #:and #:∧ #:or #:∨
+
+   ;; (op ELEM &rest MORE-ELEM)
+   #:at-least-1d #:at-least-2d #:at-least-3d
+
+   ;; (op ARRAY &key axis/axes (ddof 0) (keep-dim-p *keep-dim-p*))
+   #:std #:var
+
+   ;; (op ARRAY &key axis/axes (keep-dim-p *keep-dim-p*))
+   #:all #:any #:maximum #:minimum #:mean #:prod #:logsumexp #:sum
+
+   ;; (op ARRAY &key AXIS/AXES)
+   #:softmax #:squeeze
+
+   ;; (op ARRAY &key AXIS (KEEP-DIM-P *keep-dim-p*))
+   #:argmin #:argmax
+
+   ;; (op ARRAY &key axis)
+   #:argsort #:sort #:stack
+
+   ;; (op (ARRAY :dim 2) &key diag/diagonal)
+   #:tri-lower #:tril #:tri-upper #:triu
+
+   ;; (op ARRAY SHAPE &key DTYPE)
+   #:ones #:zeros
+
+   ;; (op ARRAY &key AXIS REVERSE INCLUDSIVE)
+   #:cummax #:cummin #:cumprod #:cumsum #:logsumsumexp
+
+   ;; (op ELEM &rest MORE-ELEM)
    #:=
-   #:strided<-
-   #:type<-
+
+   ;; (op ELEM &rest MORE-ELEM)
+   #:<= #:< #:>= #:>
+
+   ;; (op ELEM &rest MORE-ELEM)
+   #:~= #:/=
+
+   ;;; op manual bindings
+   #:addmm
+   #:op2~=
+   #:arange
+   #:argpartition
+   #:partition
+   #:as-strided
    #:atleast
-   #:bitwise-and
-   #:bitwise-invert
-   #:bitwise-or
-   #:bitwise-xor
-   #:block-masked-mm
-   #:block-size
-   #:broadcast-arrays
    #:broadcast-to
-   #:ceil
+   #:floor
+   #:ceiling
    #:clip
-   #:concatenate
-   #:conjugate
+   #:concat
    #:contiguous
-   #:conv
-   #:copy
-   #:cos
-   #:cosh
-   #:cummax
-   #:cummin
-   #:cumprod
-   #:cumsum
-   #:degrees
-   #:depends
-   #:dequantize
    #:diag
-   #:diagonal
-   #:mod
    #:einsum
-   #:equal
-   #:erf
-   #:erfinv
-   #:exp
    #:expand-dims
-   #:expm1
    #:eye
    #:flatten
-   #:floor
    #:full
-   #:gather
-   #:>
-   #:>=
-   #:hadamard-transform
    #:identity
-   #:imag
-   #:inner
-   #:close-p
-   #:finite-p
-   #:inf-p
-   #:nan-p
-   #:neg-inf-p
-   #:pos-inf-p
-   #:kron
-   #:left-shift
-   #:<
-   #:<=
    #:linspace
-   #:log
-   #:log10
-   #:log1p
-   #:log2
-   #:logaddexp
-   #:logcumsumexp
-   #:logical-and
-   #:logical-not
-   #:logsumexp
-   #:@
-   #:max
-   #:maximum
-   #:mean
    #:meshgrid
-   #:min
-   #:minimum
    #:moveaxis
    #:num<-nan
-   #:negative
-   #:/=
-   #:number-of-elements
-   #:ones
-   #:outer
-   #:pad
-   #:partition
-   #:power
-   #:prod
    #:put-along-axis
    #:quantize
    #:quantized-matmul
-   #:radians
-   #:real
-   #:reciprocal
-   #:remainder
    #:repeat
-   #:reshape
-   #:right-shift
+   #:ash
    #:roll
    #:round
-   #:rsqrt
    #:scatter
-   #:scatter+
-   #:scatter-max
-   #:scatter-min
-   #:scatter-prod
-   #:segmented-mm
-   #:sigmoid
-   #:sign
-   #:sin
-   #:sinh
+   #:op2=
+   #:op2/=
+   #:reshape
    #:slice
-   #:softmax
-   #:sort
    #:split
-   #:sqrt
-   #:square
-   #:squeeze
-   #:stack
-   #:std
-   #:stop-gradient
    #:swap-axes
-   #:sum
    #:take
-   #:tan
-   #:tanh
    #:tensordot
    #:tile
    #:topk
    #:trace
-   #:transpose
    #:tri
-   #:tri-upper
-   #:tri-lower
    #:unflatten
-   #:var
-   #:view
-   #:where
-   #:zeros
 
    ;; metal
    #:metal-available-p
