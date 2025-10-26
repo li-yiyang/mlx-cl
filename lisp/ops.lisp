@@ -212,7 +212,8 @@ object and call default method.
                ,@(if arrayp
                      (if rest
                          (if (listp name)
-                             (error "Don't know how to setf ~A" name)
+                             `((declare (ignore ,@(mapcar #'atomize keys)))
+                               (apply (function ,name) ,@call-args ,rest))
                              `((declare (ignore ,@(mapcar #'atomize keys)))
                                (apply #',name ,@call-args ,rest)))
                          (if (listp name)
@@ -778,6 +779,10 @@ if unspecified, apply on the flattened array")
     (atol* :double)
     (equal-nan-p :bool)))
 
+;; TODO: #mlx-cl #syntax
+;; introduce `~' syntax for range:
+;; + (arange (~ start stop step))
+;; + (arange start stop step)
 (defun %arange (start stop step dtype
                 &aux (dtype! (ensure-mlx-dtype dtype)))
   (declare (type real start stop step))
@@ -1416,42 +1421,166 @@ Parameters:
       (shape* :pointer)
       (len    :size))))
 
+(defun decode-~-expr (expr)
+  "Decode (~ start &optional stop step) as (~ start stop step).
+
+Dev Note:
+Will not evaluate expression, use it at `parse-mlx-slice-index'
+and `~' macro. "
+  (if (and (symbolp (first expr))
+           (string= (first expr) "~"))
+      (destructuring-bind (start &optional (stop nil stop?) (step 1 step?))
+          (rest expr)
+        (if stop?
+            (if (cl:eq stop :step)
+                (if step?
+                    `(~ 0 ,start ,step)
+                    (error "Missing `:step' value for `~~' syntax (~~ start :step step). "))
+                `(~ ,start ,stop ,step))
+            `(~ 0 ,start ,step)))
+      (error "Invalid `~~' expression: ~A. " expr)))
+
+(defun parse-mlx-slice-index (index shape)
+  "Parse mlx slice INDEX.
+
+Rule:
++ list:           (~ start &optional stop step)
++ integer:        (~ integer (1+ integer) 1)
++ rational:
+  positive: (~ 0 ⌈rational * shape⌉ 1)
+  negative: (~ ⌊rational * shape⌋ shape 1)
++ symbol:
+  + `*', `:full':   (~ 0 shape 1)
+  + `:half': equal to `1/2'
+  + `:first': (~ 0 1 1) (`:second', `:third', ...)
+  + `:last': (~ (1- shape) shape 1)
+  + `:rest': (~ 1 shape 1)
+"
+  (declare (type (cl:or symbol list integer rational) index))
+  (etypecase index
+    (symbol (case index
+              ((:full :* *) `(~ 0 ,shape 1))
+              (:half     `(~ 0 ,(cl:ceiling shape 2) 1))
+              (:first    '(~ 0 1 1))
+              (:second   '(~ 1 2 1))
+              (:third    '(~ 2 3 1))
+              (:fourth   '(~ 3 4 1))
+              (:fifth    '(~ 4 5 1))
+              (:sixth    '(~ 5 6 1))
+              (:seventh  '(~ 6 7 1))
+              (:eighth   '(~ 7 8 1))
+              (:ninth    '(~ 8 9 1))
+              (:tenth    '(~ 9 10 1))
+              (:last     `(~ ,(1- shape) ,shape 1))
+              (:rest     `(~ 1 ,shape 1))
+              (:middle   `(~ ,(cl:floor shape 2) ,(1+ (cl:floor shape 2)) 1))
+              (t
+               (error "Unknown index syntax: ~A. " index))))
+    (list (ecase (car index)
+            (~ (destructuring-bind (start stop step)
+                   (rest index)
+                 `(~ ,(cl:mod start shape) ,(cl:mod stop shape) ,step)))
+            (~~ (destructuring-bind (start stop step)
+                    (rest index)
+                  `(~ ,(cl:mod start shape) ,(1+ (cl:mod stop shape)) ,step)))))
+    (integer  (if (cl:< index 0)
+                  `(~ ,(- shape index) ,(1+ (- shape index)) 1)
+                  `(~ ,index ,(1+ index) 1)))
+    (rational (cond ((cl:< -1 index 0)
+                     `(~ ,(cl:floor (cl:* shape index)) ,shape 1))
+                    ((cl:< 0 index 1)
+                     `(~ 0 ,(cl:ceiling (cl:* shape index)) 1))
+                    (t (error "Rational split ~A between (-1, 0) and (0, 1)."
+                              index))))))
+
+(defmacro ~ (&whole expr start &optional stop step)
+  "Generate range specification `~'.
+Return (~ start stop step).
+
+Syntax Example:
++ (~ 10)          <==> (~ 0 10 1)
++ (~ 10 :step -1) <==> (~ 0 10 -1)
++ (~ 0 20 -1)     <==> (~ 0 20 -1)
+
+Dev Note:
+See `mlx::decode-~-expr' for parsing.
+"
+  (declare (ignore start stop step))
+  `(list '~ ,@(rest (decode-~-expr expr))))
+
+(defmacro ~~ (&whole expr start &optional stop step)
+  "Generate range specification `~' with stop included.
+Return (~~ start stop step).
+
+Dev Note:
+it is experimental. "
+  (declare (ignore start stop step))
+  `(list '~~ ,@(rest (decode-~-expr expr))))
+
 ;; TODO: #mlx-cl #user-friendly
 ;; if not given SIZE, automatically determine it,
 ;; rather than raising error
-(defmlx-method slice (array start (axes sequence) &optional size)
+(defmlx-method slice (array &rest indexs)
   "Get/Set a sub-array from the input array."
-  :parameters ((start "index location to start the slice at")
-               (axes  "axes corresponding to the indices in START")
-               (size  "size of slice"))
-  :methods (((array  start (axes integer) &optional size)
-             (declare (type (cl:or integer sequence) size))
-             (slice array start (list axes) size)))
-  (declare (type (cl:or integer sequence) size))
-  (with-foreign<-sequence (axes* axes :int axes-num)
-    (with-foreign<-sequence (size* (sequencefy size) :int size-num)
-      (with-mlx-op "mlx_slice"
-        array
-        start
-        (axes*    :pointer)
-        (axes-num :int)
-        (size*    :pointer)
-        (size-num :int)))))
+  :parameters ((indexs  "indexs to slice array
+ + (~ start end &optional (step 1))
+ + integer => (~ integer (1+ integer) step)
+ +
+see `mlx::parse-mlx-slice-index'. "))
+  (let* ((len    (dim array))
+         (indexs (if (cl:< (cl:length indexs) len)
+                     (append indexs
+                             (loop :repeat (cl:- len (cl:length indexs))
+                                   :collect :full))
+                     indexs))
+         (ranges (mapcar #'parse-mlx-slice-index indexs (shape array)))
+         (size   (cl:* len (foreign-type-size :int))))
+    (with-foreign-pointer (start* size)
+      (with-foreign-pointer (stop* size)
+        (with-foreign-pointer (step* size)
+          (loop :for idx :from 0
+                :for (- start stop end) :in ranges
+                :do (setf (mem-aref start* :int idx) start
+                          (mem-aref stop*  :int idx) stop
+                          (mem-aref step*  :int idx) end))
+          (with-mlx-op "mlx_slice"
+            array
+            (start*   :pointer)
+            (len      :size)
+            (stop*    :pointer)
+            (len      :size)
+            (step*    :pointer)
+            (len      :size)))))))
 
-(defmlx-method (setf slice) (update array start (axes sequence) &optional size)
+(defmlx-method slice-update (array update &rest indexs)
   "Update slice. "
-  :methods (((update array start (axes integer) &optional size)
-             (declare (ignore size))
-             (setf (slice array start (list axes)) update)))
-  :parameters ((update "new values of setting slice"))
-  (declare (ignore size))
-  (with-foreign<-sequence (axes* axes :int len)
-    (with-mlx-op "mlx_slice_update_dynamic"
-      array
-      update
-      start
-      (axes* :pointer)
-      (len   :size))))
+  :parameters ((update "new values of setting slice")
+               (indexs "See `slice'"))
+  (let* ((len    (dim array))
+         (indexs (if (cl:< (cl:length indexs) len)
+                     (append indexs
+                             (loop :repeat (cl:- len (cl:length indexs))
+                                   :collect :full))
+                     indexs))
+         (ranges (mapcar #'parse-mlx-slice-index indexs (shape array)))
+         (size   (cl:* len (foreign-type-size :int))))
+    (with-foreign-pointer (start* size)
+      (with-foreign-pointer (stop* size)
+        (with-foreign-pointer (step* size)
+          (loop :for idx :from 0
+                :for (- start stop end) :in ranges
+                :do (setf (mem-aref start* :int idx) start
+                          (mem-aref stop*  :int idx) stop
+                          (mem-aref step*  :int idx) end))
+          (with-mlx-op "mlx_slice_update"
+            array
+            update
+            (start* :pointer)
+            (len    :size)
+            (stop*  :pointer)
+            (len    :size)
+            (step*  :pointer)
+            (len    :size)))))))
 
 (defmlx-method split (array (split-or-indices sequence) &key axis)
   "Split an array along a given axis."
@@ -1651,5 +1780,25 @@ Parameter:
 (defmethod equal ((arr1 mlx-array) (arr2 mlx-array))
   "See `op2='. "
   (lisp<- (op2= arr1 arr2)))
+
+(defmethod equal ((arr mlx-array) (num number))
+  (cl:and (null (shape arr))
+          (cl:= (lisp<- arr) num)))
+
+(defmethod equal ((num number) (arr mlx-array))
+  (equal arr num))
+
+(defmethod equal ((arr1 mlx-array) (arr2 array))
+  (equal (lisp<- arr1) arr2))
+
+(defmethod equal ((arr2 array) (arr1 mlx-array))
+  (equal (lisp<- arr1) arr2))
+
+(defmacro at* (array &rest indexs)
+  "Get ARRAY elements by INDEXS.
+Return `mlx-array' as lisp values.
+
+See `at' for INDEXS syntax. "
+  `(lisp<- (squeeze (slice ,array ,@indexs))))
 
 ;;;; ops.lisp ends here

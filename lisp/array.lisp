@@ -548,7 +548,7 @@ where nil is considered as boolean.
 
 ;;; Convert lisp value as `mlx-array'
 
-(defgeneric mlx-array (val &key dtype)
+(defgeneric mlx-array (val &key dtype shape &allow-other-keys)
   (:documentation
    "Convert VAL as MLX-ARRAY of DTYPE.
 

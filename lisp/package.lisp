@@ -67,6 +67,11 @@
    #:strides
 
    ;;;; ops
+   #:~
+   #:~~
+   #:at*
+   #:at
+
    ;;; config
    #:*relative-tolerance*
    #:*absolute-tolerance*
@@ -177,6 +182,7 @@
    #:op2/=
    #:reshape
    #:slice
+   #:slice-update
    #:split
    #:swap-axes
    #:take
@@ -194,6 +200,11 @@
    #:metal-device-max-buffer-length
    #:metal-device-max-recommanded-working-set-size
    #:metal-device-memory-size
+
+   ;;;; io
+   #:load-from
+   #:save-to
+   #:save
    ))
 
 (defpackage #:mlx-user
