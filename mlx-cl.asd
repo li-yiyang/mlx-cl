@@ -7,7 +7,8 @@
   :license "GPL"
   :version "0"
   :description "CL bindings for MLX"
-  :depends-on (:mlx-cl/lib :cffi :cffi-libffi :trivial-garbage)
+  :depends-on (:mlx-cl/lib :cffi :cffi-libffi :trivial-garbage
+               :str :numpy-file-format)
   :pathname "lisp"
   :components
   ((:file "package")
@@ -20,6 +21,7 @@
    (:file "ops"     :depends-on ("array" "vector"))
    (:file "version" :depends-on ("string"))
    (:file "metal"   :depends-on ("utils"))
+   (:file "io"      :depends-on ("array"))
    )
   :in-order-to ((test-op (test-op :mlx-cl/test))))
 
@@ -73,7 +75,9 @@
   :license "GPL"
   :version "0"
   :description "Use mlx-cl for image processing. "
-  :depends-on (:mlx-cl)
+  :depends-on (:mlx-cl
+               ;; io
+               :retrospectiff)
   :pathname "image"
   :components
   ((:file "package")

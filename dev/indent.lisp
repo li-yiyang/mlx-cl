@@ -10,4 +10,8 @@
 
 (define-indentation mlx::with-op-template (&lambda 4 &body))
 
+(define-indentation mlx::format-case (4 &body))
+
+(define-indentation mlx::defmlx-extension (4 &body))
+
 ;;;; indent.lisp
