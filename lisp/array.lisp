@@ -573,6 +573,8 @@ Parameters:
             &aux (dtype! (ensure-mlx-dtype dtype)))
     (wrap-as-mlx-array
      (ecase dtype!
+       (:bool
+        (mlx_array_new_bool (cl:not (zerop number))))
        ((:uint8 :uint16 :uint32 :uint64
          :int8  :int16  :int32  :int64)
         (mlx_array_new_int (truncate number)))

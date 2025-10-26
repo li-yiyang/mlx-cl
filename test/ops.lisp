@@ -62,4 +62,39 @@
      ((mlx-array 1.0) 1   *default-mlx-float-dtype* 2.0)
      (1 (mlx-array 1.0)   *default-mlx-float-dtype* 2.0))))
 
+(test mean
+  (let* ((*keep-dim-p* nil)
+         (x (mlx-array #2A((1 2) (3 4))))
+         (y (mean x :keep-dim-p t)))
+    (is (equal (mean x)  2.5))
+    (is (equal y         (mlx-array #2A((2.5)))))
+    (is (equal (shape y) '(1 1)))
+    (is (equal (mean x :axis 0) #(2 3)))
+    (is (equal (mean x :axis 1) #(1.5 3.5)))))
+
+(test var
+  (let* ((*keep-dim-p* nil)
+         (x (mlx-array #2A((1 2) (3 4))))
+         (y (var x :keep-dim-p t)))
+    (is (equal (var x)   1.25))
+    (is (equal y         (mlx-array #2A((1.25)))))
+    (is (equal (shape y) '(1 1)))
+    (is (equal (var x :axis 0) #(1 1)))
+    (is (equal (var x :axis 1) #(0.25 0.25))))
+
+  (let ((x (mlx-array #(1.0 2.0))))
+    (is (inf-p (var x :ddof 2))))
+
+  (let ((x (mlx-array #(1.0 2.0))))
+    (is (inf-p (var x :ddof 3)))))
+
+(test abs
+  (let ((a (mlx-array #(-1.0 1.0 -2.0 3.0))))
+    (is (equal (abs a) #(1.0 1.0 2.0 3.0)))))
+
+(test negative
+  (let ((a (mlx-array #(-1.0 1.0 -2.0 3.0))))
+    (is (equal (negative a) #(1.0 -1.0 2.0 -3.0)))
+    (is (equal (- a)        #(1.0 -1.0 2.0 -3.0)))))
+
 ;;;; ops.lisp ends here

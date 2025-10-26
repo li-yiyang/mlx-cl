@@ -51,6 +51,7 @@
    #:default-mlx-gpu-stream
 
    ;;;; array
+   #:mlx-array-error
    #:*default-mlx-int-dtype*
    #:*default-mlx-dtype*
    #:*default-mlx-float-dtype*
@@ -101,7 +102,7 @@
 
    ;; (op A B)
    #:add #:sub #:mul #:div #:mod #:remainder #:expt
-   #:matmul #:inner #:outter #:kron #:logaddexp
+   #:matmul #:inner #:outer #:kron #:logaddexp
    #:atan2 #:op2< #:op2<= #:op2> #:op2>=
    #:op2and #:logical-and #:op2or #:logical-or
    #:logand #:bit-and #:logxor #:bit-xor #:logior #:bit-ior #:bit-or

@@ -33,7 +33,8 @@
   :components
   ((:file "package")
    (:file "device" :depends-on ("package"))
-   (:file "ops"    :depends-on ("package")))
+   (:file "api"    :depends-on ("package"))
+   (:file "ops"    :depends-on ("api")))
   :perform (test-op (op c)
              (symbol-call :mlx-cl.test :run-tests)))
 

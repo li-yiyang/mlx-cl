@@ -724,7 +724,7 @@ if unspecified, apply on the flattened array")
          (loop :with res := ,initial-value
                :for (first . rest) :on (cons elem more-elem)
                :do (loop :for then :in rest
-                         :do (setf rest (,combine res (,compare first then))))
+                         :do (setf res (,combine res (,compare first then))))
                :finally (return res))))
   (~= "Approximate comparision of ELEM and MORE-ELEM. "
       :compare op2~=)
@@ -1076,7 +1076,9 @@ Parameters:
 if unspecified the output type is inferred from vals
 or `*default-mlx-dtype*'"))
   :methods ((((shape integer) value &key (dtype *default-mlx-dtype*))
-             (full (list shape) value :dtype dtype)))
+             (full (list shape) (mlx-array value) :dtype dtype))
+            (((shape sequence) value &key (dtype *default-mlx-dtype*))
+             (full shape (mlx-array value) :dtype dtype)))
   (with-foreign<-sequence (shape* shape :int len)
     (with-mlx-op "mlx_full"
       (shape* :pointer)
@@ -1777,6 +1779,12 @@ Parameter:
 
 ;; TODO: where
 
+(defmethod equal ((arr mlx-array) elem)
+  (equal (lisp<- arr) elem))
+
+(defmethod equal (elem (arr mlx-array))
+  (equal (lisp<- arr) elem))
+
 (defmethod equal ((arr1 mlx-array) (arr2 mlx-array))
   "See `op2='. "
   (lisp<- (op2= arr1 arr2)))
@@ -1786,7 +1794,8 @@ Parameter:
           (cl:= (lisp<- arr) num)))
 
 (defmethod equal ((num number) (arr mlx-array))
-  (equal arr num))
+  (cl:and (null (shape arr))
+          (cl:= (lisp<- arr) num)))
 
 (defmethod equal ((arr1 mlx-array) (arr2 array))
   (equal (lisp<- arr1) arr2))
