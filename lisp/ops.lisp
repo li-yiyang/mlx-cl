@@ -271,7 +271,7 @@ object and call default method.
   ((neg-inf-p "isneginf") "Test if element is negative inf. ")
   ((pos-inf-p "isposinf") "Test if element is positive inf. ")
 
-  ((not "logical_not") "Element-wise logical not. "
+  ((! "logical_not") "Element-wise logical not. "
    :aliaes (¬))
 
   (negative
@@ -410,10 +410,10 @@ type and the input dtype do not have the same size."))))
   ((/ div) "Element-wise ELEM divided by MORE-ELEM. "
    :return "`mlx-array' of division, or `reciprocal' of ELEM if no MORE-ELEM")
 
-  ((and op2and) "Logical `and' all ELEM and MORE-ELEM. "
+  ((&& op2and) "Logical `and' all ELEM and MORE-ELEM. "
    :dev-note "This would compute all the arguments (ELEM and MORE-ELEM). "
    :aliases (∧))
-  ((or  op2or)  "Logical `or' all ELEM and MORE-ELEM. "
+  ((||  op2or)  "Logical `or' all ELEM and MORE-ELEM. "
    :dev-note "This would compute all the arguments (ELEM and MORE-ELEM). "
    :aliases (∨)))
 
@@ -1700,18 +1700,15 @@ Parameters:
         array
         (k :int))))
 
-(defmlx-method trace (array
-                      &key (offset 0) (axis1 0) (axis2 1) (dtype (mlx-dtype array) dtype?)
-                      &aux (dtype! (if dtype? (ensure-mlx-dtype dtype) dtype)))
-  "Return the sum along a specified diagonal in the given array.
-
-Parameters:
-+ ARRAY: input array
-+ OFFSET: offset of the diagonal from the main diagonal.
-  Can be positive or negative. (default 0)
-+ AXIS1, AXIS2: axis of the 2-D sub-arrays from which the diagonals should be taken
-+ DTYPE: data type of the output array. (default `mlx-dtype' of ARRAY)
-"
+(defmlx-method tr (array
+                   &key (offset 0) (axis1 0) (axis2 1) (dtype (mlx-dtype array) dtype?)
+                   &aux (dtype! (if dtype? (ensure-mlx-dtype dtype) dtype)))
+  "Return the sum along a specified diagonal in the given array."
+  :parameters ((offset "offset of the diagonal from the main diagonal.
+Can be positive or negative. (default 0)")
+               (axis1 "first axis of the 2-D sub-array of the diagonals")
+               (axis2 "second axis of the 2-D sub-array of the diagonals")
+               (dtype "data type of the output array. (default `mlx-dtype' of ARRAY)"))
   (declare (type integer offset axis1 axis2))
   (with-mlx-op "mlx_trace"
     array
@@ -1723,14 +1720,11 @@ Parameters:
 ;; TODO: arrange
 
 (defmlx-method transpose (array &key axes)
-  "Transpose the dimensions of the ARRAY.
-Returns the transposed array.
-
-Parameters:
-+ ARRAY: Input array
-+ AXES: the source axis for each axis in the new array.
-  The default is to reverse the axes.
-"
+  "Transpose the dimensions of the ARRAY."
+  :return "transposed `mlx-array'"
+  :parameters ((axes "the source axis for each axis in the new array.
+The given AXES should be a list of axis as a reorder of ARRAY's axes.
+By default it is to reverse the axes like (reverse (shape array)). "))
   (declare (type (cl:or null sequence) axes))
   (cond ((null axes)
          (with-mlx-op "mlx_transpose"

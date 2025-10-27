@@ -16,9 +16,9 @@
    #:abs #:sqrt
    #:equal #:eq
    #:min #:max #:sort
-   #:and #:or #:not #:bit-and #:bit-ior #:bit-not #:bit-xor
+   #:bit-and #:bit-ior #:bit-not #:bit-xor
    #:logand #:logior #:lognot #:logxor
-   #:trace #:identity #:imagpart #:realpart #:ash
+   #:identity #:imagpart #:realpart #:ash
    #:expt #:round)
   (:reexport #:common-lisp)
   (:export
@@ -93,7 +93,7 @@
    #:imagpart #:realpart #:copy
    #:degrees #:radians
    #:inf-p #:finite-p #:nan-p #:neg-inf-p #:pos-inf-p
-   #:not #:¬ #:negative #:reciprocal #:erf #:stop-gradient
+   #:! #:¬ #:negative #:reciprocal #:erf #:stop-gradient
    #:hadamard-transform #:conjugate #:lognot #:log1+
    #:sigmoid
 
@@ -108,7 +108,7 @@
    #:logand #:bit-and #:logxor #:bit-xor #:logior #:bit-ior #:bit-or
 
    ;; (op ELEM &rest MORE-ELEM)
-   #:+ #:- #:* #:/ #:and #:∧ #:or #:∨
+   #:+ #:- #:* #:/ #:&& #:∧ #:|| #:∨
 
    ;; (op ELEM &rest MORE-ELEM)
    #:at-least-1d #:at-least-2d #:at-least-3d
@@ -190,7 +190,8 @@
    #:tensordot
    #:tile
    #:topk
-   #:trace
+   #:transpose
+   #:tr
    #:tri
    #:unflatten
 
