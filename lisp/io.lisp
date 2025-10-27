@@ -152,7 +152,8 @@ Syntax:
               (out (if output (pathname output)
                        (error "Missing `:output'. ")))
               (fmt (cl:or format (pathname-format out))))
-    (apply #'save-to arr out fmt args)))
+    (apply #'save-to arr out fmt args)
+    output))
 
 (defmethod mlx-array ((filespec pathname) &key)
   "Load `mlx-array' from FILESPEC. "

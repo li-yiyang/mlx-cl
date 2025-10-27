@@ -205,6 +205,10 @@
    #:metal-device-max-recommanded-working-set-size
    #:metal-device-memory-size
 
+   ;;;; sugar
+   #:dim= #:dim/= #:dim> #:dim< #:dim<= #:dim>=
+   #:->*
+
    ;;;; io
    #:load-from
    #:save-to

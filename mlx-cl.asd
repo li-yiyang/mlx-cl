@@ -22,6 +22,7 @@
    (:file "version" :depends-on ("string"))
    (:file "metal"   :depends-on ("utils"))
    (:file "io"      :depends-on ("array"))
+   (:file "sugar"   :depends-on ("array"))
    )
   :in-order-to ((test-op (test-op :mlx-cl/test))))
 
