@@ -138,14 +138,6 @@ Syntax:
 
 ;;; CL API mask
 
-(deftype or (&rest forms)
-  "Fallback to Common Lisp `cl:or' type. "
-  `(cl:or ,@forms))
-
-(deftype and (&rest forms)
-  "Fallback to Common Lisp `cl:and' type. "
-  `(cl:and ,@forms))
-
 (defgeneric equal (x y)
   (:documentation
    "Test if X and Y is equal to each other.
@@ -219,7 +211,9 @@ Dev: should implement `copy' method for each different type. ")
 
 (defun sequencefy (elem)
   "Turn ELEM as a sequence if ELEM is not a sequence. "
-  (if (typep elem 'sequence) elem (list elem)))
+  (if (typep elem 'sequence)
+      (map 'list #'identity elem)
+      (list elem)))
 
 (defun len<=2-listfy (elem)
   "Turn ELEM as a list with length <= 2. "

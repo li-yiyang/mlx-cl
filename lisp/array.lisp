@@ -275,6 +275,11 @@ Use `%mlx-dtype-coerce' for massive data convertion. "
   (ensure-success "mlx_array_eval"
     mlx-array mlx-array))
 
+;;; Internal API
+
+(defcsetfun "_mlx_array_is_contiguous" :bool
+  mlx-array mlx-array)
+
 
 ;;;; Highlevel
 
@@ -634,7 +639,9 @@ The output array would be declared with MLX-DTYPE. ")
     "Lisp OBJECT as lisp element"
     object)
   (:method ((arr mlx-array))
-    (let ((arr (as-strided arr)))
+    (let ((arr (if (_mlx_array_is_contiguous (mlx-object-pointer arr))
+                   (as-strided arr)
+                   (as-strided (contiguous arr)))))
       (mlx_array_eval  (mlx-object-pointer arr))
       (mlx_synchronize (mlx-object-pointer *mlx-stream*))
       (let ((shape (shape arr))
@@ -657,6 +664,28 @@ The output array would be declared with MLX-DTYPE. ")
                               (cffi-type<-mlx-dtype dtype)
                               shape
                               (lisp-type<-mlx-dtype dtype))))))))
+
+(defgeneric %steal-mlx-array-pointer (from to)
+  (:documentation
+   "Steal mlx-array pointer FROM to TO.
+
+Dev Note:
+This is very DANGEROUS operation which may lead to memory leak
+and foreign pointer multiple free. Use with causion.
+
+Behind the scene is:
+1. the finalization process of FROM and TO will both be canceled;
+2. the `mlx::mlx-object-pointer' of TO will immediately be freed;
+3. the `mlx::mlx-object-pointer' of FROM will be stealed by TO,
+   together with a finalization process attached to TO
+")
+  (:method ((from mlx-array) (to mlx-array))
+    (tg:cancel-finalization from)
+    (tg:cancel-finalization to)
+    (mlx_array_free (mlx-object-pointer to))
+    (let ((ptr (mlx-object-pointer from)))
+      (tg:finalize to (lambda () (mlx_array_free ptr)))
+      (setf (slot-value to 'pointer) ptr))))
 
 (defmethod equal ((arr1 mlx-array) (arr2 mlx-array))
   (cl:or (cl:eq arr1 arr2)

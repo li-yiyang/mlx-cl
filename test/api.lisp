@@ -130,4 +130,33 @@ add the test first and then pull a pr. "
     (is (equal (slice x :half 1) #3A(((3 4)))))
     (is (equal (squeeze (slice x :first :second :first)) 3))))
 
+
+(def-suite* conv-operation
+  :description "Testing for Conv relative operations. "
+  :in mlx-api)
+
+(test pad
+  (is (equal (pad #2A((1 2)
+                      (3 4)))
+             (pad #2A((1 2)
+                      (3 4))
+                  1))
+      "`pad' default padding width is 1")
+  (is (equal (pad #2A((1 2) (3 4)) 1)
+             #2A((0 0 0 0)
+                 (0 1 2 0)
+                 (0 3 4 0)
+                 (0 0 0 0)))
+      "`pad' around 2-D array. ")
+  (is (equal (pad #2A((1 2) (3 4)) '(0 1))
+             #2A((0 1 2 0)
+                 (0 3 4 0)))
+      "`pad' first axis with 0 padding, second axis with 1 padding. ")
+  (is (equal (pad #(1 2) '(1 . 2))
+             #(0 1 2 0 0))
+      "`pad' left with 1, right with 2")
+  (is (equal (pad #(1 2) 1 :mode :edge)
+             #(1 1 2 2))
+      "`pad' in `:edge' mode"))
+
 ;;;; api.lisp ends here

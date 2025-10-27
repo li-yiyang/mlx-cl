@@ -238,6 +238,7 @@ object and call default method.
     `(defmlx-method ,op (x) ,@docstring
        (with-mlx-op ,(sconc "mlx_" cffi) x))
   (abs         "Element-wise abs(X) = | X |. ")
+  (exp         "Element-wise exp(X). ")
   (erfinv      "Element wise error function erf^-1(X). ")
   (square      "Element wise X^2. ")
   (sqrt        "Element wise √X. ")
@@ -328,7 +329,7 @@ Transformation.")
        (with-mlx-op ,(sconc "mlx_" cffi)
          array
          (dtype! mlx-dtype)))
-  (as-type
+  ((as-type "astype")
    "Convert ARRAY as a different type. "
    :parameters ((dtype "the `mlx-dtype' to change to"))
    :aliases    (dtype<-))
@@ -965,16 +966,148 @@ Parameter:
     array
     ((if (cl:eq major :row) nil t) :bool)))
 
+(defun parse-pad-width (pad-width dim)
+  "Parse PAD-WIDTH as normalized input form.
 
+Rule:
++ integer: pad-width same for all DIM
++ (integer . integer):
++ (...)"
+  (flet ((parse-single (pad-width)
+           (etypecase pad-width
+             (integer                (cons pad-width pad-width))
+             ((cons integer integer) pad-width))))
+    (etypecase pad-width
+      (integer
+       (loop :with pad := (cons pad-width pad-width)
+             :repeat dim :collect pad))
+      ((cons integer integer)
+       (loop :repeat dim :collect pad-width))
+      (sequence (map 'list #'parse-single pad-width)))))
 
-;; (defun conv1d (input weight &key (stride 1) (padding 0) (dialation 1) (groups 1))
-;;   "")
+(let ((const (foreign-string-alloc "constant"))
+      (edge  (foreign-string-alloc "edge")))
+  (defmlx-method pad (array
+                      &optional (pad-width 1)
+                      &key (mode :constant) (fill nil fill?)
+                      &aux
+                        (dim       (dim array))
+                        (pw        (parse-pad-width pad-width dim))
+                        (pad-value (mlx-array fill))
+                        (mode*     (ecase (if (cl:and fill? fill) :const mode)
+                                     ((:const :constant) const)
+                                     ((:edge :replicate) edge))))
+    "Pad an array with a constant value. "
+    :parameters ((pad-width "number of padded values to add to the edges of each axis (default 1):
+ + integer: ((PAD-WIDTH . PAD-WIDTH) ... )
+   all axes are extended by the same number on each side
+ + sequence of integer: (pad-width ...)
+   all axis are extended by the same (before . after) = PAD-WIDTH
+ + ((before_0 . after_0) (before_1 . after_1) ... (before_N . after_N))
+   to pad over axis, each axis are defined like above
 
-;; (defun conv2d (input weight &key (stride 1) (padding 0) (dialation 1) (groups 1))
-;;   "")
+see `mlx::parse-pad-width'. ")
+                 (mode "padding mode (default `:constant')
+ + `:constant', `:const': pads with constant value (see FILL)
+ + `:edge', `:replicate': pads with edge values of ARRAY
 
-;; (defun conv3d (input weight &key (stride 1) (padding 0) (dialation 1) (groups 1))
-;;   "")
+If setting FILL, MODE will be forced set as `:constant'. ")
+                 (fill "value to fill the paddings (default `0')"))
+    :examples (("pad size 2 on both sides of every axis"
+                (pad array 2)
+                "...")
+               ("pad size 2 before and size 3 after for every axis"
+                (pad array '(2 . 3))
+                "...")
+               ("pad axis 0 by 1, pad axis 1 by 2"
+                (pad array '(1 2))
+                "...")
+               ("pad axis 0 before by 1, after by 2, pad axis 1 before by "))
+    (let* ((size (cl:* dim (foreign-type-size :int))))
+      (with-foreign-pointer (axes* size)
+        (with-foreign-pointer (low* size)
+          (with-foreign-pointer (high* size)
+            (loop :for axis :from 0
+                  :for (low . high) :in pw
+                  :do (setf (mem-aref axes* :int axis) axis
+                            (mem-aref low*  :int axis) low
+                            (mem-aref high* :int axis) high))
+            (with-mlx-op "mlx_pad"
+              array
+              (axes* :pointer)
+              (dim   :size)
+              (low*  :pointer)
+              (dim   :size)
+              (high* :pointer)
+              (dim   :size)
+              pad-value
+              (mode* :string))))))))
+
+;; TODO: #mlx-cl
+;; use `pad' for padding, which is eazy to use
+(with-op-template (op cffi docs
+                   (array    "input `mlx-array'
+ + (...) shape: will reshape it into 1 ... 1 form
+ + (N ... C) shape:
+   + N: batch size
+   + C: channels
+")
+                   (weight   "weight `mlx-array' of shape
+ + (...) shape: will reshape it into (1 ... 1) form
+ + (C_out ... C_in) shape:
+   + C_out: output channels
+   + C_in: input channels
+")
+                   (stride   "how far the WEIGHT kernel moves (default 1)
+
+Example:
++ stride=1: dense sampling
++ stride=2: skip one")
+                   (padding  "padding of ARRAY (default 0)")
+                   (dilation "how far apart the kernel elements are spaced (default 1)
+
+Example:
++ dilation=1: dense sampling, taking input ARRAY as contiguous
++ dilation=2: skip, taking input ARRAY like #_#_#")
+                   (groups   "divide input channels and output channels indepent groups (default 1)
+
+Example:
++ group=1: all input channels are connected to output channels
++ group=C_in: one kernel per input channel
++ 1 < group < C_in: split input channels into n GROUP subgroups"))
+    (let* ((dim (getf (rest docs) :dim))
+           (strides   (loop :repeat (1- dim) :collect (list (gensym "STRIDE")   'stride)))
+           (paddings  (loop :repeat (1- dim) :collect (list (gensym "PADDING")  'padding)))
+           (dilations (loop :repeat (1- dim) :collect (list (gensym "DILATION") 'dilation))))
+      `(defmlx-method ,op (array weight &key (stride 1) (padding 0) (dilation 1) (groups 1))
+         ,@docs
+         (declare (type (cl:or sequence integer) stride padding dilation)
+                  (type integer groups))
+         (destructuring-bind (stride &optional ,@strides)
+             (sequencefy stride)
+           (destructuring-bind (padding &optional ,@paddings)
+               (sequencefy padding)
+             (destructuring-bind (dilation &optional ,@dilations)
+                 (sequencefy dilation)
+               (with-mlx-op ,(sconc "mlx_" cffi)
+                 array
+                 weight
+                 (stride :int)
+                 ,@(loop :for (stride) :in strides
+                         :collect `(,stride :int))
+                 (padding :int)
+                 ,@(loop :for (padding) :in paddings
+                         :collect `(,padding :int))
+                 (dilation :int)
+                 ,@(loop :for (dilation) :in dilations
+                         :collect `(,dilation :int))
+                 (groups :int)))))))
+  (conv1d "1-D convolution over an input with several channels" :dim 1)
+  (conv2d "2-D convolution over an input with several channels" :dim 2)
+  (conv3d "3-D convolution over an input with several channels" :dim 3))
+
+;; TODO: #mlx-cl #missing
+;; conv-transpose1d...
 
 ;; (defmlx-method conv (input weight &key (stride 1) (padding 0) (dialation 1) (groups 1))
 ;;   "")
@@ -1030,7 +1163,7 @@ Parameter:
         (with-mlx-op "mlx_expand_dims_axes"
           array
           (axes* :pointer)
-          :size))))
+          (len :size)))))
 
 (defmlx-method eye ((shape sequence) &key (diag 0) (dtype *default-mlx-dtype*))
   "Create an identity matrix or a general diagonal matrix."
@@ -1121,7 +1254,10 @@ or `*default-mlx-dtype*'"))
 ;; store INDEXING cstring as constants for fater calling
 (let ((xy (foreign-string-alloc "xy"))
       (ij (foreign-string-alloc "ij")))
-  (defmlx-method meshgrid ((arrays sequence) &key spares (indexing :xy))
+  (defmlx-method meshgrid ((arrays sequence) &key spares (indexing :xy)
+                           &aux (idx (ecase indexing
+                                       (:xy xy)
+                                       (:ij ij))))
     "Generate multidimensional coordinate grids from 1-D coordinate arrays."
     :parameters ((arrays "a sequence of `mlx-array'")
                  (spares "return dense or spare array (default `nil')
@@ -1131,15 +1267,12 @@ or `*default-mlx-dtype*'"))
                  (indexing "how to index the output array
   + `:xy': Cartesian
   + `:ij': Matrix"))
-    (declare (type (member :xy :ij) indexing))
-    (with-foreign-string (idx (ecase indexing
-                                (:xy xy)
-                                (:ij ij)))
-      (with-array-vector<-sequence (vec arrays)
-        (with-mlx-op "mlx_meshgrid"
-          (vec :pointer)
-          ((cl:and spares t) :bool)
-          (idx :string))))))
+    (with-array-vector<-sequence (vec arrays)
+      (with-mlx-op ("mlx_meshgrid" :alloc mlx_vector_array_new
+                                   :wrap  wrap-as-mlx-array-list)
+        (vec :pointer)
+        ((cl:and spares t) :bool)
+        (idx :string)))))
 
 (defmlx-method moveaxis (array (from integer) (to integer))
   "Move an axis to a new position.

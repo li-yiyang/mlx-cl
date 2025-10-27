@@ -160,6 +160,8 @@
    #:clip
    #:concat
    #:contiguous
+   #:pad
+   #:conv1d #:conv2d #:conv3d
    #:diag
    #:einsum
    #:expand-dims
