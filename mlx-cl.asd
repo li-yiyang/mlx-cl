@@ -78,12 +78,14 @@
   :description "Use mlx-cl for image processing. "
   :depends-on (:mlx-cl
                ;; io
-               :retrospectiff)
+               :retrospectiff
+               :pngload
+               :zpng)
   :pathname "image"
   :components
   ((:file "package")
-   (:file "colorspace" :depends-on ("package"))
-   (:file "image"      :depends-on ("colorspace"))
+   (:file "image"      :depends-on ("package"))
+   (:file "colorspace" :depends-on ("image"))
    (:file "io"         :depends-on ("image"))))
 
 

@@ -4,6 +4,7 @@
   (:use :mlx-cl)
   (:export
    #:image
+   #:w #:h
    #:colorspace))
 
 (in-package :mlx-cl.image)
