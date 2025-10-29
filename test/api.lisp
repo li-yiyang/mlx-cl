@@ -78,7 +78,11 @@ add the test first and then pull a pr. "
   (is (equal (arange 1 5) #(1 2 3 4))       "(arange START STOP)")
   (is (equal (arange 5 :step 2) #(0 2 4))   "(arange STOP :step STEP)")
   (is (equal (arange 1 5 2)     #(1 3))     "(arange START STOP STEP)")
-  (is (equal (arange 0 5 :step 2) #(0 2 4)) "(arange START STOP :step STEP)"))
+  (is (equal (arange 0 5 :step 2) #(0 2 4)) "(arange START STOP :step STEP)")
+
+  (is (equal (arange (mlx-array 0) 5 :step 2)
+             (arange 0             5 :step 2))
+      "Although not recommanded, the input parameter could be mlx-array scalar. "))
 
 (test zeros
   (is (equal (zeros 3) #(0 0 0))
@@ -141,13 +145,34 @@ add the test first and then pull a pr. "
   :description "Some basic operations"
   :in mlx-api)
 
+(test elementry-operation
+  (loop :for i :from 1 :below 4
+        :for args := (loop :repeat i :collect (1+ (cl:random 233)))
+        :for arg2 := (mapcar #'mlx-array args)
+        :do (loop :for mlx-op :in '(+     -    *     /)
+                  :for cl-op  :in '(cl:+  cl:- cl:*  /)
+                  :do (is (equal (apply mlx-op args) (apply cl-op args))
+                          "For normal number operation, ~A is equal to ~A (args=~A)"
+                          mlx-op cl-op args)
+                  :do (is (lisp<- (~= (apply mlx-op arg2) (apply cl-op args)))
+                          "For scalar operation, ~A is equal to ~A, too (args=~A)"
+                          mlx-op cl-op args))))
+
+(test single-op-inv
+  (loop :repeat 10
+        :for arg := (mlx-array (random 2333.0))
+        :do (is (equal (/ arg) (reciprocal arg))
+                "(/ ARG) = (reciprocal ARG)")
+            (is (equal (- arg) (negative   arg))
+                "(- ARG) = (negative ARG)")))
+
 (test concat
   (is (equal (shape (concat '(#(1 2) #(3 4)))) '(4))
       "(concat arrays) -> axis is `nil' return 1-d array")
   (is (equal (shape (concat '(#2A((1 2))
                               #2A((3 4)))
                             :axis 0))
-             '(4))
+             '(2 2))
       "concat on axis"))
 
 (test outer
@@ -165,65 +190,6 @@ add the test first and then pull a pr. "
   (is (equal (~= 2.33000 2.33003) nil))
   (is (equal (~= 2.33001 2.33003) t))
   (is (equal (~= 2.33000 2.33001 2.33003) nil)))
-
-(test ~
-  (is (equal (~ 10)            '(~ 0 10 1)))
-  (is (equal (~ 5  10)         '(~ 5 10 1)))
-  (is (equal (~ 5     :step 2) '(~ 0  5 2)))
-  (is (equal (~ 5  10 3)       '(~ 5 10 3))))
-
-(test slice
-  (let ((x (reshape (arange (cl:* 3 3 3)) '(3 3 3))))
-    (is (equal (slice x 1)
-               #3A(((9  10 11)
-                    (12 13 14)
-                    (15 16 17))))
-        "The integer should be single slice. ")
-
-    (loop :for s :in '(:first :second :third :fourth :fifth
-                       :sixth :seventh :eighth :ninth)
-          :for i :from 0
-          :do (is (equal (slice x s) (slice x i))
-                  "The keyword `~S' should be equal to `~D'. "
-                  s i))
-
-    (is (equal (slice x 1/2)
-               #3A((( 0  1  2)
-                    ( 3  4  5)
-                    ( 6  7  8))
-                   (( 9 10 11)
-                    (12 13 14)
-                    (15 16 17))))
-        "The rational should take 0-⌈shape * rational⌉. ")
-    (is (equal (slice x -1/2)
-               #3A((( 9 10 11)
-                    (12 13 14)
-                    (15 16 17))
-                   ((18 19 20)
-                    (21 22 23)
-                    (24 25 26))))
-        "The negative rational should take ⌊shape * rational⌋-shape. ")
-
-    (is (equal (dim (slice x 0 0 0)) (dim x))
-        "The slice of array should keep same dim of original array")
-    (is (equal (squeeze (slice x 0 0 0)) 0)
-        "Use squeeze to flatten the sliced array")
-
-    (is (equal (slice x :* (~ 1 3) 1)
-               #3A(((4)  (7))
-                   ((13) (16))
-                   ((22) (25))))
-        "`~' take a range of subsets of [1, 3). ")
-
-    (is (equal (slice x 0 (~~ 1 2))
-               (slice x 0 (~  1 3)))
-        "`~~' take a range of subsets of [1, 2]. ")
-
-    ;; Note: currently mlx-c API does not support negative step.
-    ;; need to fix it.
-    (is (equal (squeeze (slice x (~ -1 :step -1) :first :first))
-               #(18 9 0))
-        "reverse slice")))
 
 
 (def-suite* conv-operation

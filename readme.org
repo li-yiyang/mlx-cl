@@ -7,3 +7,285 @@ data processing library.
 *WARNING*: currently is still unstable, API may crash,
 lake of sufficient test cases, may have unhandled FFI pointer memory leak.
 
+* Usage
+** Installation
+You need:
+a Common Lisp distribution (tested on SBCL 2.5.8, LispWorks Personal Edition 8.0.1),
+[[https://www.quicklisp.org][Quicklisp]] (Common Lisp package manager),
+and [[https://github.com/li-yiyang/mlx-cl][mlx-cl]] under where your quicklisp can find.
+
+#+html: <details><summary>A possible installation process</summary>
+
+Here's a possible installation process:
+
+#+name: installation-demo
+#+begin_src shell
+  > mkdir -pv ~/common-lisp/
+  > git clone --recursive https://github.com/li-yiyang/mlx-cl.git ~/common-lisp/mlx-cl
+  ...
+  > sbcl
+  This is SBCL 2.5.8, an implementation of ANSI Common Lisp.
+  More information about SBCL is available at <http://www.sbcl.org/>.
+
+  SBCL is free software, provided as is, with absolutely no warranty.
+  It is mostly in the public domain; some portions are provided under
+  BSD-style licenses.  See the CREDITS and COPYING files in the
+  distribution for more information.
+  To load "trivial-indent":
+    Load 1 ASDF system:
+      trivial-indent
+  ; Loading "trivial-indent"
+
+  ,* (ql:quickload :mlx-cl)
+  To load "mlx-cl":
+    Load 1 ASDF system:
+      mlx-cl
+  ; Loading "mlx-cl"
+  ..................................................
+  ................................................
+  (:mlx-cl)
+  ,* (in-package :mlx-user)
+  #<package "MLX-USER">
+  ,* (+ 1 '(2 3 4))
+  array([3, 4, 5], dtype=float32)
+#+end_src
+
+#+html: </details>
+
+** Systems and Packages
+:PROPERTIES:
+:header-args:lisp: :eval no
+:END:
+The core functionalities are provided within system =mlx-cl=:
+
+#+begin_src lisp
+  (ql:quickload :mlx-cl)
+#+end_src
+
+would loads the following packages:
++ =mlx-cl=: the core binding package,
+  if you are about to develop new packages, you should
+
+  #+begin_src lisp
+    (defpackage #:your-new-package-name
+      (:use :mlx-cl))
+  #+end_src
+
+  note that the API of =mlx-cl= overwrites =cl='s functions,
+  which makes =(:use :cl :mlx-cl)= difficult
++ =mlx-cl.fft=
++ =mlx-cl.linalg=
++ =mlx-cl.random=
++ =mlx-user= the following documentation are assumed to be written
+  under =mlx-user= package
+
+There are some subsystem(s) providing additional functionalities
+above =mlx-cl=:
++ =mlx-cl/image=: see [[image/readme.org][readme]] under =image= dir
+
+** Basic Operations
+:PROPERTIES:
+:header-args:lisp: :results verbatim :exports both :package mlx-user
+:END:
+
+See tests in [[test/api.lisp]] for more examples.
+
+*** Convert
+**** From Lisp to =mlx-array=
+To convert between =mlx-array= and Lisp array (data containers),
+use generic function =mlx-array=:
+
++ scalar to =mlx-array=
+
+  #+name: scalar-to-mlx-array
+  #+begin_src lisp
+    (mlx-array 2)
+  #+end_src
+
+  #+RESULTS: scalar-to-mlx-array
+  : array(2, dtype=int32)
++ list to =mlx-array=
+
+  #+name: list-to-mlx-array
+  #+begin_src lisp
+    (mlx-array '((1 2) (3 4)))
+  #+end_src
+
+  #+RESULTS: list-to-mlx-array
+  : array([[1, 2],
+  :        [3, 4]], dtype=uint64)
++ array to =mlx-array=
+
+  #+name: array-to-mlx-array
+  #+begin_src lisp
+    (mlx-array #3A(((1 2) (3 4))
+                   ((5 6) (7 8))))
+  #+end_src
+
+  #+RESULTS: array-to-mlx-array
+  : array([[[1, 2],
+  :         [3, 4]],
+  :        [[5, 6],
+  :         [7, 8]]], dtype=uint64)
+
+  note: use array, it's fast.
+
+You can implement methods to tell lisp how to convert your
+data into =mlx-array=.
+
+**** From =mlx-array= to Lisp
+Use =lisp<-= to convert =mlx-array= into Lisp value.
+
+*** Alloc =mlx-array=
++ Generate by range:
+  + =(arange [start] stop [step] &key step dtype)=
+
+    #+begin_src lisp
+      (arange 10)
+    #+end_src
+
+    #+RESULTS:
+    : array([0, 1, 2, ..., 7, 8, 9], dtype=float32)
+  + =(linspace start stop &optional num &key dtype)=
++ Generate array with constant values:
+  + =(zeros SHAPE &key DTYPE)=
+  + =(ones SHAPE &key DTYPE)=
+  + =(full SHAPE &optional VALUE &key DTYPE)=
+
+  #+begin_src lisp
+    (full '(5 5) 2333)
+  #+end_src
+
+  #+RESULTS:
+  : array([[2333, 2333, 2333, 2333, 2333],
+  :        [2333, 2333, 2333, 2333, 2333],
+  :        [2333, 2333, 2333, 2333, 2333],
+  :        [2333, 2333, 2333, 2333, 2333],
+  :        [2333, 2333, 2333, 2333, 2333]], dtype=uint64)
+
++ Generate coordinate grids:
+  + =(meshgrid arrays &key SPARES INDEXING)=
+
+    #+begin_src lisp
+      (meshgrid (list (arange -2 2)
+                      (arange -2 2)))
+    #+end_src
+
+    #+RESULTS:
+    : (array([[-2, -1, 0, 1],
+    :        [-2, -1, 0, 1],
+    :        [-2, -1, 0, 1],
+    :        [-2, -1, 0, 1]], dtype=float32)
+    :  array([[-2, -2, -2, -2],
+    :        [-1, -1, -1, -1],
+    :        [0, 0, 0, 0],
+    :        [1, 1, 1, 1]], dtype=float32))
+
+*** Indexing =mlx-array=
+Note: working on it now... 
+
+# + Use the highlevel API
+#   + =(at array &rest indexs)=
+#   + =(at* array &rest indexs)= (alias for =(lisp<- (at ...))=)
+
+#   the =indexs= could be
+#   + =(~ [start=0] stop [step=1] &key step)=
+#     + =(~ * * -1)= (equal to =(~ :step -1)=)
+#     + =(~ 0 * -1)= (equal to =(~ 0 -1 -1)=)
+#     + =(~ 5)= (equal to =(~ 0 5 1)=)
+#     + =(~ )= or just =~= (equal to =(~ 0 -1 -1)=)
+#   + integer
+#   + rational for first / last (negative) parts of axis
+#   + keywords for shortcuts, for example:
+#     + =:*= for all
+#     + =:first= for the first element on the corresponding axis
+#     + =:last= for the last element the corresponding axis
+#     + use =(documentation keyword 'mlx:slice)= to get the
+#       documentation of slice shortcuts documentations
+
+#   Examples:
+
+#   + take the all =(:*=) elements in first axis,
+#     second (=2=) element in second axis,
+#     =[0, 2)= elements in third axis:
+
+#     #+begin_src lisp
+#       (let ((arr (reshape (arange 0 9) '(3 3))))
+#         (at arr :* 2 (~ 0 2)))
+#     #+end_src
+
+#     this can also bewritten as:
+
+#     #+begin_src lisp
+#       (let ((arr (reshape (arange 0 9) '(3 3))))
+#         (at arr :all :second 1/2))
+#     #+end_src
+
+#     which means take all (=:all=) elements in first axis,
+#     second (=:second=) element in second axis,
+#     first half (=1/2=) in third axis.
+
+*** Operations
+MLX-CL overwrites a few of Common Lisp's methods (=cl:+=, =cl:-=, =cl:*=, =cl:/=, ...)
+as generic functions. So if you don't worry about some speed lost, you can do
+
+#+begin_src lisp
+  (+ 1 (* 2 3) (/ 10 5))
+#+end_src
+
+#+RESULTS:
+: 9 (4 bits, #x9, #o11, #b1001)
+
+as if you are using =cl:+=, =cl:-=, =cl:*=, =cl:/= (other functions are the same).
+
+For those functions that are not supported in normal common lisp functions:
+
+#+begin_src lisp
+  (+ 2 '(3 4 5))
+#+end_src
+
+#+RESULTS:
+: array([5, 6, 7], dtype=float32)
+
+they would be convert into =mlx-array= automatically. Use =lisp<-= to force
+convert =mlx-array= as lisp value.
+
+#+html: <details><summary>A example</summary>
+
+the following example came from my Image Processing homework:
+
+#+begin_src lisp :results none
+  (defun gauss-kernel (sigma &optional m
+                       &aux
+                         (m-min (1+ (* 2 (ceiling (* 3 sigma)))))
+                         (m-val (the (or null (integer 0)) (or m m-min))))
+    "Return a Gauss kernel matrix.
+
+  Definition:
+     gauss(x, y) = exp(- (x^2 + y^2) / (2 * sigma^2)) / (2 * pi * sigma^2)
+  "
+    (declare (type (real 0) sigma)
+             (type (or null integer) m))
+    (when (< m-val m-min)
+      (warn "Given m=~A is lower than m_min=~A. " m-val m-min))
+    (let ((half (/ (1- m-val) 2)))
+      (destructuring-bind (x y)
+          (meshgrid (list (arange (- half) (1+ half))
+                          (arange (- half) (1+ half))))
+        (let ((ker (exp (- (/ (+ (square x) (square y))
+                              (* 2 (square sigma)))))))
+          (/ ker (sum ker))))))
+#+end_src
+
+which would produce:
+
+#+begin_src lisp
+  (gauss-kernel 0.3)
+#+end_src
+
+#+RESULTS:
+: array([[1.47169e-05, 0.00380683, 1.47169e-05],
+:        [0.00380683, 0.984714, 0.00380683],
+:        [1.47169e-05, 0.00380683, 1.47169e-05]], dtype=float32)
+
+#+html: </details>

@@ -649,38 +649,39 @@ Otherwise, the LIST should be in valid shape. "
 
 ;;; Convert `mlx-array' to lisp values
 
+(defun lisp<-mlx-array (arr)
+  (declare (type mlx-array arr))
+  (let ((arr (as-strided (contiguous arr))))
+    (mlx_array_eval  (mlx-object-pointer arr))
+    (mlx_synchronize (mlx-object-pointer *mlx-stream*))
+    (let ((shape (shape arr))
+          (dtype (mlx-dtype arr)))
+      (if (endp shape) ;; scalar
+          (macrolet ((convert ()
+                       `(ecase dtype
+                          ,@(loop :for dtype :in +supported-mlx-dtypes+
+                                  :collect
+                                  `(,dtype (,(intern* 'mlx_array_item_ dtype)
+                                            (mlx-object-pointer arr)))))))
+            (convert))
+          (macrolet ((convert ()
+                       `(ecase dtype
+                          ,@(loop :for dtype :in +supported-mlx-dtypes+
+                                  :collect
+                                  `(,dtype (,(intern* 'mlx_array_data_ dtype)
+                                            (mlx-object-pointer arr)))))))
+            (array<-foreign (convert)
+                            (cffi-type<-mlx-dtype dtype)
+                            shape
+                            (lisp-type<-mlx-dtype dtype)))))))
+
 (defgeneric lisp<- (array)
   (:documentation
    "Convert MLX ARRAY into Lisp elements.
 
 The output array would be declared with MLX-DTYPE. ")
-  (:method (object)
-    "Lisp OBJECT as lisp element"
-    object)
-  (:method ((arr mlx-array))
-    (let ((arr (as-strided (contiguous arr))))
-      (mlx_array_eval  (mlx-object-pointer arr))
-      (mlx_synchronize (mlx-object-pointer *mlx-stream*))
-      (let ((shape (shape arr))
-            (dtype (mlx-dtype arr)))
-        (if (endp shape) ;; scalar
-            (macrolet ((convert ()
-                         `(ecase dtype
-                            ,@(loop :for dtype :in +supported-mlx-dtypes+
-                                    :collect
-                                    `(,dtype (,(intern* 'mlx_array_item_ dtype)
-                                              (mlx-object-pointer arr)))))))
-              (convert))
-            (macrolet ((convert ()
-                         `(ecase dtype
-                            ,@(loop :for dtype :in +supported-mlx-dtypes+
-                                    :collect
-                                    `(,dtype (,(intern* 'mlx_array_data_ dtype)
-                                              (mlx-object-pointer arr)))))))
-              (array<-foreign (convert)
-                              (cffi-type<-mlx-dtype dtype)
-                              shape
-                              (lisp-type<-mlx-dtype dtype))))))))
+  (:method (object)          object)
+  (:method ((arr mlx-array)) (lisp<-mlx-array arr)))
 
 (defgeneric %steal-mlx-array-pointer (from to)
   (:documentation
