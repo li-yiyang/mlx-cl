@@ -89,7 +89,7 @@ Use `mlx-stream' to create a new stream on `mlx-device'.
 (defun wrap-as-mlx-stream (pointer)
   (let ((stream (make-instance 'mlx-stream :pointer pointer)))
     (tg:finalize stream (lambda () (mlx_stream_free pointer)))
-    stream))
+    (the mlx-stream stream)))
 
 (defmethod string<- ((stream mlx-stream))
   (with-mlx-string& (str str&)

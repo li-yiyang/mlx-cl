@@ -64,7 +64,14 @@ add the test first and then pull a pr. "
     (mlx-array '((1 2) (3) (4 5)))))
 
 (test mlx-array-array
-  (is (equal (mlx-array #(1 2)) #(1 2))))
+  (is (equal (mlx-array #(1 2)) #(1 2)))
+
+  (let* ((arr (make-array '(2 2) :element-type '(unsigned-byte 8)
+                                 :initial-contents '((1 2) (3 4))))
+         (mlx (mlx-array arr)))
+    (is (equal (shape arr) (shape mlx)))
+    (is (equal (dtype arr) (dtype mlx)))
+    (is (equal (dtype mlx) :uint8))))
 
 (test arange
   (is (equal (arange 5)   #(0 1 2 3 4))     "(arange STOP)")
@@ -90,8 +97,44 @@ add the test first and then pull a pr. "
       "(ones mlx-array) => ones like"))
 
 (test full
+  (is (full 5 3) #(3 3 3 3 3)
+      "(full SHAPE CONST) return a array of SHAPE with each value as CONST")
   (is (equal (full '(2 2) 1) (ones  '(2 2))))
   (is (equal (full '(1 2) 0) (zeros '(1 2)))))
+
+
+(def-suite* mlx-array-attributes
+  :description "Get attributes from mlx-array. "
+  :in mlx-api)
+
+(test shape-of-number
+  (is (equal (shape 2.0) ())
+      "Shape of scalar is (). ")
+
+  (signals mlx::mlx-axis-error
+    (shape 2.0 :axis 1)
+    "The shape of scalar does not have axis. "))
+
+(test shape-of-list
+  (let ((lst '((1 2 3) (4 5 6))))
+    (is (equal (shape lst) '(2 3)))
+    (is (equal (shape lst :axis 1) 3))
+    (is (equal (shape lst :axis '(1 0)) '(3 2)))
+    (is (equal (shape lst :axes '(1 0)) '(3 2)))))
+
+(test shape-of-array
+  (let ((arr (make-array '(2 3))))
+    (is (equal (shape arr) '(2 3)))
+    (is (equal (shape arr :axis 1) 3))
+    (is (equal (shape arr :axis '(1 0)) '(3 2)))
+    (is (equal (shape arr :axes '(1 0)) '(3 2)))))
+
+(test shape-of-mlx-array
+  (let ((arr (ones '(2 3))))
+    (is (equal (shape arr) '(2 3)))
+    (is (equal (shape arr :axis 1) 3))
+    (is (equal (shape arr :axis '(1 0)) '(3 2)))
+    (is (equal (shape arr :axes '(1 0)) '(3 2)))))
 
 
 (def-suite* basic-operations
@@ -123,12 +166,64 @@ add the test first and then pull a pr. "
   (is (equal (~= 2.33001 2.33003) t))
   (is (equal (~= 2.33000 2.33001 2.33003) nil)))
 
+(test ~
+  (is (equal (~ 10)            '(~ 0 10 1)))
+  (is (equal (~ 5  10)         '(~ 5 10 1)))
+  (is (equal (~ 5     :step 2) '(~ 0  5 2)))
+  (is (equal (~ 5  10 3)       '(~ 5 10 3))))
+
 (test slice
-  (let ((x (mlx-array '(((1 2) (3 4))
-                        ((5 6) (7 8))))))
-    (is (equal (slice x 1)       #3A(((5 6) (7 8)))))
-    (is (equal (slice x :half 1) #3A(((3 4)))))
-    (is (equal (squeeze (slice x :first :second :first)) 3))))
+  (let ((x (reshape (arange (cl:* 3 3 3)) '(3 3 3))))
+    (is (equal (slice x 1)
+               #3A(((9  10 11)
+                    (12 13 14)
+                    (15 16 17))))
+        "The integer should be single slice. ")
+
+    (loop :for s :in '(:first :second :third :fourth :fifth
+                       :sixth :seventh :eighth :ninth)
+          :for i :from 0
+          :do (is (equal (slice x s) (slice x i))
+                  "The keyword `~S' should be equal to `~D'. "
+                  s i))
+
+    (is (equal (slice x 1/2)
+               #3A((( 0  1  2)
+                    ( 3  4  5)
+                    ( 6  7  8))
+                   (( 9 10 11)
+                    (12 13 14)
+                    (15 16 17))))
+        "The rational should take 0-⌈shape * rational⌉. ")
+    (is (equal (slice x -1/2)
+               #3A((( 9 10 11)
+                    (12 13 14)
+                    (15 16 17))
+                   ((18 19 20)
+                    (21 22 23)
+                    (24 25 26))))
+        "The negative rational should take ⌊shape * rational⌋-shape. ")
+
+    (is (equal (dim (slice x 0 0 0)) (dim x))
+        "The slice of array should keep same dim of original array")
+    (is (equal (squeeze (slice x 0 0 0)) 0)
+        "Use squeeze to flatten the sliced array")
+
+    (is (equal (slice x :* (~ 1 3) 1)
+               #3A(((4)  (7))
+                   ((13) (16))
+                   ((22) (25))))
+        "`~' take a range of subsets of [1, 3). ")
+
+    (is (equal (slice x 0 (~~ 1 2))
+               (slice x 0 (~  1 3)))
+        "`~~' take a range of subsets of [1, 2]. ")
+
+    ;; Note: currently mlx-c API does not support negative step.
+    ;; need to fix it.
+    (is (equal (squeeze (slice x (~ -1 :step -1) :first :first))
+               #(18 9 0))
+        "reverse slice")))
 
 
 (def-suite* conv-operation

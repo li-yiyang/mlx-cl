@@ -66,7 +66,8 @@ Or use `mlx-device' to define a new device. "))
 
 (defun wrap-as-mlx-device (pointer)
   (let ((device (make-instance 'mlx-device :pointer pointer)))
-    (tg:finalize device (lambda () (mlx_device_free pointer)))))
+    (tg:finalize device (lambda () (mlx_device_free pointer)))
+    (the mlx-device device)))
 
 (defclass mlx-cpu-device (mlx-device)
   ((mlx-device-type :initform :cpu))

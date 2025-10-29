@@ -310,7 +310,7 @@ The computation on MLX-ARRAY is lazy. "))
 (defun wrap-as-mlx-array (pointer)
   (let ((array (make-instance 'mlx-array :pointer pointer)))
     (tg:finalize array (lambda () (mlx_array_free pointer)))
-    array))
+    (the mlx-array array)))
 
 (defun mlx-array-p (object)
   "Test if OBJECT is `mlx-array' or not. "
@@ -441,45 +441,55 @@ Examples:
 
 ;; SHAPE
 
-(defgeneric shape (object &key axis)
+(defgeneric shape (object &key axis axes)
   (:documentation
    "Return the shape of OBJECT.
 
 Parameter:
 + OBJECT: object to get the shape dimensions
 + AXIS:   integer of array axis dimsnsion,
-  if not given, by default return all the shape on each axes as a list
-  if given axis larger than OBJECT axis, will throw `mlx-axis-error'.
+  + nil or not given, default return all the shape on each axes as a list
+  + axis integer: return shape of the AXIS
+    if given axis larger than OBJECT axis, will throw `mlx-axis-error'.
+  + sequence of axis integer: return list of shape on AXES
++ AXES: alias of AXIS
 
 Examples:
 + scalar:                            shape of scalar is ()
 + empty array (1 dimensional array): shape of empty array is (0)
 ")
-  (:method ((number number) &key axis)
+  (:method ((number number) &key axis axes
+            &aux (axis* (cl:or axis axes nil)))
     "Shape of NUMBER (as scalar) is (). "
-    (declare (type (cl:or null (integer 0)) axis))
-    (when axis
-      (error 'mlx-axis-error :axis    axis
+    (declare (type (cl:or null integer sequence) axis*))
+    (when axis*
+      (error 'mlx-axis-error :axis    axis*
                              :array   number
                              :message (format nil "Shape of ~A (scalar) is (). "
                                               number))))
-  (:method ((array array) &key axis)
+  (:method ((array array) &key axis axes
+            &aux (axis* (cl:or axis axes nil)))
     "See `array-dimensions' and `array-dimension'. "
-    (declare (type (cl:or null integer) axis))
-    (if axis
-        (handler-case
-            (if (cl:< axis 0)
-                (array-dimension array (+ axis (length (array-dimensions array))))
-                (array-dimension array axis))
-          (error ()
-            (error 'mlx-axis-error :axis    axis
-                                   :array   array
-                                   :message (format nil
-                                                    "Shape of ~A is ~A. "
-                                                    array
-                                                    (array-dimensions array)))))
+    (declare (type (cl:or null integer sequence) axis*))
+    (if axis*
+        (let ((len (length (array-dimensions array))))
+          (flet ((got (axis)
+                   (handler-case
+                       (array-dimension array (cl:mod axis len))
+                     (error ()
+                       (error 'mlx-axis-error
+                              :axis    axis
+                              :array   array
+                              :message (format nil
+                                               "Shape of ~A is ~A. "
+                                               array
+                                               (array-dimensions array)))))))
+            (etypecase axis*
+              (integer  (got axis*))
+              (sequence (map 'list #'got axis*)))))
         (array-dimensions array)))
-  (:method ((list list) &key axis)
+  (:method ((list list) &key axis axes
+            &aux (axis* (cl:or axis axes nil)))
     "Shape of LIST.
 
 Shape would test on each axis of LIST to ensure they are
@@ -494,7 +504,7 @@ Note that shape of empty list () is (0);
 shape of list of single null (nil) is (1),
 where nil is considered as boolean.
 "
-    (declare (type (cl:or null integer) axis))
+    (declare (type (cl:or null integer sequence) axis))
     (labels ((err ()
                ;; raise error for invalid shape
                (error 'mlx-array-error
@@ -512,25 +522,34 @@ where nil is considered as boolean.
                                (cons (length lst) first-dim)
                                (err))))))))
       (let ((shape (if (endp list) '(0) (dim list))))
-        (if axis
-            (cl:or (if (cl:< axis 0)
-                       (unless (cl:< (+ axis (length shape)) 0)
-                         (nth (cl:+ axis (length shape)) shape))
-                       (nth axis shape))
-                   (error 'mlx-axis-error
-                          :axis    axis
-                          :array   list
-                          :message (format nil
-                                           "Shape of ~A is ~A. "
-                                           list shape)))
+        (if axis*
+            (flet ((got (axis)
+                     (cl:or (if (cl:< axis 0)
+                                (unless (cl:< (+ axis (length shape)) 0)
+                                  (nth (cl:+ axis (length shape)) shape))
+                                (nth axis shape))
+                            (error 'mlx-axis-error
+                                   :axis    axis
+                                   :array   list
+                                   :message (format nil
+                                                    "Shape of ~A is ~A. "
+                                                    list shape)))))
+              (etypecase axis*
+                (integer  (got axis*))
+                (sequence (map 'list #'got axis*))))
             shape))))
-  (:method ((array mlx-array) &key axis)
-    (declare (type (cl:or null integer) axis))
-    (if axis
-        (foreign-funcall "mlx_array_dim"
-                         :pointer (mlx-object-pointer array)
-                         :int     axis
-                         :size)
+  (:method ((array mlx-array) &key axis axes
+            &aux (axis* (cl:or axis axes nil)))
+    (declare (type (cl:or null integer sequence) axis*))
+    (if axis*
+        (flet ((got (axis)
+                 (foreign-funcall "mlx_array_dim"
+                                  :pointer (mlx-object-pointer array)
+                                  :int     axis
+                                  :size)))
+          (etypecase axis*
+            (integer  (got axis*))
+            (sequence (map 'list #'got axis*))))
         (sequence<-foreign (foreign-funcall
                             "mlx_array_shape"
                             :pointer (mlx-object-pointer array)
@@ -639,9 +658,7 @@ The output array would be declared with MLX-DTYPE. ")
     "Lisp OBJECT as lisp element"
     object)
   (:method ((arr mlx-array))
-    (let ((arr (if (_mlx_array_is_contiguous (mlx-object-pointer arr))
-                   (as-strided arr)
-                   (as-strided (contiguous arr)))))
+    (let ((arr (as-strided (contiguous arr))))
       (mlx_array_eval  (mlx-object-pointer arr))
       (mlx_synchronize (mlx-object-pointer *mlx-stream*))
       (let ((shape (shape arr))

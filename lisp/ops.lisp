@@ -1611,13 +1611,18 @@ Rule:
               (:middle   `(~ ,(cl:floor shape 2) ,(1+ (cl:floor shape 2)) 1))
               (t
                (error "Unknown index syntax: ~A. " index))))
-    (list (ecase (car index)
-            (~ (destructuring-bind (start stop step)
-                   (rest index)
-                 `(~ ,(cl:mod start shape) ,(cl:mod stop shape) ,step)))
-            (~~ (destructuring-bind (start stop step)
-                    (rest index)
-                  `(~ ,(cl:mod start shape) ,(1+ (cl:mod stop shape)) ,step)))))
+    (list (flet ((mod* (x) (if (cl:< x 0) (cl:mod x shape) x)))
+            (ecase (car index)
+              (~ (destructuring-bind (start stop step)
+                     (rest index)
+                   (when (cl:<= step 0)
+                     (error "does not support negative step: ~A" step))
+                   `(~ ,(mod* start) ,(mod* stop) ,step)))
+              (~~ (destructuring-bind (start stop step)
+                      (rest index)
+                   (when (cl:<= step 0)
+                     (error "does not support negative step: ~A" step))
+                    `(~ ,(mod* start) ,(1+ (mod* stop)) ,step))))))
     (integer  (if (cl:< index 0)
                   `(~ ,(- shape index) ,(1+ (- shape index)) 1)
                   `(~ ,index ,(1+ index) 1)))
@@ -1650,7 +1655,7 @@ Return (~~ start stop step).
 Dev Note:
 it is experimental. "
   (declare (ignore start stop step))
-  `(list '~~ ,@(rest (decode-~-expr expr))))
+  `(list '~~ ,@(rest (decode-~-expr (cons '~ (rest expr))))))
 
 ;; TODO: #mlx-cl #user-friendly
 ;; if not given SIZE, automatically determine it,

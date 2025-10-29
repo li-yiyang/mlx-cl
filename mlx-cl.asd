@@ -5,7 +5,7 @@
 (defsystem #:mlx-cl
   :author ("凉凉")
   :license "GPL"
-  :version "0"
+  :version "0.0.0"                      ; NEXT: 0.0.1 finish API test
   :description "CL bindings for MLX"
   :depends-on (:mlx-cl/lib :cffi :cffi-libffi :trivial-garbage
                :str :numpy-file-format)
@@ -16,20 +16,20 @@
    (:file "string"  :depends-on ("utils"))
    (:file "device"  :depends-on ("string"))
    (:file "stream"  :depends-on ("device"))
-   (:file "array"   :depends-on ("utils"))
+   (:file "array"   :depends-on ("utils")) ; NEXT: faster mlx-array with pointer, no copy
    (:file "vector"  :depends-on ("array"))
    (:file "ops"     :depends-on ("array" "vector"))
    (:file "version" :depends-on ("string"))
-   (:file "metal"   :depends-on ("utils"))
+   (:file "metal"   :depends-on ("utils")) ; NEXT: metal trace for debug
    (:file "io"      :depends-on ("array"))
-   (:file "sugar"   :depends-on ("array"))
+   (:file "sugar"   :depends-on ("array")) ; NEXT: math input #$ x * 2 => (* x 2)
    )
   :in-order-to ((test-op (test-op :mlx-cl/test))))
 
 (defsystem #:mlx-cl/test
   :author ("凉凉")
   :license "GPL"
-  :version "0"
+  :version "0.0.0"                      ; NEXT: 0.0.1 finish API test
   :description "Test for MLX-CL"
   :depends-on (:mlx-cl :fiveam)
   :pathname "test"
@@ -46,7 +46,7 @@
 (defsystem #:mlx-cl/lib
   :author ("凉凉")
   :license "MIT"
-  :version "0"
+  :version "0.0.0"
   :description "Compiling libmlxc.dylib. "
   :serial t
   :depends-on (:cffi)
@@ -60,7 +60,7 @@
 (defsystem #:mlx-cl/dev
   :author ("凉凉")
   :license "GPL"
-  :version "0"
+  :version "0.0.0"
   :description "For developping `mlx-cl', here's some dev tools. "
   :depends-on (:trivial-indent :mlx-cl)
   :pathname "dev"
@@ -74,7 +74,7 @@
 (defsystem #:mlx-cl/image
   :author ("凉凉")
   :license "GPL"
-  :version "0"
+  :version "0.0.0"                      ; NEXT: 0.0.1 colorspace, io
   :description "Use mlx-cl for image processing. "
   :depends-on (:mlx-cl
                ;; io
