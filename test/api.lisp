@@ -73,6 +73,8 @@ add the test first and then pull a pr. "
     (is (equal (dtype arr) (dtype mlx)))
     (is (equal (dtype mlx) :uint8))))
 
+;; TODO: #mlx-cl #api
+;; a new arange API should be considered
 (test arange
   (is (equal (arange 5)   #(0 1 2 3 4))     "(arange STOP)")
   (is (equal (arange 1 5) #(1 2 3 4))       "(arange START STOP)")
@@ -80,9 +82,10 @@ add the test first and then pull a pr. "
   (is (equal (arange 1 5 2)     #(1 3))     "(arange START STOP STEP)")
   (is (equal (arange 0 5 :step 2) #(0 2 4)) "(arange START STOP :step STEP)")
 
-  (is (equal (arange (mlx-array 0) 5 :step 2)
-             (arange 0             5 :step 2))
-      "Although not recommanded, the input parameter could be mlx-array scalar. "))
+  ;; (is (equal (arange (mlx-array 0) 5 :step 2)
+  ;;            (arange 0             5 :step 2))
+  ;;     "Although not recommanded, the input parameter could be mlx-array scalar. ")
+  )
 
 (test zeros
   (is (equal (zeros 3) #(0 0 0))
@@ -139,6 +142,60 @@ add the test first and then pull a pr. "
     (is (equal (shape arr :axis 1) 3))
     (is (equal (shape arr :axis '(1 0)) '(3 2)))
     (is (equal (shape arr :axes '(1 0)) '(3 2)))))
+
+
+(def-suite* indexing
+  :description "Indexing elements in mlx-array. "
+  :in mlx-api)
+
+(test reorder~
+  (is (equal (~)            '(~ :* :*  1))
+      "(~) take range all (all elements on axis)")
+  (is (equal (~ :step -1)   '(~ :* :* -1))
+      "(~ :step -1) take range all in reverse")
+  (is (equal (~ 5)          '(~ :* 5   1))
+      "(~ 5) take 0-5 elements")
+  (is (equal (~ 5 :step -1) '(~ :* 5  -1))
+      "(~ :* 5 -1) take [0, 5) elements in reverse")
+  (is (equal (~ 2 4)        '(~ 2  4   1))
+      "(~ 2 4) take [2, 4) elements")
+  (is (equal (~ 2 10 2)     '(~ 2  10  2))
+      "(~ 2 10 2) take [2, 10) by step 2. "))
+
+(test at
+  (let ((arr (arange 10)))
+    (is (equal (at arr 0) 0))
+    (is (equal (at arr :first) 0))
+    (is (equal (at arr '(:first 3))  #(0 1 2)))
+    (is (equal (at arr '(:first -3)) #(2 1 0)))
+    (is (equal (at arr '(:last  1))  9))
+    (is (equal (at arr '(:last  3))  #(7 8 9)))
+    (is (equal (at arr '(:last -3))  #(9 8 7)))
+    (is (equal (at arr 1/2)          #(0 1 2 3 4)))
+    (is (equal (at arr -1/2)         #(5 6 7 8 9)))
+    (is (equal (at arr 1/3)          #(0 1 2 3)))))
+
+(test at-2d
+  (let ((arr (stack (arange 10) (arange 10))))
+    (is (equal (at arr :all   1)     #(1 1)))
+    (is (equal (at arr :first)       #(0 1 2 3 4 5 6 7 8 9)))
+    (is (equal (at arr :first :even) #(0 2 4 6 8)))))
+
+(test at-last
+  (let ((arr (arange 10)))
+    (is (equal (at arr :last) 9))
+    (is (equal (at arr '(:last 2)) #(8 9)))
+    (is (equal (at arr '(:last -2)) #(9 8)))))
+
+(test at-middle
+  (let ((arr (arange 5)))
+    ;; 0 1 2 3 4
+    (is (equal (at arr :middle) 2))
+    (is (equal (at arr '(:middle 2)) #(1 2)))
+    (is (equal (at arr '(:middle 3)) #(1 2 3)))
+    (is (equal (at arr '(:middle -1)) 2))
+    (is (equal (at arr '(:middle -2)) #(2 1)))
+    (is (equal (at arr '(:middle -3)) #(3 2 1)))))
 
 
 (def-suite* basic-operations

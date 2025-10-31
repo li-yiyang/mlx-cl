@@ -72,6 +72,7 @@
    #:~~
    #:at*
    #:at
+   #:defmlx-slice
 
    ;;; config
    #:*relative-tolerance*
@@ -184,11 +185,8 @@
    #:op2=
    #:op2/=
    #:reshape
-   #:slice
-   #:slice-update
    #:split
    #:swap-axes
-   #:take
    #:tensordot
    #:tile
    #:topk

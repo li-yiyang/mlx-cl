@@ -182,48 +182,52 @@ Use =lisp<-= to convert =mlx-array= into Lisp value.
     :        [1, 1, 1, 1]], dtype=float32))
 
 *** Indexing =mlx-array=
-Note: working on it now... 
++ Use the highlevel API
+  + =(at array &rest indexs)=
+  + =(at* array &rest indexs)= (alias for =(lisp<- (at ...))=)
 
-# + Use the highlevel API
-#   + =(at array &rest indexs)=
-#   + =(at* array &rest indexs)= (alias for =(lisp<- (at ...))=)
+  the =indexs= could be
+  + =(~ [start=0] stop [step=1] &key step)=
+    + =(~ * * -1)= (equal to =(~ :step -1)=)
+    + =(~ 0 * -1)= (equal to =(~ 0 -1 -1)=)
+    + =(~ 5)= (equal to =(~ 0 5 1)=)
+    + =(~ )= or just =~= (equal to =(~ 0 -1 -1)=)
+  + integer
+  + rational for first / last (negative) parts of axis
+  + keywords for shortcuts, for example:
+    + =:*= for all
+    + =:first= for the first element on the corresponding axis
+    + =:last= for the last element the corresponding axis
+    + use =(documentation keyword 'mlx:slice)= to get the
+      documentation of slice shortcuts documentations
 
-#   the =indexs= could be
-#   + =(~ [start=0] stop [step=1] &key step)=
-#     + =(~ * * -1)= (equal to =(~ :step -1)=)
-#     + =(~ 0 * -1)= (equal to =(~ 0 -1 -1)=)
-#     + =(~ 5)= (equal to =(~ 0 5 1)=)
-#     + =(~ )= or just =~= (equal to =(~ 0 -1 -1)=)
-#   + integer
-#   + rational for first / last (negative) parts of axis
-#   + keywords for shortcuts, for example:
-#     + =:*= for all
-#     + =:first= for the first element on the corresponding axis
-#     + =:last= for the last element the corresponding axis
-#     + use =(documentation keyword 'mlx:slice)= to get the
-#       documentation of slice shortcuts documentations
+  Examples:
 
-#   Examples:
+  + take the all =(:*=) elements in first axis,
+    second (=2=) element in second axis,
+    =[0, 2)= elements in third axis:
 
-#   + take the all =(:*=) elements in first axis,
-#     second (=2=) element in second axis,
-#     =[0, 2)= elements in third axis:
+    #+begin_src lisp
+      (let ((arr (reshape (arange 0 9) '(3 3))))
+        (at arr :* 2 (~ 0 2)))
+    #+end_src
 
-#     #+begin_src lisp
-#       (let ((arr (reshape (arange 0 9) '(3 3))))
-#         (at arr :* 2 (~ 0 2)))
-#     #+end_src
+    #+RESULTS:
+    : array([2, 5, 8], dtype=float32)
 
-#     this can also bewritten as:
+    this can also bewritten as:
 
-#     #+begin_src lisp
-#       (let ((arr (reshape (arange 0 9) '(3 3))))
-#         (at arr :all :second 1/2))
-#     #+end_src
+    #+begin_src lisp
+      (let ((arr (reshape (arange 0 9) '(3 3))))
+        (at arr :all :second 1/2))
+    #+end_src
 
-#     which means take all (=:all=) elements in first axis,
-#     second (=:second=) element in second axis,
-#     first half (=1/2=) in third axis.
+    #+RESULTS:
+    : array([2, 5, 8], dtype=float32)
+
+    which means take all (=:all=) elements in first axis,
+    second (=:second=) element in second axis,
+    first half (=1/2=) in third axis.
 
 *** Operations
 MLX-CL overwrites a few of Common Lisp's methods (=cl:+=, =cl:-=, =cl:*=, =cl:/=, ...)

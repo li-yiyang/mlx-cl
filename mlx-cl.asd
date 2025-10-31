@@ -19,6 +19,7 @@
    (:file "array"   :depends-on ("utils")) ; NEXT: faster mlx-array with pointer, no copy
    (:file "vector"  :depends-on ("array"))
    (:file "ops"     :depends-on ("array" "vector"))
+   (:file "at"      :depends-on ("array"))
    (:file "version" :depends-on ("string"))
    (:file "metal"   :depends-on ("utils")) ; NEXT: metal trace for debug
    (:file "io"      :depends-on ("array"))

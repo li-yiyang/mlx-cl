@@ -232,37 +232,132 @@ object and call default method.
                `(defalias ,alias ,name))
            ',name)))))
 
+
+;;; Utils Sugar
+
+(with-op-template (op cffi docs
+                   (array "input `mlx-array'")
+                   (dim   "size to compare"))
+    `(defmacro ,op (array dim)
+       ,(apply #'gen-doc docs)
+       (list ',(intern (string-upcase cffi) :cl) (list 'dim array) dim))
+  ((dim= =) "Test if ARRAY's dim is equal to DIM. ")
+  ((dim< <) "Test if ARRAY's dim is less than DIM. ")
+  ((dim> >) "Test if ARRAY's dim is greater then DIM. ")
+  ((dim<= <=) "Test if ARRAY's dim is less than or equal to DIM. ")
+  ((dim>= >=) "Test if ARRAY's dim is greater than or equal to DIM. ")
+  ((dim/= /=) "Test if ARRAY's dim is not equal to DIM. "))
+
+(defmacro dtype= (array dtype)
+  "Test if ARRAY's mlx-dtype is equal to DTYPE. "
+  `(cl:eql (dtype ,array) ,dtype))
+
+;; Dev Note:
+;; the functions `bool<-', `num<-', `seq<-', `axis<-' are used to
+;; convert number / mlx-array into expected values. They should
+;; be used to construct generic function (ops) to support values
+;; be called samelessly between lisp and mlx-array.
+
+(declaim (inline bool<- num<- seq<- axis<-))
+
+(defun bool<- (obj)
+  (the boolean
+    (cl:and (typecase obj
+              (mlx-array
+               (assert (dim= obj 0))    ; scalar
+               (lisp<-mlx-array obj))
+              (t obj))
+            t)))
+
+(defun num<- (num)
+  (the number
+    (etypecase num
+      (number     num)
+      (mlx-array
+       (assert (dim= num 0))            ; scalar
+       (lisp<-mlx-array num)))))
+
+(defun seq<- (obj)
+  (etypecase obj
+    (number   (list obj))
+    (sequence obj)
+    (mlx-array
+     (cond ((dim= obj 0) (list (lisp<-mlx-array obj)))
+           ((dim= obj 1) (lisp<-mlx-array obj))
+           (t (error "Expecting dim to be 0 or 1 for ~A. " obj))))))
+
+(defun lst<- (obj)
+  (map 'list #'cl:identity (seq<- obj)))
+
+(defun axis<- (axis &optional default)
+  (etypecase axis
+    (null    default)
+    (integer axis)
+    (mlx-array
+     (assert (dim= axis 0))
+     (the integer (lisp<- axis)))))
+
+(defun axes<- (axis axes &optional default)
+  (let ((axis* (cl:or axis axes default)))
+    (cond ((mlx-array-p axis*)
+           (assert (cl:or (dim= axis* 1)
+                          (dim= axis* 0)))
+           (lisp<- axis*))
+          (t axis*))))
+
+
 ;; (op ARRAY)
 (with-op-template (op cffi docstring
                    (x "input array"))
-    `(defmlx-method ,op (x) ,@docstring
-       (with-mlx-op ,(sconc "mlx_" cffi) x))
-  (abs         "Element-wise abs(X) = | X |. ")
-  (exp         "Element-wise exp(X). ")
+    (let* ((plist (rest docstring))
+           (class (getf plist :cl-wrap-class 'number))
+           (fn    (getf plist :cl-wrap)))
+      `(defmlx-method ,op (x)
+         ,@docstring
+         ,@(when fn `(:methods ((((x ,class)) (,fn x)))))
+       (with-mlx-op ,(sconc "mlx_" cffi) x)))
+  (abs
+   "Element-wise abs(X) = | X |. "
+   :cl-wrap cl:abs)
+  (exp
+   "Element-wise exp(X). "
+   :cl-wrap cl:exp)
   (erfinv      "Element wise error function erf^-1(X). ")
-  (square      "Element wise X^2. ")
-  (sqrt        "Element wise √X. ")
-  (rsqrt       "Element wise √(1 / x). ")
-  (sin         "Element-wise sin(X). ")
-  (cos         "Element-wise cos(X). ")
-  (tan         "Element-wise tan(X). ")
-  (sinh        "Element-wise sinh(X). ")
-  (cosh        "Element-wise cosh(X). ")
-  (tanh        "Element-wise tanh(X). ")
-  (asin        "Element-wise arcsin(X). ")
-  (acos        "Element-wise arccos(X). ")
-  (atan        "Element-wise arctan(X). ")
-  (asinh       "Element-wise arcsinh(X). ")
-  (acosh       "Element-wise arccosh(X). ")
-  (atanh       "Element-wise arctanh(X). ")
+  (square
+   "Element wise X^2. "
+   :methods ((((x number)) (cl:* x x))))
+  (sqrt
+   #-lispworks "Element wise √X. "
+   #+lispworks "Element wise sqrt(X). "
+   :cl-wrap cl:sqrt)
+  (rsqrt
+   #-lispworks "Element wise √(1 / X). "
+   #+lispworks "Element wise sqrt(1 / X). "
+   :methods ((((x number)) (cl:sqrt (cl:/ x)))))
+  (sin         "Element-wise sin(X). "     :cl-wrap cl:sin)
+  (cos         "Element-wise cos(X). "     :cl-wrap cl:cos)
+  (tan         "Element-wise tan(X). "     :cl-wrap cl:tan)
+  (sinh        "Element-wise sinh(X). "    :cl-wrap cl:sinh)
+  (cosh        "Element-wise cosh(X). "    :cl-wrap cl:cosh)
+  (tanh        "Element-wise tanh(X). "    :cl-wrap cl:tanh)
+  (asin        "Element-wise arcsin(X). "  :cl-wrap cl:asin)
+  (acos        "Element-wise arccos(X). "  :cl-wrap cl:acos)
+  (atan        "Element-wise arctan(X). "  :cl-wrap cl:atan)
+  (asinh       "Element-wise arcsinh(X). " :cl-wrap cl:asinh)
+  (acosh       "Element-wise arccosh(X). " :cl-wrap cl:acosh)
+  (atanh       "Element-wise arctanh(X). " :cl-wrap cl:atanh)
   (expm1       "Element-wise exponential minus 1.")
-  (loge        "Element-wise ln(X). ")
+  (loge        "Element-wise ln(X). "      :cl-wrap cl:log)
   (log10       "Element-wise log10(X). ")
   (log2        "Element-wise log2(X). ")
   (sign        "Element-wise sign(X). ")
-  (imagpart    "Element imaginary part of X. ")
-  (realpart    "Element real part of X. ")
-  (copy        "Copy element. ")
+  (imagpart    "Element imaginary part of X. "
+               :cl-wrap cl:imagpart)
+  (realpart    "Element real part of X. "
+               :cl-wrap cl:realpart)
+  (copy
+   "Copy element. "
+   :cl-wrap cl:identity)
   (degrees     "Convert angles from radians to degrees. ")
   (radians     "Convert angles from degrees to radians. ")
 
@@ -273,14 +368,16 @@ object and call default method.
   ((pos-inf-p "isposinf") "Test if element is positive inf. ")
 
   ((! "logical_not") "Element-wise logical not. "
-   :aliaes (¬))
+   :aliaes #-lispworks (¬) #+lispworks ())
 
   (negative
    "Element wise -X. "
+   :cl-wrap cl:-
    :dev-note "`negative' is equal to calling (- X).
 See `-' for details. ")
   (reciprocal
    "Element wise 1/X. "
+   :cl-wrap cl:/
    :dev-note "`reciprocal' is equal to calling (/ X).
 See `/' for details. ")
 
@@ -298,9 +395,9 @@ through the array.")
 Return (hadamard-matrix(len(X)) @ X) * scale,
 where Hadamard Matrix is defined as
 
-          1  / H_{m-1}  H_{m-1}  \
-   H_m = --- |                   |
-         √2  \ H_{m-1}  -H_{m-1} /
+            1     / H_{m-1}  H_{m-1}  \
+   H_m = -------  |                   |
+         sqrt(2)  \ H_{m-1}  -H_{m-1} /
 
 The Hadamard Transformation could be considered as a general Fourier
 Transformation.")
@@ -347,42 +444,88 @@ type and the input dtype do not have the same size."))))
 (with-op-template (op cffi docs
                    (a "input array")
                    (b "input array"))
-    `(defmlx-method ,op (a b) ,@docs (with-mlx-op ,(sconc "mlx_" cffi) a b))
-  (add "Element-wise A + B. ")
-  ((sub "subtract") "Element-wise A - B. ")
-  ((mul "multiply") "Element-wise A * B. "
-   :note "See `matmul' or `@' for matrix multiply. ")
-  ((div "divide")   "Element-wise A / B. "
-   :note "See `inverse' for inverse matrix. ")
-  ((mod "divmod")   "Element-wise A % B. "
-   :definition "")
-  (remainder "Element-wise remainder of A / B. "
-             :definition "A = div * B + remainder")
-  ((expt "power") "Element-wise A ^ B. ")
+    (let* ((plist (rest docs))
+           (class (getf plist :cl-wrap-class 'number))
+           (fn    (getf plist :cl-wrap)))
+      `(defmlx-method ,op (a b)
+         ,@docs
+         ,@(when fn `(:methods ((((a ,class) (b ,class)) (,fn a b)))))
+         (with-mlx-op ,(sconc "mlx_" cffi) a b)))
+  (add
+   "Element-wise A + B. "
+   :cl-wrap cl:+
+   :aliases (op2+))
+  ((sub "subtract")
+   "Element-wise A - B. "
+   :cl-wrap cl:-
+   :aliases (op2-))
+  ((mul "multiply")
+   "Element-wise A * B. "
+   :cl-wrap cl:*
+   :note "See `matmul' or `@' for matrix multiply. "
+   :aliases (op2*))
+  ((div "divide")
+   "Element-wise A / B. "
+   :cl-wrap cl:/
+   :note "See `inverse' for inverse matrix. "
+   :aliases (op2/))
+  ((mod "divmod")
+   "Element-wise A % B. "
+   :cl-wrap cl:mod)
+  (remainder
+   "Element-wise remainder of A / B. "
+   :cl-wrap cl:mod
+   :definition "A = div * B + remainder")
+  ((expt "power")
+   "Element-wise A ^ B. "
+   :cl-wrap cl:expt)
   (matmul "Matrix multiplication. ")
   (inner "Inner product of A : B. "
          :definition "")
   (outer "Outter product of A × B. "
          :definition "")
-  (kron  "Kronecker product of A ⊗ B"
+
+  (kron  #-lispworks "Kronecker product of A ⊗ B"
+         #+lispworks "Kronecker product of A and B. "
          :definition "")
+
   (logaddexp "Element-wise log(exp(A) + exp(B)). ")
   ((atan2 "arctan2") "Element-wise arctan(A / B). "
    :dev-note "")
-  ((op2<  "less")          "Element-wise A < B. ")
-  ((op2<= "less_equal")    "Element-wise A <= B. ")
-  ((op2>  "greater")       "Element-wise A > B. ")
-  ((op2>= "greater_equal") "Element-wise A >= B. ")
+  ((op2<  "less")
+   "Element-wise A < B. "
+   :cl-wrap cl:<)
+  ((op2<= "less_equal")
+   "Element-wise A <= B. "
+   :cl-wrap cl:<=)
+  ((op2>  "greater")
+   "Element-wise A > B. "
+   :cl-wrap cl:>)
+  ((op2>= "greater_equal")
+   "Element-wise A >= B. "
+   :cl-wrap cl:>=)
 
-  ((op2and "logical_and") "Element-wise A ∧ B (A and B). "
+  ((op2max "maximum")
+   "Element-wise max of max(A, B). "
+   :cl-wrap cl:max)
+  ((op2min "minimum")
+   "Element-wise min of min(A, B). "
+   :cl-wrap cl:min)
+
+  ((op2and "logical_and") "Element-wise A and B. "
+   :cl-wrap cl:and
    :aliases (logical-and))
-  ((op2or  "logical_or")  "Element-wise A ∨ B (A or B). "
+  ((op2or  "logical_or")  "Element-wise A or B. "
+   :cl-wrap cl:or
    :aliases (logical-or))
   ((logand "bitwise_and") "Element-wise bitwise A & B (A bitand B). "
+   :cl-wrap cl:logand
    :aliases (bit-and))
   ((logxor "bitwise_xor") "Element-wise bitwise A ^ B (A bitxor B). "
+   :cl-wrap cl:logxor
    :aliases (bit-xor))
   ((logior "bitwise_ior") "Element-wise bitwise A | B (A bitor B). "
+   :cl-wrap cl:logior
    :aliases (bit-ior bit-or)))
 
 ;; (op ELEM &rest MORE-ELEM)
@@ -399,7 +542,7 @@ type and the input dtype do not have the same size."))))
         (rest docs)
       `(defun ,op (elem &rest more-elem)
          ,(apply #'gen-doc docs)
-         (if (endp more-elem) (mlx-array ,single)
+         (if (endp more-elem) ,single
              (reduce #',reduce more-elem :initial-value ,initial-value))))
   ((+ add) "Element-wise sum of ELEM and MORE-ELEM. "
    :return "`mlx-array' of sum")
@@ -409,14 +552,26 @@ type and the input dtype do not have the same size."))))
   ((* mul) "Element-wise multiply of ELEM and MORE-ELEM. "
    :return "`mlx-array' of multiplication")
   ((/ div) "Element-wise ELEM divided by MORE-ELEM. "
+   :single (reciprocal elem)
    :return "`mlx-array' of division, or `reciprocal' of ELEM if no MORE-ELEM")
+
+  ((min op2min) "Element-wise min. "
+   :return "`mlx-array' of element-wise min. ")
+  ((max op2max) "Element-wise max. "
+   :return "`mlx-array' of element-wise max. ")
 
   ((&& op2and) "Logical `and' all ELEM and MORE-ELEM. "
    :dev-note "This would compute all the arguments (ELEM and MORE-ELEM). "
-   :aliases (∧))
+   :aliases ( #-lispworks ∧ ))
   ((||  op2or)  "Logical `or' all ELEM and MORE-ELEM. "
    :dev-note "This would compute all the arguments (ELEM and MORE-ELEM). "
-   :aliases (∨)))
+   :aliases ( #-lispworks ∨ )))
+
+#+lispworks
+(defalias ∧ &&)
+
+#+lispworks
+(defalias ∨ ||)
 
 ;; (op ELEM &rest MORE-ELEM)
 ;; => apply MLX function (CFFI) on every elements
@@ -442,25 +597,28 @@ type and the input dtype do not have the same size."))))
                    (axes       "alias of axis")
                    (ddof       "delta degrees of freedom (default 0)")
                    (keep-dim-p "keep reduced axes as signelton dimensions (default nil)"))
-    `(defmlx-method ,op (array &key axis axes (ddof 0) (keep-dim-p *keep-dim-p*)
-                           &aux
-                             (axis* (cl:or axes axis nil))
-                             (keepdimsp (the boolean (cl:and keep-dim-p t))))
+    `(defmlx-method ,op (array &key axis axes (ddof 0) (keep-dim-p *keep-dim-p* keep-dim-p?)
+                         &aux
+                           (ddof* (num<- ddof))
+                           (axis* (axes<- axis axes nil))
+                           (keepdimsp (if keep-dim-p?
+                                          (bool<- keep-dim-p)
+                                          keep-dim-p)))
        ,@docs
-       (declare (type (or null integer sequence) axis*)
-                (type (integer 0) ddof))
+       (declare (type (or null integer sequence mlx-array) axis*)
+                (type (integer 0) ddof*))
        (etypecase axis*
          (null
           (with-mlx-op ,(sconc "mlx_" cffi)
             array
             (keepdimsp :bool)
-            (ddof      :int)))
+            (ddof*     :int)))
          (integer
           (with-mlx-op ,(sconc "mlx_" cffi "_axis")
             array
             (axis*     :int)
             (keepdimsp :bool)
-            (ddof      :int)))
+            (ddof*     :int)))
          (sequence
           (with-foreign<-sequence (axes axis* :int len)
             (with-mlx-op ,(sconc "mlx_" cffi "_axes")
@@ -468,7 +626,7 @@ type and the input dtype do not have the same size."))))
               (axes      :pointer)
               (len       :size)
               (keepdimsp :bool)
-              (ddof      :int))))))
+              (ddof*     :int))))))
   (std
    "Compute the standard deviation(s) over the given AXIS(AXES)."
    :definition "standard deviations = sqrt(var(ARRAY))")
@@ -484,9 +642,14 @@ type and the input dtype do not have the same size."))))
   + integer index: reduce on the specified AXIS
   + sequence of indexs: reduce on the specified AXES")
                    (axes  "alias of axis"))
-    `(defmlx-method ,op (array &key axis axes (keep-dim-p *keep-dim-p*)
-                         &aux (axis* (cl:or axis axes nil)))
+    `(defmlx-method ,op (array &key axis axes (keep-dim-p *keep-dim-p* keep-dim-p?)
+                         &aux
+                           (axis*     (axes<- axis axes nil))
+                           (keepdimsp (if keep-dim-p?
+                                          (bool<- keep-dim-p)
+                                          keep-dim-p)))
        ,@docs
+       (declare (type (or null integer sequence mlx-array) axis*))
        (etypecase axis*
          (null
           (with-mlx-op ,(sconc "mlx_" cffi)
@@ -528,9 +691,9 @@ type and the input dtype do not have the same size."))))
                    (array "input array")
                    (axes "alias of AXIS"))
     `(defmlx-method ,op (array &key axis axes
-                         &aux (axis* (cl:or axes axis
-                                            ,(getf (rest docs) :default-axis 0))))
+                         &aux (axis* (axes<- axis axes ,(getf (rest docs) :default-axis 0))))
        ,@docs
+       (declare (type (or null integer sequence mlx-array) axis*))
        (etypecase axis*
          (null
           (with-mlx-op ,(sconc "mlx_" cffi)
@@ -544,7 +707,9 @@ type and the input dtype do not have the same size."))))
             (with-mlx-op ,(sconc "mlx_" cffi "_axes")
               array
               (axes :pointer)
-              (len  :size))))))
+              (len  :size))))
+         (mlx-array
+          (,op array :axis (num/seq<- axis)))))
   (softmax
    "Perform the softmax along the given axis. "
    :default-axis 0
@@ -564,13 +729,14 @@ type and the input dtype do not have the same size."))))
 (with-op-template (op cffi docs
                    (axis "")
                    (keep-dim-p "keep reduced axes as singleton dimensions (default `nil')"))
-    `(defmlx-method ,op (array &key axis (keep-dim-p *keep-dim-p*))
+    `(defmlx-method ,op (array &key (axis nil axis?) (keep-dim-p *keep-dim-p*)
+                         &aux (axis* (if axis? (axis<- axis) axis)))
        ,@docs
-       (declare (type (cl:or null integer) axis))
-       (if axis
+       (declare (type (cl:or null integer) axis*))
+       (if axis*
            (with-mlx-op ,(sconc "mlx_" cffi "_axis")
              array
-             (axis :int)
+             (axis* :int)
              (keep-dim-p :bool))
            (with-mlx-op ,(sconc "mlx_" cffi)
              array
@@ -580,13 +746,14 @@ type and the input dtype do not have the same size."))))
 
 ;; (op ARRAY &key axis)
 (with-op-template (op cffi docs)
-    `(defmlx-method ,op (array &key (axis ,(getf (rest docs) :default-axis 0)))
+    `(defmlx-method ,op (&rest array &key (axis ,(getf (rest docs) :default-axis 0) axis?)
+                         &aux (axis* (if axis? (axis<- axis) axis)))
        ,@docs
-       (declare (type (cl:or null integer) axis))
-       (if axis
+       (declare (type (cl:or null integer) axis*))
+       (if axis*
            (with-mlx-op ,(sconc "mlx_" cffi "_axis")
              array
-             (axis :int))
+             (axis* :int))
            (with-mlx-op ,(sconc "mlx_" cffi)
              array)))
   (argsort
@@ -598,17 +765,14 @@ type and the input dtype do not have the same size."))))
   (sort
    "Stacks the arrays along a new axis."
    :default-axis -1
-   :parameters ((axis "")))
-  (stack
-   "Stacks the arrays along a new axis. "
-   :default-axis nil
-   :parameters ((axis "Returns a sorted copy of the array. "))))
+   :parameters ((axis ""))))
 
 ;; (op (ARRAY dim=2) &key diag/diagonal)
 (with-op-template (op cffi docs
                    (diagonal "diagonal of the 2-D array (default 0)")
                    (diag     "alias of DIAGONAL"))
-    `(defmlx-method ,op (array &key diag diagonal &aux (k (cl:or diagonal diag 0)))
+    `(defmlx-method ,op (array &key diag diagonal
+                         &aux (k (num<- (cl:or diagonal diag 0))))
        ,@docs
        (declare (type integer k))
        (assert (cl:= (dim array) 2))
@@ -645,17 +809,18 @@ if given as `mlx-array', will use shape of `mlx-array'"))
 ;; (op ARRAY &key AXIS REVERSE INCLUDSIVE)
 (with-op-template (op cffi docs
                    (axis       "optional axis to compute the cumulative result
-if unspecified, apply on the flattened array")
+if unspecified or `nil', apply on the flattened array")
                    (reverse    "if cumulative in reverse")
                    (includsive "whether the Nth element of output include the Nth element of input (default t)"))
     `(defmlx-method ,op (array &key axis (reverse nil) (includsive t)
                          &aux
-                           (reverse! (cl:and reverse t))
-                           (includsive! (cl:and includsive t)))
+                           (axis*       (if axis (num<- axis) nil))
+                           (reverse!    (bool<- reverse))
+                           (includsive! (bool<- includsive)))
        ,@docs
-       (declare (type (cl:or null integer) axis))
-       (let ((array (if axis array (reshape array '(-1))))
-             (axis  (cl:or axis 0)))
+       (declare (type (cl:or null integer) axis*))
+       (let ((array (if axis* array (reshape array '(-1))))
+             (axis  (cl:or axis* 0)))
          (with-mlx-op ,(sconc "mlx_" cffi)
            array
            (axis        :int)
@@ -741,13 +906,16 @@ if unspecified, apply on the flattened array")
 ;; + (add (mul alpha a b) (mul beta c))
 ;; where ALPHA and BETA are const value
 ;;
-(defmlx-method addmm (a b c &key (alpha 1.0) (beta 1.0))
+(defmlx-method addmm (a b c &key (alpha 1.0 alpha?) (beta 1.0 beta?)
+                      &aux
+                        (a* (if alpha? (num<- alpha) alpha))
+                        (b* (if beta?  (num<- beta)  beta)))
   "Matrix multiplication with addition and optional scaling."
   :return "ALPHA * (A @ B) + BETA * C."
   :parameters ((c     "input constant offset `mlx-array'")
                (alpha "scaling parameter for (A @ B)")
                (beta  "scaling parameter for constant offset C"))
-  (with-mlx-op "mlx_addmm" c a b (alpha :float) (beta :float)))
+  (with-mlx-op "mlx_addmm" c a b (a* :float) (b* :float)))
 
 (defmlx-method op2~= (array1 array2
                           &key
@@ -755,15 +923,15 @@ if unspecified, apply on the flattened array")
                             absolute-tolerance atol
                             (nan-equal-p *nan-equal-p*)
                           &aux
-                            (rtol* (coerce (cl:or relative-tolerance
-                                                  rtol
-                                                  *relative-tolerance*)
+                            (rtol* (coerce (num<- (cl:or relative-tolerance
+                                                         rtol
+                                                         *relative-tolerance*))
                                            'double-float))
-                            (atol* (coerce (cl:or absolute-tolerance
-                                                  atol
-                                                  *absolute-tolerance*)
+                            (atol* (coerce (num<- (cl:or absolute-tolerance
+                                                         atol
+                                                         *absolute-tolerance*))
                                            'double-float))
-                            (equal-nan-p (the boolean (cl:and nan-equal-p t))))
+                            (equal-nan-p (bool<- nan-equal-p)))
   "Approximate comparison of two arrays."
   :definition "all(abs(a - b) <= (atol + rtol * abs(b)))"
   :parameters ((relative-tolerance "relative tolerance (default `*relative-tolerance*')")
@@ -780,49 +948,6 @@ if unspecified, apply on the flattened array")
     (atol* :double)
     (equal-nan-p :bool)))
 
-;; TODO: #mlx-cl #syntax
-;; introduce `~' syntax for range:
-;; + (arange (~ start stop step))
-;; + (arange start stop step)
-(defun %arange (start stop step dtype
-                &aux (dtype! (ensure-mlx-dtype dtype)))
-  (declare (type real start stop step))
-  (let ((coerce (%mlx-dtype-coerce :float64)))
-    (with-mlx-op "mlx_arange"
-      ((funcall coerce start) :double)
-      ((funcall coerce stop)  :double)
-      ((funcall coerce step)  :double)
-      (dtype!                 mlx-dtype))))
-
-(defmacro arange (&rest range-specification)
-  "Generate ranges of numbers.
-Return `mlx-array'.
-
-Syntax:
-
-    (arange stop       &key dtype step)
-    (arange start stop &key dtype step)
-    (arange start stop step &key dtype)
-"
-  (multiple-value-bind (range keys)
-      (split-args-keys range-specification)
-    (let ((len (cl:length range)))
-      (cond ((cl:= len 1)
-             (destructuring-bind
-                 (&key (dtype *default-mlx-dtype*) (step  1))
-                 keys
-               `(%arange 0 ,@range ,step ,dtype)))
-            ((cl:= len 2)
-             (destructuring-bind
-                 (&key (dtype *default-mlx-dtype*) (step  1))
-                 keys
-               `(%arange ,@range ,step ,dtype)))
-            ((cl:= len 3)
-             (destructuring-bind
-                 (&key (dtype *default-mlx-dtype*))
-                 keys
-               `(%arange ,@range ,dtype)))))))
-
 (with-op-template (op cffi docs
                    (nth "element index at NTH position in the output will give the sorted position
 All indices before NTH position will be of elements less or equal to
@@ -831,14 +956,17 @@ greater or equal to the element at the NTH index")
                    (axis "optional axis to partition over (default -1, last axis)
   + `nil': partition over the flattened array
   + integer index: partition over axis"))
-    `(defmlx-method ,op (array (nth integer) &key (axis -1))
+    `(defmlx-method ,op (array (nth integer) &key (axis -1 axis?)
+                         &aux (axis* (if axis? (axis<- axis nil) axis)))
        ,@docs
-       (declare (type (cl:or null integer) axis))
-       (if axis
+       :methods (((array (nth mlx-array) &key (axis -1))
+                  (,op array (the integer (num<- nth)) :axis axis)))
+       (declare (type (cl:or null integer) axis*))
+       (if axis*
            (with-mlx-op ,(sconc "mlx_" cffi "_axis")
              array
-             (nth  :int)
-             (axis :int))
+             (nth   :int)
+             (axis* :int))
            (with-mlx-op ,(sconc "mlx_" cffi)
              array
              (nth  :int))))
@@ -847,9 +975,9 @@ greater or equal to the element at the NTH index")
 
 (defmlx-method as-strided (array &key shape strides (offset 0)
                            &aux
-                             (shape!   (if shape (sequencefy shape) (shape array)))
+                             (shape!   (if shape (seq<- shape) (shape array)))
                              (strides! (if strides
-                                           (sequencefy shape)
+                                           (seq<- shape)
                                            (flet ((list-cumprod (list)
                                                     "Cumprod of LIST. "
                                                     (loop :for elem :in list
@@ -884,10 +1012,11 @@ result into crashes."
         (strides-num :int)
         (offset      :size)))))
 
-(defmlx-method atleast (array &key (dim 1))
+(defmlx-method atleast (array &key (dim 1 dim?)
+                        &aux (dim* (if dim? (num<- dim) dim)))
   "Convert all ARRAY to have at least NDIM dimension. "
-  (declare (type (member 1 2 3) dim))
-  (ecase dim
+  (declare (type (member 1 2 3) dim*))
+  (ecase dim*
     (1 (at-least-1d array))
     (2 (at-least-2d array))
     (3 (at-least-3d array))))
@@ -900,7 +1029,8 @@ result into crashes."
   :note "The broadcasting semantics are the same as Numpy."
   :parameters ((array "input array")
                (shape "shape to broadcast to"))
-  :methods (((array (shape integer)) (broadcast-to array (list shape))))
+  :methods (((array (shape integer))   (broadcast-to array (list  shape)))
+            ((array (shape mlx-array)) (broadcast-to array (seq<- shape))))
   (with-foreign<-sequence (shape* shape :int len)
     (with-mlx-op "mlx_broadcast_to"
       array
@@ -908,9 +1038,14 @@ result into crashes."
       (len    :size))))
 
 (defmlx-method floor (array &optional divisor)
-  "⌊ARRAY / DIVISOR⌋"
+  #-lispworks "⌊ARRAY / DIVISOR⌋"
+  #+lispworks "floor(ARRAY / DIVISOR)"
   :parameters ((array   "input array")
                (divisor "by default, divisor is 1"))
+  :methods ((((num number) &optional (divisor 1))
+             (etypecase divisor
+               (mlx-array (floor (mlx-array num) divisor))
+               (number    (cl:floor num divisor)))))
   (if divisor
       (with-mlx-op "mlx_floor_divide"
         array
@@ -918,9 +1053,14 @@ result into crashes."
       (with-mlx-op "mlx_floor" array)))
 
 (defmlx-method ceiling (array &optional divisor)
-  "⌈ARRAY / DIVISOR⌉"
+  #-lispworks "⌈ARRAY / DIVISOR⌉"
+  #+lispworks "ceiling(ARRAY / DIVISOR)"
   :parameters ((array   "input array")
                (divisor "by default, divisor is 1"))
+  :methods ((((num number) &optional (divisor 1))
+             (etypecase divisor
+               (mlx-array (ceiling (div (mlx-array num) divisor)))
+               (number    (cl:ceiling num divisor)))))
   (if divisor
       (ceiling (div array divisor))
       (with-mlx-op "mlx_ceil" array)))
@@ -936,7 +1076,8 @@ result into crashes."
       ((ptr min) :pointer)
       ((ptr max) :pointer))))
 
-(defun concat (mlx-array-sequence &key axis)
+(defun concat (mlx-array-sequence &key axis
+               &aux (axis* (axis<- axis)))
   "Concatenate a sequence of `mlx-array' along the given AXIS.
 
 Parameter:
@@ -946,13 +1087,12 @@ Parameter:
   behind the scene;
 + AXIS: axis to concatenate along (default 0)"
   (declare (type sequence mlx-array-sequence)
-           (type (cl:or null integer) axis))
+           (type (cl:or null integer) axis*))
   (with-array-vector<-sequence (arrays mlx-array-sequence)
-    (if (cl:and (integerp axis)
-                (cl:not (zerop axis)))
+    (if axis*
         (with-mlx-op "mlx_concatenate_axis"
           (arrays :pointer)
-          (axis   :int))
+          (axis*  :int))
         (with-mlx-op "mlx_concatenate"
           (arrays :pointer)))))
 
@@ -1083,12 +1223,9 @@ Example:
          ,@docs
          (declare (type (cl:or sequence integer) stride padding dilation)
                   (type integer groups))
-         (destructuring-bind (stride &optional ,@strides)
-             (sequencefy stride)
-           (destructuring-bind (padding &optional ,@paddings)
-               (sequencefy padding)
-             (destructuring-bind (dilation &optional ,@dilations)
-                 (sequencefy dilation)
+         (destructuring-bind (stride &optional ,@strides) (lst<- stride)
+           (destructuring-bind (padding &optional ,@paddings) (lst<- padding)
+             (destructuring-bind (dilation &optional ,@dilations) (lst<- dilation)
                (with-mlx-op ,(sconc "mlx_" cffi)
                  array
                  weight
@@ -1120,17 +1257,17 @@ Example:
 ;; (defmlx-method dequantize (array ...))
 ;; (defmlx-method quantize   (array ...))
 
-(defmlx-method diag (array &optional (n 0))
+(defmlx-method diag (array &optional (n 0 n?) &aux (n* (if n? (num<- n) n)))
   "Extract a diagonal or construct a diagonal matrix."
   :return "extracted diagonal or the constructed diagonal matrix."
   :parameters ((array "input array
   + 1-D array: diagonal matrix is constructed with ARRAY on the Nth diagonal
   + 2-D array: Nth diagonal is returned")
                (n     "diagonal to extract or construct (default 0)"))
-  (declare (type integer n))
+  (declare (type integer n*))
   (with-mlx-op "mlx_diag"
     array
-    (n :int)))
+    (n* :int)))
 
 (defmlx-method einsum ((subscripts string) &rest operands)
   "Perform the Einstein summation convention on the operands."
@@ -1154,7 +1291,8 @@ Example:
   :parameters ((array "input array")
                (axis  "index of the inserted dimensions")
                (axes  "alias of AXIS"))
-  :methods    (((array (axes integer)) (expand-dims array (list axes))))
+  :methods    (((array (axes mlx-array)) (expand-dims array (seq<- axes)))
+               ((array (axes integer))   (expand-dims array (list  axes))))
   (if (cl:= (cl:length axes) 1)
       (with-mlx-op "mlx_expand_dims"
         array
@@ -1165,7 +1303,8 @@ Example:
           (axes* :pointer)
           (len :size)))))
 
-(defmlx-method eye ((shape sequence) &key (diag 0) (dtype *default-mlx-dtype*))
+(defmlx-method eye ((shape sequence) &key (diag 0 diag?) (dtype *default-mlx-dtype*)
+                    &aux (diag* (if diag? (num<- diag) diag)))
   "Create an identity matrix or a general diagonal matrix."
   :return "`mlx-array' where all elements are equal to zero,
 except for the DIAG diagonal, whose values are equal to one."
@@ -1174,29 +1313,30 @@ except for the DIAG diagonal, whose values are equal to one."
                (dtype "new matrix `mlx-dtype' (default `*default-mlx-dtype*')"))
   :methods ((((n integer) &key (diag 0) (dtype *default-mlx-dtype*))
              (eye (list n n) :diag diag :dtype dtype)))
+  (declare (type integer diag*))
   (destructuring-bind (n &optional (m n)) shape
     (with-mlx-op "mlx_eye"
       (n :int)
       (m :int)
-      (diag :int)
+      (diag* :int)
       (dtype mlx-dtype))))
 
-(defmlx-method flatten (array &key (start 0) (end -1))
-  "Flatten ARRAY between START axis and END axis.
-Return the flattend `mlx-array'.
-
-Parameters:
-+ ARRAY: input array
-+ START: the first dimension to flatten (default 0)
-+ END: the last dimension to flatten (default -1)
-"
-  (declare (type integer start end))
+(defmlx-method flatten (array &key (start 0 start?) (stop -1 stop?)
+                        &aux
+                          (start*  (if start? (num<- start) start))
+                          (stop*   (if stope? (num<- stop)  stop)))
+  "Flatten ARRAY between START axis and END axis. "
+  :return "flattend `mlx-array'."
+  :parameters ((start "the first dimension to flatten (default 0)")
+               (stop  "the last dimension to flatten (default -1)"))
+  (declare (type integer start* end*))
   (with-mlx-op "mlx_flatten"
     array
-    (start :int)
-    (end   :int)))
+    (start* :int)
+    (stop*  :int)))
 
-(defmlx-method full ((shape sequence) (value mlx-array)
+(defmlx-method full ((shape sequence)
+                     &optional (value 0)
                      &key (dtype (mlx-dtype value) dtype?)
                      &aux (dtype! (if (cl:and dtype? dtype)
                                       dtype
@@ -1204,14 +1344,12 @@ Parameters:
    "Construct an array of SHAPE filling with with the given VALUE."
   :return "a `mlx-array' of SHAPE filled with VALUE."
   :parameters ((shape "shape of the array")
-               (value "value to fill the array")
+               (value "value to fill the array (default 0)")
                (dtype "data type of the output array
 if unspecified the output type is inferred from vals
 or `*default-mlx-dtype*'"))
-  :methods ((((shape integer) value &key (dtype *default-mlx-dtype*))
-             (full (list shape) (mlx-array value) :dtype dtype))
-            (((shape sequence) value &key (dtype *default-mlx-dtype*))
-             (full shape (mlx-array value) :dtype dtype)))
+  :methods ((((shape integer) &optional (value 0) &key (dtype *default-mlx-dtype*))
+             (full (list shape) value :dtype dtype)))
   (with-foreign<-sequence (shape* shape :int len)
     (with-mlx-op "mlx_full"
       (shape* :pointer)
@@ -1271,17 +1409,17 @@ or `*default-mlx-dtype*'"))
       (with-mlx-op ("mlx_meshgrid" :alloc mlx_vector_array_new
                                    :wrap  wrap-as-mlx-array-list)
         (vec :pointer)
-        ((cl:and spares t) :bool)
+        ((bool<- spares) :bool)
         (idx :string)))))
 
 (defmlx-method moveaxis (array (from integer) (to integer))
-  "Move an axis to a new position.
-
-Parameter:
-+ ARRAY: input array
-+ FROM: source axis
-+ TO: destination axis
-"
+  "Move an axis to a new position."
+  :parameters ((from "source axis")
+               (to   "destination axis"))
+  :methods (((array (from mlx-array) to)
+             (moveaxis array (the integer (num<- from)) to))
+            ((array from (to mlx-array))
+             (moveaxis array from (the integer (num<- to)))))
   (with-mlx-op "mlx_moveaxis"
     array
     (from :int)
@@ -1305,7 +1443,8 @@ Parameter:
 ;; TODO: #mlx-cl #missing
 ;; (defgeneric pad (array axes ))
 
-(defmlx-method put-along-axis (array indices values &key axis)
+(defmlx-method put-along-axis (array indices values &key (axis nil axis?)
+                               &aux (axis* (if axis? (axis<- axis) axis)))
   "Put values along an axis at the specified indices.
 
 Parameters:
@@ -1319,12 +1458,12 @@ Parameters:
   + `nil': the ARRAY is flattened prior to the put operation.
 "
   (declare (type (cl:or integer null) axis))
-  (if axis
+  (if axis*
       (with-mlx-op "mlx_put_along_axis"
         array
         indices
         values
-        (axis :int))
+        (axis* :int))
       (let ((shape (shape array)))
         (reshape (put-along-axis (reshape array '(-1)) indices values :axis 0) shape))))
 
@@ -1362,22 +1501,18 @@ low-precision data types like 8-bit integer (int8) instead of the usual
                                  &key bias (transpose t) (group-size 64) bits
                                  &aux (bias! (cl:or bias 0))
                                    (transpose! (cl:and transpose t)))
-  "Perform the matrix multiplication with the quantized matrix WEIGHT.
-Return a manipulation of `mlx-array'.
-
+  "Perform the matrix multiplication with the quantized matrix WEIGHT."
+  :return "a manipulation of `mlx-array'. "
+  :note "
 The quantization uses one floating point SCALE and BIAS per GROUP-SIZE of elements.
-Each element in WEIGHT takes BITS and is packed in an unsigned 32 bit integer.
-
-Parameters:
-+ ARRAY: input array
-+ WEIGHT: quantized matrix packed in unsigned integers
-+ SCALES: scales to use per GROUP-SIZE elements of WEIGHT
-+ BIAS: biases to use per GROUP-SIZE elements of WEIGHT (default `nil').
-+ TRANSPOSE: whether to multiply with the transposed WEIGHT or not
-  namely whether we are performing x @ w.T or x @ w (default `t').
-+ GROUP-SIZE: size of the group in w that shares a scale and bias (default 64).
-+ BITS: number of bits occupied by each element in w (default 4)
-"
+Each element in WEIGHT takes BITS and is packed in an unsigned 32 bit integer."
+  :parameters ((weight "quantized matrix packed in unsigned integers")
+               (scales "scales to use per GROUP-SIZE elements of WEIGHT")
+               (bias   "biases to use per GROUP-SIZE elements of WEIGHT (default `nil').")
+               (transpose "whether to multiply with the transposed WEIGHT or not
+namely whether we are performing x @ w.T or x @ w (default `t').")
+               (group-size "size of the group in w that shares a scale and bias (default 64).")
+               (bits "number of bits occupied by each element in w (default 4)"))
   (declare (type (cl:or mlx-array number) bias!)
            (type (integer 0) group-size bits))
   (with-mlx-op "mlx_quantized_matmul"
@@ -1390,16 +1525,14 @@ Parameters:
     (bits       :int)))
 
 (defmlx-method repeat (array (repeats integer) &key axis)
-  "Repeat an array along a specified axis.
-Return `mlx-array'.
-
-Parameters:
-+ ARRAY: input array
-+ REPEATS: repetitions for each element
-+ AXIS: axis in which to repeat the array along.
-  if unspecified it uses the flattened array of the input
-  and repeats along axis 0
-"
+  "Repeat an array along a specified axis."
+  :parameters ((repeats "repetitions for each element")
+               (axis    "axis in which to repeat the array along.
+if unspecified it uses the flattened array of the input
+and repeats along axis 0
+"))
+  :methods (((array (repeats mlx-array) &key axis)
+             (repeat array (the integer (num<- repeats)) :axis axis)))
   (declare (type (cl:or integer null) axis))
   (if axis
       (with-mlx-op "mlx_repeat_axis"
@@ -1418,7 +1551,11 @@ Parameters:
  + positive, shift left;
  + negative, shift right"))
   :methods ((((array mlx-array) (count mlx-array))
-             (with-mlx-op "mlx_left_shift" array count)))
+             (with-mlx-op "mlx_left_shift" array count))
+            ((arr (count mlx-array))
+             (ash arr count))
+            (((num number) (count integer))
+             (cl:ash num count)))
   :aliases (left-shift)
   (cond ((cl:> count 0)
          (with-mlx-op "mlx_left_shift"
@@ -1449,7 +1586,9 @@ the shape is restored."
                (axis "axis or axes along which to roll the elements")
                (axes "alias of AXIS"))
   :methods (((array (shift integer) &key axis axes)
-             (roll array (list shift) :axis axis :axes axes)))
+             (roll array (list shift) :axis axis :axes axes))
+            ((array (shift mlx-array) &key axis axes)
+             (roll array (seq<- shift) :axis axis :axes axes)))
   (declare (type (cl:or null integer sequence) axis!))
   (with-foreign<-sequence (shift* shift :int len)
     (etypecase axis!
@@ -1470,7 +1609,8 @@ the shape is restored."
                     (axes*    :pointer)
                     (axes-len :int)))))))
 
-(defmlx-method round (array &optional (decimals 0))
+(defmlx-method round (array &optional (decimals 0 d?)
+                      &aux (decimal (if d? (num<- decimals) decimals)))
   "Round to the given number of decimals."
   :definition "
   (let ((scalar (expt 10 DECIMALS)))
@@ -1530,6 +1670,8 @@ given location in a."
   "Element-wise equality."
   :note "Equality comparison on two arrays with numpy-style broadcasting semantics.
 Either or both input arrays can also be scalars."
+  :methods ((((num1 number) (num2 number))
+             (cl:= num1 num2)))
   (with-mlx-op "mlx_array_equal"
     arr1 arr2
     (*nan-equal-p* :bool)))
@@ -1538,6 +1680,8 @@ Either or both input arrays can also be scalars."
   "Element-wise not equal."
   :note "Not equal comparison on two arrays with numpy-style broadcasting semantics.
 Either or both input arrays can also be scalars."
+  :methods ((((num1 number) (num2 number))
+             (cl:/= num1 num2)))
   (with-mlx-op "mlx_not_equal"
     arr1 arr2))
 
@@ -1556,197 +1700,6 @@ Parameters:
       (shape* :pointer)
       (len    :size))))
 
-(defun decode-~-expr (expr)
-  "Decode (~ start &optional stop step) as (~ start stop step).
-
-Dev Note:
-Will not evaluate expression, use it at `parse-mlx-slice-index'
-and `~' macro. "
-  (if (and (symbolp (first expr))
-           (string= (first expr) "~"))
-      (destructuring-bind (start &optional (stop nil stop?) (step 1 step?))
-          (rest expr)
-        (if stop?
-            (if (cl:eq stop :step)
-                (if step?
-                    `(~ 0 ,start ,step)
-                    (error "Missing `:step' value for `~~' syntax (~~ start :step step). "))
-                `(~ ,start ,stop ,step))
-            `(~ 0 ,start ,step)))
-      (error "Invalid `~~' expression: ~A. " expr)))
-
-(defun parse-mlx-slice-index (index shape)
-  "Parse mlx slice INDEX.
-
-Rule:
-+ list:           (~ start &optional stop step)
-+ integer:        (~ integer (1+ integer) 1)
-+ rational:
-  positive: (~ 0 ⌈rational * shape⌉ 1)
-  negative: (~ ⌊rational * shape⌋ shape 1)
-+ symbol:
-  + `*', `:full':   (~ 0 shape 1)
-  + `:half': equal to `1/2'
-  + `:first': (~ 0 1 1) (`:second', `:third', ...)
-  + `:last': (~ (1- shape) shape 1)
-  + `:rest': (~ 1 shape 1)
-"
-  (declare (type (cl:or symbol list integer rational) index))
-  (etypecase index
-    (symbol (case index
-              ((:full :* *) `(~ 0 ,shape 1))
-              (:half     `(~ 0 ,(cl:ceiling shape 2) 1))
-              (:first    '(~ 0 1 1))
-              (:second   '(~ 1 2 1))
-              (:third    '(~ 2 3 1))
-              (:fourth   '(~ 3 4 1))
-              (:fifth    '(~ 4 5 1))
-              (:sixth    '(~ 5 6 1))
-              (:seventh  '(~ 6 7 1))
-              (:eighth   '(~ 7 8 1))
-              (:ninth    '(~ 8 9 1))
-              (:tenth    '(~ 9 10 1))
-              (:last     `(~ ,(1- shape) ,shape 1))
-              (:rest     `(~ 1 ,shape 1))
-              (:middle   `(~ ,(cl:floor shape 2) ,(1+ (cl:floor shape 2)) 1))
-              (t
-               (error "Unknown index syntax: ~A. " index))))
-    (list (flet ((mod* (x) (if (cl:< x 0) (cl:mod x shape) x)))
-            (ecase (car index)
-              (~ (destructuring-bind (start stop step)
-                     (rest index)
-                   (when (cl:<= step 0)
-                     (error "does not support negative step: ~A" step))
-                   `(~ ,(mod* start) ,(mod* stop) ,step)))
-              (~~ (destructuring-bind (start stop step)
-                      (rest index)
-                   (when (cl:<= step 0)
-                     (error "does not support negative step: ~A" step))
-                    `(~ ,(mod* start) ,(1+ (mod* stop)) ,step))))))
-    (integer  (if (cl:< index 0)
-                  `(~ ,(- shape index) ,(1+ (- shape index)) 1)
-                  `(~ ,index ,(1+ index) 1)))
-    (rational (cond ((cl:< -1 index 0)
-                     `(~ ,(cl:floor (cl:* shape index)) ,shape 1))
-                    ((cl:< 0 index 1)
-                     `(~ 0 ,(cl:ceiling (cl:* shape index)) 1))
-                    (t (error "Rational split ~A between (-1, 0) and (0, 1)."
-                              index))))))
-
-(defmacro ~ (&whole expr start &optional stop step)
-  "Generate range specification `~'.
-Return (~ start stop step).
-
-Syntax Example:
-+ (~ 10)          <==> (~ 0 10 1)
-+ (~ 10 :step -1) <==> (~ 0 10 -1)
-+ (~ 0 20 -1)     <==> (~ 0 20 -1)
-
-Dev Note:
-See `mlx::decode-~-expr' for parsing.
-"
-  (declare (ignore start stop step))
-  `(list '~ ,@(rest (decode-~-expr expr))))
-
-(defmacro ~~ (&whole expr start &optional stop step)
-  "Generate range specification `~' with stop included.
-Return (~~ start stop step).
-
-Dev Note:
-it is experimental. "
-  (declare (ignore start stop step))
-  `(list '~~ ,@(rest (decode-~-expr (cons '~ (rest expr))))))
-
-;; TODO: #mlx-cl #user-friendly
-;; if not given SIZE, automatically determine it,
-;; rather than raising error
-(defmlx-method slice (array &rest indexs)
-  "Get/Set a sub-array from the input array."
-  :parameters ((indexs  "indexs to slice array
- + (~ start end &optional (step 1))
- + integer => (~ integer (1+ integer) step)
- +
-see `mlx::parse-mlx-slice-index'. "))
-  (let* ((len    (dim array))
-         (indexs (if (cl:< (cl:length indexs) len)
-                     (append indexs
-                             (loop :repeat (cl:- len (cl:length indexs))
-                                   :collect :full))
-                     indexs))
-         (ranges (mapcar #'parse-mlx-slice-index indexs (shape array)))
-         (size   (cl:* len (foreign-type-size :int))))
-    (with-foreign-pointer (start* size)
-      (with-foreign-pointer (stop* size)
-        (with-foreign-pointer (step* size)
-          (loop :for idx :from 0
-                :for (- start stop end) :in ranges
-                :do (setf (mem-aref start* :int idx) start
-                          (mem-aref stop*  :int idx) stop
-                          (mem-aref step*  :int idx) end))
-          (with-mlx-op "mlx_slice"
-            array
-            (start*   :pointer)
-            (len      :size)
-            (stop*    :pointer)
-            (len      :size)
-            (step*    :pointer)
-            (len      :size)))))))
-
-(defmlx-method slice-update (array update &rest indexs)
-  "Update slice. "
-  :parameters ((update "new values of setting slice")
-               (indexs "See `slice'"))
-  (let* ((len    (dim array))
-         (indexs (if (cl:< (cl:length indexs) len)
-                     (append indexs
-                             (loop :repeat (cl:- len (cl:length indexs))
-                                   :collect :full))
-                     indexs))
-         (ranges (mapcar #'parse-mlx-slice-index indexs (shape array)))
-         (size   (cl:* len (foreign-type-size :int))))
-    (with-foreign-pointer (start* size)
-      (with-foreign-pointer (stop* size)
-        (with-foreign-pointer (step* size)
-          (loop :for idx :from 0
-                :for (- start stop end) :in ranges
-                :do (setf (mem-aref start* :int idx) start
-                          (mem-aref stop*  :int idx) stop
-                          (mem-aref step*  :int idx) end))
-          (with-mlx-op "mlx_slice_update"
-            array
-            update
-            (start* :pointer)
-            (len    :size)
-            (stop*  :pointer)
-            (len    :size)
-            (step*  :pointer)
-            (len    :size)))))))
-
-(defmlx-method split (array (split-or-indices sequence) &key axis)
-  "Split an array along a given axis."
-  :parameters ((split-or-indices "specify how to split ARRAY
- + integer for how many subarray to be splited
- + sequence of integer for each subarray size")
-               (axis "axis to split (default 0)"))
-  :methods ((((arr mlx-array) (num-splits integer) &key (axis 0))
-             (declare (type (integer 0) num-splits)
-                      (type integer axis))
-             (with-mlx-op ("mlx_split" :alloc mlx_vector_array_new
-                                       :wrap  wrap-as-mlx-array-list)
-               arr
-               (num-splits :int)
-               (axis       :int)))
-            ((arr (num-splits integer) &key (axis 0))
-             (split (mlx-array arr) num-splits :axis axis)))
-  (declare (type integer axis))
-  (with-foreign<-sequence (indices* split-or-indices :int len)
-    (with-mlx-op ("mlx_split_sections" :alloc mlx_vector_array_new
-                                       :wrap  wrap-as-mlx-array-list)
-      array
-      (indices* :pointer)
-      (len      :int)
-      (axis     :int))))
-
 (defmlx-method swap-axes (array (axis1 integer) (axis2 integer))
   "Swap two axes of an ARRAY.
 Return swaped `mlx-array'.
@@ -1755,35 +1708,17 @@ Parameters:
 + ARRAY: input array
 + AXIS1, AXIS2: specific axis index
 "
+  :methods (((array (axis1 mlx-array) axis2)
+             (swap-axes array (the integer (num<- axis1)) axis2))
+            ((array axis1 (axis2 mlx-array))
+             (swap-axes array axis1 (the integer (num<- axis2)))))
   (with-mlx-op "mlx_swapaxes"
     array
     (axis1 :int)
     (axis2 :int)))
 
-(defmlx-method take (array indices &key axis along-axis-p)
-  "Take elements along an axis."
-  :note "The elements are taken from indices along the specified axis.
-If the axis is not specified the array is treated as a flattened
-1-D array prior to performing the take."
-  :parameters ((array   "input array")
-               (indices "integer index or input array with integeral type")
-               (axis    "")
-               (along-axis-p ""))
-  (declare (type (cl:or null integer) axis))
-  (if axis
-      (if along-axis-p
-          (with-mlx-op "mlx_take_along_axis"
-            array
-            indices
-            (axis :int))
-          (with-mlx-op "mlx_take_axis"
-            array
-            indices
-            (axis :int)))
-      (with-mlx-op "mlx_take" array indices)))
-
 (defmlx-method tensordot (array1 array2 &key axes axis
-                          &aux (axis* (cl:or axes axis 2)))
+                          &aux (axis* (axes<- axis axes 2)))
   "Compute the tensor dot product along the specified axes.
 Return `mlx-array'.
 
@@ -1826,14 +1761,14 @@ Parameters:
       (reps* :pointer)
       (len   :size))))
 
-(defmlx-method topk (array (k integer) &key axis)
+(defmlx-method topk (array (k integer) &key axis &aux (axis* (axis<- axis)))
   "Return K largest elements in ARRAY along given AXIS. "
-  (declare (type (cl:or null integer) axis))
-  (if axis
+  (declare (type (cl:or null integer) axis*))
+  (if axis*
       (with-mlx-op "mlx_topk_axis"
         array
-        (k    :int)
-        (axis :int))
+        (k     :int)
+        (axis* :int))
       (with-mlx-op "mlx_topk"
         array
         (k :int))))
@@ -1854,8 +1789,6 @@ Can be positive or negative. (default 0)")
     (axis1  :int)
     (axis2  :int)
     (dtype! mlx-dtype)))
-
-;; TODO: arrange
 
 (defmlx-method transpose (array &key axes)
   "Transpose the dimensions of the ARRAY."
@@ -1909,6 +1842,46 @@ Parameter:
       (shape* :pointer)
       (len    :size))))
 
+(defmlx-method split (array (split-or-indices sequence) &key axis)
+  "Split an array along a given axis."
+  :parameters ((split-or-indices "specify how to split ARRAY
+ + integer for how many subarray to be splited
+ + sequence of integer for each subarray size")
+               (axis "axis to split (default 0)"))
+  :methods ((((arr mlx-array) (num-splits integer) &key (axis 0))
+             (declare (type (integer 0) num-splits)
+                      (type integer axis))
+             (with-mlx-op ("mlx_split" :alloc mlx_vector_array_new
+                                       :wrap  wrap-as-mlx-array-list)
+               arr
+               (num-splits :int)
+               (axis       :int)))
+            ((arr (num-splits integer) &key (axis 0))
+             (split (mlx-array arr) num-splits :axis axis)))
+  (declare (type integer axis))
+  (with-foreign<-sequence (indices* split-or-indices :int len)
+    (with-mlx-op ("mlx_split_sections" :alloc mlx_vector_array_new
+                                       :wrap  wrap-as-mlx-array-list)
+      array
+      (indices* :pointer)
+      (len      :int)
+      (axis     :int))))
+
+(defmlx-method stack (&rest arrays-&key-axis)
+  "Stack ARRAYS on AXIS. "
+  :syntax ""
+  (multiple-value-bind (arrays plist)
+      (split-args-keys arrays-&key-axis)
+    (destructuring-bind (&key axis) plist
+      (declare (type (or integer null) axis))
+      (with-array-vector<-sequence (vec arrays)
+        (if axis
+            (with-mlx-op "mlx_stack_axis"
+              (vec  :pointer)
+              (axis :int))
+            (with-mlx-op "mlx_stack"
+              (vec  :pointer)))))))
+
 ;; TODO: where
 
 (defmethod equal ((arr mlx-array) elem)
@@ -1934,12 +1907,5 @@ Parameter:
 
 (defmethod equal ((arr2 array) (arr1 mlx-array))
   (equal (lisp<- arr1) arr2))
-
-(defmacro at* (array &rest indexs)
-  "Get ARRAY elements by INDEXS.
-Return `mlx-array' as lisp values.
-
-See `at' for INDEXS syntax. "
-  `(lisp<- (squeeze (slice ,array ,@indexs))))
 
 ;;;; ops.lisp ends here
