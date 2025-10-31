@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2025-10-31 Fri 23:37 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MLX-CL</title>
+<meta name="author" content="凉凉" />
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+  #content { max-width: 60em; margin: auto; }
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #e6e6e6;
+    border-radius: 3px;
+    background-color: #f2f2f2;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    padding: 3px;
+    color: #555;
+    background-color: #f2f2f299;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-C:before { content: 'C'; }
+  pre.src-C\+\+:before { content: 'C++'; }
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { }
+</style>
+<!-- The documentation is generated on 11111000000/tao-theme-emacs (tao-yin) with org literal programming style.  -->
+<!-- The Unifont is destributed on cdn.jsdelivr.net -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/unifont@5.2.5/index.min.css">
+<style> body { font-size: 1.05em; background-color: #171717; color: #dadada } </style>
+<style> pre, code { font-family: "Unifont", monospace; }</style>
+<style> pre { background-color: #171717; } </style>
+<style> a { display: inline-block; border: 1px solid; border-radius: 0px; border-color: #f6f6f6; text-decoration: none; color: #f6f6f6; padding: 1px; margin: 1px; } </style>
+<style> a:hover { color: #0e0e0e; background-color: #c3c3c3 } </style>
+<style> .title { padding-top: 100px; padding-bottom: 10px } </style>
+</head>
+<body>
+<div id="content" class="content">
+<h1 class="title">MLX-CL
+<br />
+<span class="subtitle">Common Lisp bindings for MLX</span>
+</h1>
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org21ea269">1. About</a></li>
+<li><a href="#org521974f">2. Usage</a>
+<ul>
+<li><a href="#orgdaefa34">2.1. Installation</a></li>
+<li><a href="#orgfca7c4c">2.2. Systems and Packages</a></li>
+<li><a href="#orgc32b27b">2.3. Basic Operations</a>
+<ul>
+<li><a href="#orga3d318e">2.3.1. Convert</a></li>
+<li><a href="#org8eb6264">2.3.2. Alloc <code>mlx-array</code></a></li>
+<li><a href="#orga655b52">2.3.3. Indexing <code>mlx-array</code></a></li>
+<li><a href="#orgb2c6258">2.3.4. Operations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org21ea269" class="outline-2">
+<h2 id="org21ea269"><span class="section-number-2">1.</span> About</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+MLX-CL is a Common Lisp binding for MLX, together with a set of trivial
+data processing library.
+</p>
+
+<p>
+<b>NOTE</b>: Github's org-mode renderer is buggy, please refer <a href="https://li-yiyang.github.io/mlx-cl">documentation</a>.
+</p>
+
+<p>
+<b>TODO</b>:
+</p>
+<ul class="org-ul">
+<li>more tests (the API tests are under <a href="test/api.lisp"><code>test/api.lisp</code></a>,
+tests of ops are under <a href="test/ops.lisp"><code>test/ops.lisp</code></a>),</li>
+<li>more documentations with examples (the ops are self-documented,
+use <code>(documentation #'mlx:+ 'function)</code> or <code>sly-documentation</code> for documentations)</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org521974f" class="outline-2">
+<h2 id="org521974f"><span class="section-number-2">2.</span> Usage</h2>
+<div class="outline-text-2" id="text-2">
+</div>
+<div id="outline-container-orgdaefa34" class="outline-3">
+<h3 id="orgdaefa34"><span class="section-number-3">2.1.</span> Installation</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+You need:
+a Common Lisp distribution (tested on SBCL 2.5.8, LispWorks Personal Edition 8.0.1),
+<a href="https://www.quicklisp.org">Quicklisp</a> (Common Lisp package manager),
+and <a href="https://github.com/li-yiyang/mlx-cl">mlx-cl</a> under where your quicklisp can find.
+</p>
+
+<details><summary>A possible installation process</summary>
+
+<p>
+Here's a possible installation process:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell" id="orgabd1637">&gt; mkdir -pv ~/common-lisp/
+&gt; git clone --recursive https://github.com/li-yiyang/mlx-cl.git ~/common-lisp/mlx-cl
+...
+&gt; sbcl
+This is SBCL 2.5.8, an implementation of ANSI Common Lisp.
+More information about SBCL is available at <a href="http://www.sbcl.org/">&lt;http://www.sbcl.org/&gt;</a>.
+
+SBCL is free software, provided as is, with absolutely no warranty.
+It is mostly<span style="color: #F1F1F1;"> in</span> the public domain; some portions are provided under
+BSD-style licenses.  See the CREDITS and COPYING files<span style="color: #F1F1F1;"> in</span> the
+distribution for more information.
+To load <span style="color: #9E9E9E;">"trivial-indent"</span>:
+  Load 1 ASDF system:
+    trivial-indent
+; Loading <span style="color: #9E9E9E;">"trivial-indent"</span>
+
+* (ql:quickload :mlx-cl)
+To load <span style="color: #9E9E9E;">"mlx-cl"</span>:
+  Load 1 ASDF system:
+    mlx-cl
+; Loading <span style="color: #9E9E9E;">"mlx-cl"</span>
+..................................................
+................................................
+(:mlx-cl)
+* (in-package :mlx-user)
+<span style="color: #3C3C3C;">#</span><span style="color: #C3C3C3;">&lt;package "MLX-USER"&gt;</span>
+* (+ 1 <span style="color: #9E9E9E;">'(2 3 4))</span>
+<span style="color: #9E9E9E;">array([3, 4, 5], dtype=float32)</span>
+</pre>
+</div>
+
+</details>
+</div>
+</div>
+<div id="outline-container-orgfca7c4c" class="outline-3">
+<h3 id="orgfca7c4c"><span class="section-number-3">2.2.</span> Systems and Packages</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+The core functionalities are provided within system <code>mlx-cl</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(ql:quickload <span style="color: #F6F6F6;">:mlx-cl</span>)
+</pre>
+</div>
+
+<p>
+would loads the following packages:
+</p>
+<ul class="org-ul">
+<li><p>
+<code>mlx-cl</code>: the core binding package,
+if you are about to develop new packages, you should
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(<span style="color: #F1F1F1;">defpackage</span> <span style="color: #F6F6F6;">#:your-new-package-name</span>
+  (<span style="color: #F6F6F6;">:use</span> <span style="color: #F6F6F6;">:mlx-cl</span>))
+</pre>
+</div>
+
+<p>
+note that the API of <code>mlx-cl</code> overwrites <code>cl</code>'s functions,
+which makes <code>(:use :cl :mlx-cl)</code> difficult
+</p></li>
+<li><code>mlx-cl.fft</code></li>
+<li><code>mlx-cl.linalg</code></li>
+<li><code>mlx-cl.random</code></li>
+<li><code>mlx-user</code> the following documentation are assumed to be written
+under <code>mlx-user</code> package</li>
+</ul>
+
+<p>
+There are some subsystem(s) providing additional functionalities
+above <code>mlx-cl</code>:
+</p>
+<ul class="org-ul">
+<li><code>mlx-cl/image</code>: see under <code>image</code> dir</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgc32b27b" class="outline-3">
+<h3 id="orgc32b27b"><span class="section-number-3">2.3.</span> Basic Operations</h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+See tests in for more examples.
+</p>
+</div>
+<div id="outline-container-orga3d318e" class="outline-4">
+<h4 id="orga3d318e"><span class="section-number-4">2.3.1.</span> Convert</h4>
+<div class="outline-text-4" id="text-2-3-1">
+<ol class="org-ol">
+<li><p>
+Convert from Lisp to <code>mlx-array</code>
+To convert between <code>mlx-array</code> and Lisp array (data containers),
+use generic function <code>mlx-array</code>:
+</p>
+
+<ul class="org-ul">
+<li><p>
+scalar to <code>mlx-array</code>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp" id="orgaf85a97">(mlx-array 2)
+</pre>
+</div>
+
+<pre class="example">
+array(2, dtype=int32)
+</pre></li>
+<li><p>
+list to <code>mlx-array</code>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp" id="org4ad6c3e">(mlx-array '((1 2) (3 4)))
+</pre>
+</div>
+
+<pre class="example">
+array([[1, 2],
+       [3, 4]], dtype=uint64)
+</pre></li>
+
+<li><p>
+array to <code>mlx-array</code>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp" id="org2943924">(mlx-array #3A(((1 2) (3 4))
+               ((5 6) (7 8))))
+</pre>
+</div>
+
+<pre class="example">
+array([[[1, 2],
+        [3, 4]],
+       [[5, 6],
+        [7, 8]]], dtype=uint64)
+</pre>
+
+
+<p>
+<b>note</b>: use array, it's fast.
+</p></li>
+</ul>
+
+<p>
+You can implement methods to tell lisp how to convert your
+data into <code>mlx-array</code>.
+</p></li>
+<li>Use <code>lisp&lt;-</code> to convert <code>mlx-array</code> into Lisp value.</li>
+</ol>
+</div>
+</div>
+<div id="outline-container-org8eb6264" class="outline-4">
+<h4 id="org8eb6264"><span class="section-number-4">2.3.2.</span> Alloc <code>mlx-array</code></h4>
+<div class="outline-text-4" id="text-2-3-2">
+<ul class="org-ul">
+<li>Generate by range:
+<ul class="org-ul">
+<li><p>
+<code>(arange [start] stop [step] &amp;key step dtype)</code>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(arange 10)
+</pre>
+</div>
+
+<pre class="example">
+array([0, 1, 2, ..., 7, 8, 9], dtype=float32)
+</pre></li>
+<li><code>(linspace start stop &amp;optional num &amp;key dtype)</code></li>
+</ul></li>
+<li><p>
+Generate array with constant values:
+</p>
+<ul class="org-ul">
+<li><code>(zeros SHAPE &amp;key DTYPE)</code></li>
+<li><code>(ones SHAPE &amp;key DTYPE)</code></li>
+<li><code>(full SHAPE &amp;optional VALUE &amp;key DTYPE)</code></li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(full '(5 5) 2333)
+</pre>
+</div>
+
+<pre class="example">
+array([[2333, 2333, 2333, 2333, 2333],
+       [2333, 2333, 2333, 2333, 2333],
+       [2333, 2333, 2333, 2333, 2333],
+       [2333, 2333, 2333, 2333, 2333],
+       [2333, 2333, 2333, 2333, 2333]], dtype=uint64)
+</pre></li>
+
+<li>Generate coordinate grids:
+<ul class="org-ul">
+<li><p>
+<code>(meshgrid arrays &amp;key SPARES INDEXING)</code>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(meshgrid (list (arange -2 2)
+                (arange -2 2)))
+</pre>
+</div>
+
+<pre class="example">
+(array([[-2, -1, 0, 1],
+       [-2, -1, 0, 1],
+       [-2, -1, 0, 1],
+       [-2, -1, 0, 1]], dtype=float32)
+ array([[-2, -2, -2, -2],
+       [-1, -1, -1, -1],
+       [0, 0, 0, 0],
+       [1, 1, 1, 1]], dtype=float32))
+</pre></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orga655b52" class="outline-4">
+<h4 id="orga655b52"><span class="section-number-4">2.3.3.</span> Indexing <code>mlx-array</code></h4>
+<div class="outline-text-4" id="text-2-3-3">
+<ul class="org-ul">
+<li><p>
+Use the highlevel API
+</p>
+<ul class="org-ul">
+<li><code>(at array &amp;rest indexs)</code></li>
+<li><code>(at* array &amp;rest indexs)</code> (alias for <code>(lisp&lt;- (at ...))</code>)</li>
+</ul>
+
+<p>
+the <code>indexs</code> could be
+</p>
+<ul class="org-ul">
+<li><code>(~ [start=0] stop [step=1] &amp;key step)</code>
+<ul class="org-ul">
+<li><code>(~ * * -1)</code> (equal to <code>(~ :step -1)</code>)</li>
+<li><code>(~ 0 * -1)</code> (equal to <code>(~ 0 -1 -1)</code>)</li>
+<li><code>(~ 5)</code> (equal to <code>(~ 0 5 1)</code>)</li>
+<li><code>(~ )</code> or just <code>~</code> (equal to <code>(~ 0 -1 -1)</code>)</li>
+</ul></li>
+<li>integer</li>
+<li>rational for first / last (negative) parts of axis</li>
+<li>keywords for shortcuts, for example:
+<ul class="org-ul">
+<li><code>:*</code> for all</li>
+<li><code>:first</code> for the first element on the corresponding axis</li>
+<li><code>:last</code> for the last element the corresponding axis</li>
+<li>use <code>(documentation keyword 'mlx:slice)</code> to get the
+documentation of slice shortcuts documentations</li>
+</ul></li>
+</ul>
+
+<p>
+Examples:
+</p>
+
+<ul class="org-ul">
+<li><p>
+take the all <code>(:*</code>) elements in first axis,
+second (<code>2</code>) element in second axis,
+<code>[0, 2)</code> elements in third axis:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(<span style="color: #F1F1F1;">let</span> ((arr (reshape (arange 0 9) '(3 3))))
+  (at arr <span style="color: #F6F6F6;">:*</span> 2 (~ 0 2)))
+</pre>
+</div>
+
+<pre class="example">
+array([2, 5, 8], dtype=float32)
+</pre>
+
+
+<p>
+this can also bewritten as:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(<span style="color: #F1F1F1;">let</span> ((arr (reshape (arange 0 9) '(3 3))))
+  (at arr <span style="color: #F6F6F6;">:all</span> <span style="color: #F6F6F6;">:second</span> 1/2))
+</pre>
+</div>
+
+<pre class="example">
+array([2, 5, 8], dtype=float32)
+</pre>
+
+
+<p>
+which means take all (<code>:all</code>) elements in first axis,
+second (<code>:second</code>) element in second axis,
+first half (<code>1/2</code>) in third axis.
+</p></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgb2c6258" class="outline-4">
+<h4 id="orgb2c6258"><span class="section-number-4">2.3.4.</span> Operations</h4>
+<div class="outline-text-4" id="text-2-3-4">
+<p>
+MLX-CL overwrites a few of Common Lisp's methods (<code>cl:+</code>, <code>cl:-</code>, <code>cl:*</code>, <code>cl:/</code>, &#x2026;)
+as generic functions. So if you don't worry about some speed lost, you can do
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(+ 1 (* 2 3) (/ 10 5))
+</pre>
+</div>
+
+<pre class="example">
+9 (4 bits, #x9, #o11, #b1001)
+</pre>
+
+
+<p>
+as if you are using <code>cl:+</code>, <code>cl:-</code>, <code>cl:*</code>, <code>cl:/</code> (other functions are the same).
+</p>
+
+<p>
+For those functions that are not supported in normal common lisp functions:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(+ 2 '(3 4 5))
+</pre>
+</div>
+
+<pre class="example">
+array([5, 6, 7], dtype=float32)
+</pre>
+
+
+<p>
+they would be convert into <code>mlx-array</code> automatically. Use <code>lisp&lt;-</code> to force
+convert <code>mlx-array</code> as lisp value.
+</p>
+
+<details><summary>A example</summary>
+
+<p>
+the following example came from my Image Processing homework:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(<span style="color: #F1F1F1;">defun</span> <span style="color: #DADADA;">gauss-kernel</span> (sigma <span style="color: #616161; font-style: italic;">&amp;optional</span> m
+                     <span style="color: #616161; font-style: italic;">&amp;aux</span>
+                       (m-min (1+ (* 2 (ceiling (* 3 sigma)))))
+                       (m-val (<span style="color: #F1F1F1;">the</span> (or null (integer 0)) (or m m-min))))
+  <span style="color: #C3C3C3;">"Return a Gauss kernel matrix.</span>
+
+<span style="color: #C3C3C3;">Definition:</span>
+<span style="color: #C3C3C3;">   gauss(x, y) = exp(- (x^2 + y^2) / (2 * sigma^2)) / (2 * pi * sigma^2)</span>
+<span style="color: #C3C3C3;">"</span>
+  (<span style="color: #F1F1F1;">declare</span> (type (real 0) sigma)
+           (type (or null integer) m))
+  (<span style="color: #F1F1F1;">when</span> (&lt; m-val m-min)
+    (<span style="color: #E8E8E8; background-color: #3C3C3C; font-weight: bold;">warn</span> <span style="color: #9E9E9E;">"Given m=~A is lower than m_min=~A. "</span> m-val m-min))
+  (<span style="color: #F1F1F1;">let</span> ((half (/ (1- m-val) 2)))
+    (<span style="color: #F1F1F1;">destructuring-bind</span> (x y)
+        (meshgrid (list (arange (- half) (1+ half))
+                        (arange (- half) (1+ half))))
+      (<span style="color: #F1F1F1;">let</span> ((ker (exp (- (/ (+ (square x) (square y))
+                            (* 2 (square sigma)))))))
+        (/ ker (sum ker))))))
+</pre>
+</div>
+
+<p>
+which would produce:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-lisp">(gauss-kernel 0.3)
+</pre>
+</div>
+
+<pre class="example">
+array([[1.47169e-05, 0.00380683, 1.47169e-05],
+       [0.00380683, 0.984714, 0.00380683],
+       [1.47169e-05, 0.00380683, 1.47169e-05]], dtype=float32)
+</pre>
+
+
+</details>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: 凉凉</p>
+<p class="date">Created: 2025-10-31 Fri 23:37</p>
+<p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>

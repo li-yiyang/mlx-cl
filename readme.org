@@ -1,11 +1,26 @@
 #+title: MLX-CL
 #+subtitle: Common Lisp bindings for MLX
+#+author: 凉凉
+#+html_head: <!-- The documentation is generated on 11111000000/tao-theme-emacs (tao-yin) with org literal programming style.  -->
+#+html_head: <!-- The Unifont is destributed on cdn.jsdelivr.net -->
+#+html_head: <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/unifont@5.2.5/index.min.css">
+#+html_head: <style> body { font-size: 1.05em; background-color: #171717; color: #dadada } </style>
+#+html_head: <style> pre, code { font-family: "Unifont", monospace; }</style>
+#+html_head: <style> pre { background-color: #171717; } </style>
+#+html_head: <style> a { display: inline-block; border: 1px solid; border-radius: 0px; border-color: #f6f6f6; text-decoration: none; color: #f6f6f6; padding: 1px; margin: 1px; } </style>
+#+html_head: <style> a:hover { color: #0e0e0e; background-color: #c3c3c3 } </style>
+#+html_head: <style> .title { padding-top: 100px; padding-bottom: 10px } </style>
 * About
 MLX-CL is a Common Lisp binding for MLX, together with a set of trivial
 data processing library.
 
-*WARNING*: currently is still unstable, API may crash,
-lake of sufficient test cases, may have unhandled FFI pointer memory leak.
+*NOTE*: Github's org-mode renderer is buggy, please refer [[https://li-yiyang.github.io/mlx-cl][documentation]].
+
+*TODO*:
++ more tests (the API tests are under [[file:test/api.lisp][=test/api.lisp=]],
+  tests of ops are under [[file:test/ops.lisp][=test/ops.lisp=]]),
++ more documentations with examples (the ops are self-documented,
+  use =(documentation #'mlx:+ 'function)= or =sly-documentation= for documentations)
 
 * Usage
 ** Installation
@@ -91,50 +106,49 @@ above =mlx-cl=:
 See tests in [[test/api.lisp]] for more examples.
 
 *** Convert
-**** From Lisp to =mlx-array=
-To convert between =mlx-array= and Lisp array (data containers),
-use generic function =mlx-array=:
+1. Convert from Lisp to =mlx-array=
+   To convert between =mlx-array= and Lisp array (data containers),
+   use generic function =mlx-array=:
 
-+ scalar to =mlx-array=
+   + scalar to =mlx-array=
 
-  #+name: scalar-to-mlx-array
-  #+begin_src lisp
-    (mlx-array 2)
-  #+end_src
+     #+name: scalar-to-mlx-array
+     #+begin_src lisp
+       (mlx-array 2)
+     #+end_src
 
-  #+RESULTS: scalar-to-mlx-array
-  : array(2, dtype=int32)
-+ list to =mlx-array=
+     #+RESULTS: scalar-to-mlx-array
+     : array(2, dtype=int32)
+   + list to =mlx-array=
 
-  #+name: list-to-mlx-array
-  #+begin_src lisp
-    (mlx-array '((1 2) (3 4)))
-  #+end_src
+     #+name: list-to-mlx-array
+     #+begin_src lisp
+       (mlx-array '((1 2) (3 4)))
+     #+end_src
 
-  #+RESULTS: list-to-mlx-array
-  : array([[1, 2],
-  :        [3, 4]], dtype=uint64)
-+ array to =mlx-array=
+     #+RESULTS: list-to-mlx-array
+     : array([[1, 2],
+     :        [3, 4]], dtype=uint64)
 
-  #+name: array-to-mlx-array
-  #+begin_src lisp
-    (mlx-array #3A(((1 2) (3 4))
-                   ((5 6) (7 8))))
-  #+end_src
+   + array to =mlx-array=
 
-  #+RESULTS: array-to-mlx-array
-  : array([[[1, 2],
-  :         [3, 4]],
-  :        [[5, 6],
-  :         [7, 8]]], dtype=uint64)
+     #+name: array-to-mlx-array
+     #+begin_src lisp
+       (mlx-array #3A(((1 2) (3 4))
+                      ((5 6) (7 8))))
+     #+end_src
 
-  note: use array, it's fast.
+     #+RESULTS: array-to-mlx-array
+     : array([[[1, 2],
+     :         [3, 4]],
+     :        [[5, 6],
+     :         [7, 8]]], dtype=uint64)
 
-You can implement methods to tell lisp how to convert your
-data into =mlx-array=.
+     *note*: use array, it's fast.
 
-**** From =mlx-array= to Lisp
-Use =lisp<-= to convert =mlx-array= into Lisp value.
+   You can implement methods to tell lisp how to convert your
+   data into =mlx-array=.
+2. Use =lisp<-= to convert =mlx-array= into Lisp value.
 
 *** Alloc =mlx-array=
 + Generate by range:
