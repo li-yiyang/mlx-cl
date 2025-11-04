@@ -1,4 +1,4 @@
-;;;; ops.lisp --- Operators for MLX -*- mlx-cl-test-file: "api.lisp"; after-save-hook: (mlx-cl-highlight-test-tags); -*-
+;;;; ops.lisp --- Operators for MLX -*- mlx-cl-test-file: "api.lisp" -*-
 
 (in-package :mlx)
 
@@ -14,6 +14,7 @@
 ;;   to normalize input parameters
 ;; + the code should be organized in MLX-CL.TEST (mlx-api)
 ;;   by the test sequence
+;; + for Emacs: `mlx-cl-highlight-test-tags' (see dev/mlx-cl-tags.el)
 
 
 ;;; Config
@@ -90,26 +91,38 @@ Parameters:
             &aux
               (dtype! (if dtype? (ensure-mlx-dtype dtype) dtype))
               (shape  (shape<- (array-dimensions array))))
-    (declare (type (simple-array (signed-byte 32)) shape))
-    ;; TODO: #mlx-cl #optimization
-    ;; no data copying, passing pointers
-    (wrap-as-mlx-array
-     (let ((coerce (%mlx-dtype-coerce dtype!)))
-       (if (eql dtype! :complex64)
-           (let ((size (reduce #'cl:* shape)))
-             (with-foreign-pointer (array* (cl:* 2 (foreign-type-size :float) size))
-               (loop :for i :below size
-                     :for idx :from 0 :by 2
-                     :for c := (funcall coerce (row-major-aref array i))
-                     :do (setf (mem-aref array* :float idx)      (cl:realpart c)
-                               (mem-aref array* :float (1+ idx)) (cl:imagpart c)))
-               (with-pointer-to-vector-data (shape* shape)
-                 (mlx_array_new_data array* shape* (length shape) dtype!))))
-           (with-foreign<-array (array* array (cffi-type<-mlx-dtype dtype!)
-                                 %shape %size
-                                 elem (funcall coerce elem))
-             (with-pointer-to-vector-data (shape* shape)
-               (mlx_array_new_data array* shape* (length shape) dtype!)))))))
+    (let ((size  (reduce #'cl:* shape))
+          (dtype (if (not (eql (array-element-type array) t))
+                     (mlx-dtype<-lisp-type (array-element-type array)))))
+      (declare (type integer size))
+      (cond ((eql dtype! :complex64)
+             (let ((coerce (%mlx-dtype-coerce dtype!)))
+               (wrap-as-mlx-array
+                (with-foreign-pointer (array* (cl:* 2 (foreign-type-size :float) size))
+                  (loop :for i :below size
+                        :for idx :from 0 :by 2
+                        :for c := (funcall coerce (row-major-aref array i))
+                        :do (setf (mem-aref array* :float idx)      (cl:realpart c)
+                                  (mem-aref array* :float (1+ idx)) (cl:imagpart c)))
+                  (with-pointer-to-vector-data (shape* shape)
+                    (mlx_array_new_data array* shape* (length shape) dtype!))))))
+            ((and dtype (eq dtype dtype!))
+             (let ((array (make-array size
+                                      :initial-contents array
+                                      :element-type     (array-element-type array))))
+               (declare (type simple-array array))
+               (wrap-as-mlx-array
+                (with-pointer-to-vector-data (array* array)
+                  (with-pointer-to-vector-data (shape* shape)
+                    (mlx_array_new_data array* shape* (length shape) dtype!))))))
+            (t
+              (let ((coerce (%mlx-dtype-coerce dtype!)))
+                (wrap-as-mlx-array
+                 (with-foreign<-array (array* array (cffi-type<-mlx-dtype dtype!)
+                                       %shape %size
+                                       elem (funcall coerce elem))
+                   (with-pointer-to-vector-data (shape* shape)
+                     (mlx_array_new_data array* shape* (length shape) dtype!)))))))))
   ;; TEST: #mlx-array-list
   (:method ((list list)
             &key (dtype  (mlx-dtype list))

@@ -19,26 +19,11 @@
 
 (defvar mlx-cl-test-dir "~/common-lisp/mlx-cl/test/")
 
-(defvar mlx-cl-test-tag-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-1]
-                `(lambda
-                ;; Clickable behavior
-              (overlay-put ov 'mouse-face 'highlight)
-              (overlay-put ov 'help-echo (format "Click to run: %s" tag))
-              (overlay-put ov 'keymap
-                           (let ((map (make-sparse-keymap)))
-                             (define-key map [mouse-1]
-                               `(lambda ()
-                                  (interactive)
-                                  (my-handle-tag ,tag)))
-                             map))))))
-
 (defun mlx-cl-goto-test (tag)
   "Goto test. "
   (find-file-other-window (expand-file-name mlx-cl-test-file mlx-cl-test-dir))
   (goto-char (point-min))
-  (if (re-search-forward (format "^(test %s" (regexp-quote tag)) nil t)
+  (if (re-search-forward (format "^(test %s$" (regexp-quote tag)) nil t)
       (progn
         (beginning-of-line)
         (message "Moved to MLX-CL test #%s in %s. " tag (buffer-name)))
