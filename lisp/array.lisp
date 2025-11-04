@@ -38,7 +38,8 @@
       :int32
       :int64
       :float32
-      :float64)
+      :float64
+      :complex64)
     "MLX-CL supported MLX-DTYPES. "))
 
 (macrolet ((define-mlx-dtype ()
@@ -100,8 +101,9 @@ as MLX-DTYPE. "
     "Convert MLX-DTYP to CFFI type specification. "
     (declare (type mlx-dtype dtype))
     (ecase dtype
-      (:float32 :float)
-      (:float64 :double)
+      (:float32   :float)
+      (:float64   :double)
+      (:complex64 :float)
       ((:bool
         :uint8 :uint16 :uint32 :uint64
         :int8  :int16  :int32  :int64)
@@ -140,13 +142,15 @@ as MLX-DTYPE. "
        ((signed-byte 16)   :int16)
        ((signed-byte 32)   :int32)
        ((signed-byte 64)   :int64)
-       (integer            *default-mlx-int-dtype*)))))
+       (integer            *default-mlx-int-dtype*)
+       (complex            :complex64)))))
 
 (defun minimal-super-type (type1 type2)
   "Return the minimal common type of TYPE1 and TYPE2. "
   (flet ((float<- (type)
            (cond ((subtypep type 'single-float) 'single-float)
                  ((subtypep type 'float)        'float)
+                 ((subtypep type 'complex)      'complex)
                  (t (error
                      "Cannot convert ~A as `mlx-dtype' compatiable type. "
                      type)))))
@@ -185,14 +189,16 @@ Dev Note:
 Use `mlx::mlx-dtype<-lisp-type' and `mlx::mlx-dtype<-cffi-type'
 if you know how to convert the DTYPE. "
   (etypecase dtype
-    (mlx-dtype dtype)
-    (keyword   (mlx-dtype<-cffi-type dtype))
-    ((cl:or symbol list) (mlx-dtype<-lisp-type dtype))))
+    (mlx-dtype        dtype)
+    (keyword          (mlx-dtype<-cffi-type dtype))
+    ((or symbol list) (mlx-dtype<-lisp-type dtype))))
 
-(flet ((int<-    (n) (truncate n))
-       (float<-  (f) (coerce f 'single-float))
-       (double<- (f) (coerce f 'double-float))
-       (bool<-   (b) (cl:and b t)))
+(flet ((int<-     (n) (truncate n))
+       (float<-   (f) (coerce f 'single-float))
+       (double<-  (f) (coerce f 'double-float))
+       (bool<-    (b) (and b t))
+       (complex<- (c) (complex (coerce (cl:realpart c) 'single-float)
+                               (coerce (cl:imagpart c) 'single-float))))
   (defun %mlx-dtype-coerce (dtype)
     "Return a converter to MLX DTYPE. "
     (declare (type mlx-dtype dtype))
@@ -200,9 +206,10 @@ if you know how to convert the DTYPE. "
       ((:uint8 :uint16 :uint32 :uint64
         :int8  :int16  :int32  :int64)
        #'int<-)
-      (:float32 #'float<-)
-      (:float64 #'double<-)
-      (:bool    #'bool<-)))
+      (:float32   #'float<-)
+      (:float64   #'double<-)
+      (:bool      #'bool<-)
+      (:complex64 #'complex<-)))
 
   (defun mlx-dtype-coerce (value dtype)
     "Coerce VALUE to MLX DTYPE.
@@ -215,9 +222,10 @@ Use `%mlx-dtype-coerce' for massive data convertion. "
       ((:uint8 :uint16 :uint32 :uint64
         :int8  :int16  :int32  :int64)
        (int<- value))
-      (:float32 (float<-  value))
-      (:float64 (double<- value))
-      (:bool    (bool<-   value)))))
+      (:float32   (float<-   value))
+      (:float64   (double<-  value))
+      (:bool      (bool<-    value))
+      (:complex64 (complex<- value)))))
 
 ;; size_t mlx_dtype_size(mlx_dtype dtype);
 (defcfun (mlx_dtype_size "mlx_dtype_size") :size
@@ -253,6 +261,10 @@ Use `%mlx-dtype-coerce' for massive data convertion. "
    (:float64 :double)
    (:int     :int)))
 
+(defcfun (mlx_array_new_complex "mlx_array_new_complex") mlx-array
+  (real :float)
+  (imag :float))
+
 ;;; Convert to Lisp
 
 ;; int mlx_array_item_<dtype> (<dtype>* res, const mlx_array arr);
@@ -260,14 +272,24 @@ Use `%mlx-dtype-coerce' for massive data convertion. "
 (macrolet ((mlx_array_item/data_* ()
              `(progn
                 ,@(loop :for dtype :in +supported-mlx-dtypes+
-                        :collect `(defcsetfun ,(format nil "mlx_array_item_~(~A~)" dtype)
-                                      ,(cffi-type<-mlx-dtype dtype)
-                                    mlx-array mlx-array)
+                        :if (not (eql dtype :complex64))
+                          :collect `(defcsetfun ,(format nil "mlx_array_item_~(~A~)" dtype)
+                                        ,(cffi-type<-mlx-dtype dtype)
+                                      mlx-array mlx-array)
                         :collect `(defcfun (,(intern* 'mlx_array_data_ dtype)
                                             ,(format nil "mlx_array_data_~(~A~)" dtype))
                                       :pointer
                                     (mlx-array mlx-array))))))
   (mlx_array_item/data_*))
+
+(defun mlx_array_item_complex64 (mlx-array)
+  (with-foreign-pointer (res& (cl:* 2 (foreign-type-size :float)))
+    (ensure-success "mlx_array_item_complex64"
+      :pointer  res&
+      mlx-array mlx-array)
+    (complex (mem-aref res& :float 0)
+             (mem-aref res& :float 1))))
+
 
 ;;; Eval
 
@@ -570,118 +592,8 @@ where nil is considered as boolean.
      mlx-array (mlx-object-pointer arr)
      :size)))
 
-;;; Convert lisp value as `mlx-array'
-
-(defgeneric mlx-array (val &key dtype shape &allow-other-keys)
-  (:documentation
-   "Convert VAL as MLX-ARRAY of DTYPE.
-
-Parameters:
-+ VAL:   lisp value
-+ DTYPE: MLX-ARRAY data type or lisp type specifier,
-
-  + if not given, would try to determine from VAL via
-    `mlx::ensure-mlx-dtype';
-  + if given DTYPE is different to VAL type, will try
-    to convert VAL into specific DTYPE
-")
-  (:method (bool
-            &key (dtype :bool)
-            &aux (dtype! (ensure-mlx-dtype dtype)))
-    (declare (type boolean bool)
-             (type (member :bool) dtype!)
-             (ignorable dtype!))
-    (if bool +mlx-true+ +mlx-false+))
-  (:method ((number number)
-            &key (dtype (type-of number))
-            &aux (dtype! (ensure-mlx-dtype dtype)))
-    (wrap-as-mlx-array
-     (ecase dtype!
-       (:bool
-        (mlx_array_new_bool (cl:not (zerop number))))
-       ((:uint8 :uint16 :uint32 :uint64
-         :int8  :int16  :int32  :int64)
-        (mlx_array_new_int (truncate number)))
-       (:float32
-        (mlx_array_new_float32 (coerce number 'single-float)))
-       (:float64
-        (mlx_array_new_float64 (coerce number 'double-float))))))
-  (:method ((array array)
-            &key (dtype  (mlx-dtype array))
-            &aux (dtype! (ensure-mlx-dtype dtype)))
-    (wrap-as-mlx-array
-     (let ((coerce (%mlx-dtype-coerce dtype!)))
-       (with-foreign<-array (array* array (cffi-type<-mlx-dtype dtype!) shape size
-                             elem (funcall coerce elem))
-         (with-foreign<-sequence (shape* shape :int dim)
-           (mlx_array_new_data array* shape* dim dtype!))))))
-  (:method ((list list)
-            &key (dtype  (mlx-dtype list))
-            &aux (dtype! (ensure-mlx-dtype dtype)))
-    "For `nil', wrap as boolean false.
-Otherwise, the LIST should be in valid shape. "
-    (if (null list)
-        ;; for `nil', wrap as boolean false
-        +mlx-false+
-        (wrap-as-mlx-array
-         (let* ((shape (shape list))
-                (size   (reduce #'cl:* shape))
-                (cffi-t (cffi-type<-mlx-dtype dtype!))
-                (dsize  (foreign-type-size cffi-t))
-                (coerce (%mlx-dtype-coerce dtype!)))
-           (with-foreign-pointer (data (cl:* size dsize))
-             (let ((idx -1))
-               (labels ((dump (elem)
-                          (if (atom elem)
-                              (setf (mem-aref data cffi-t (incf idx))
-                                    (funcall coerce elem))
-                              (map nil #'dump elem))))
-                 (dump list)))
-             (with-foreign<-sequence (shape* shape :int ndim)
-               (mlx_array_new_data data shape* ndim dtype!)))))))
-  (:method ((arr mlx-array) &key dtype)
-    (if dtype
-        (as-type arr dtype)
-        arr)))
-
 (defmethod mlx-object-pointer (elem)
   (mlx-object-pointer (mlx-array elem)))
-
-;;; Convert `mlx-array' to lisp values
-
-(defun lisp<-mlx-array (arr)
-  (declare (type mlx-array arr))
-  (let ((arr (as-strided (contiguous arr))))
-    (mlx_array_eval  (mlx-object-pointer arr))
-    (mlx_synchronize (mlx-object-pointer *mlx-stream*))
-    (let ((shape (shape arr))
-          (dtype (mlx-dtype arr)))
-      (if (endp shape) ;; scalar
-          (macrolet ((convert ()
-                       `(ecase dtype
-                          ,@(loop :for dtype :in +supported-mlx-dtypes+
-                                  :collect
-                                  `(,dtype (,(intern* 'mlx_array_item_ dtype)
-                                            (mlx-object-pointer arr)))))))
-            (convert))
-          (macrolet ((convert ()
-                       `(ecase dtype
-                          ,@(loop :for dtype :in +supported-mlx-dtypes+
-                                  :collect
-                                  `(,dtype (,(intern* 'mlx_array_data_ dtype)
-                                            (mlx-object-pointer arr)))))))
-            (array<-foreign (convert)
-                            (cffi-type<-mlx-dtype dtype)
-                            shape
-                            (lisp-type<-mlx-dtype dtype)))))))
-
-(defgeneric lisp<- (array)
-  (:documentation
-   "Convert MLX ARRAY into Lisp elements.
-
-The output array would be declared with MLX-DTYPE. ")
-  (:method (object)          object)
-  (:method ((arr mlx-array)) (lisp<-mlx-array arr)))
 
 (defgeneric %steal-mlx-array-pointer (from to)
   (:documentation
@@ -704,11 +616,5 @@ Behind the scene is:
     (let ((ptr (mlx-object-pointer from)))
       (tg:finalize to (lambda () (mlx_array_free ptr)))
       (setf (slot-value to 'pointer) ptr))))
-
-(defmethod equal ((arr1 mlx-array) (arr2 mlx-array))
-  (cl:or (cl:eq arr1 arr2)
-         (pointer-eq (mlx-object-pointer arr1)
-                     (mlx-object-pointer arr2))
-         (lisp<- (= arr1 arr2))))
 
 ;;;; array.lisp ends here

@@ -18,12 +18,18 @@
    (:file "stream"  :depends-on ("device"))
    (:file "array"   :depends-on ("utils")) ; NEXT: faster mlx-array with pointer, no copy
    (:file "vector"  :depends-on ("array"))
-   (:file "ops"     :depends-on ("array" "vector"))
-   (:file "at"      :depends-on ("array"))
+   (:file "wrap"    :depends-on ("utils" "array"))
+   (:file "ops"     :depends-on ("wrap" "vector"))
+   (:file "slice"   :depends-on ("wrap"))
+   (:file "axis"    :depends-on ("wrap"))
    (:file "version" :depends-on ("string"))
    (:file "metal"   :depends-on ("utils")) ; NEXT: metal trace for debug
    (:file "io"      :depends-on ("array"))
    (:file "sugar"   :depends-on ("array")) ; NEXT: math input #$ x * 2 => (* x 2)
+
+   ;; (:file "fft"     :depends-on ("array"))
+   ;; (:file "random"  :depends-on ("array"))
+   ;; (:file "linalg"  :depends-on ("array"))
    )
   :in-order-to ((test-op (test-op :mlx-cl/test))))
 
@@ -37,8 +43,7 @@
   :components
   ((:file "package")
    (:file "device" :depends-on ("package"))
-   (:file "api"    :depends-on ("package"))
-   (:file "ops"    :depends-on ("api")))
+   (:file "api"    :depends-on ("package")))
   :perform (test-op (op c)
              (symbol-call :mlx-cl.test :run-tests)))
 

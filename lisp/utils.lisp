@@ -169,23 +169,6 @@ Use `eq' for fast comparing.
                     :return nil
                   :finally (return t)))))
 
-(defgeneric eq (x y)
-  (:documentation
-   "Test if X and Y is equal to each other.
-
-Note:
-This calls `cl:eq' to test if two elements are same in
-pointer level. Use this for fast comparing.
-
-Dev Note:
-Use `equal' to test in value. ")
-  (:method (x y)
-    (cl:eq x y))
-  (:method ((obj1 mlx-object) (obj2 mlx-object))
-    (cl:and (cl:eq obj1 obj2)
-            (pointer-eq (mlx-object-pointer obj1)
-                        (mlx-object-pointer obj2)))))
-
 (defgeneric copy (elem)
   (:documentation
    "Duplicate ELEM.
@@ -400,8 +383,8 @@ Example:
 
 (defun alias-symbol-function (symbol function &optional documentation)
   "See `defalias'. "
-  (declare (type symbol symbol)
-           (type (cl:or function symbol) function)
+  (declare (type (or symbol (cons 'setf (cons symbol null))) symbol)
+           (type (or function symbol (cons 'setf (cons symbol null))) function)
            (type (cl:or null string) documentation))
   (macrolet ((fn   (sym) `(symbol-function ,sym))
              (ma   (sym) `(macro-function  ,sym))
@@ -530,9 +513,18 @@ Parameters:
 
 (defun array<-foreign (pointer type shape &optional (element-type t))
   "Convert foreign POINTER with TYPE and SHAPE into lisp array. "
-  (loop :with array := (make-array shape :element-type element-type)
-        :for i :below (reduce #'cl:* shape)
-        :do (setf (row-major-aref array i) (mem-aref pointer type i))
-        :finally (return array)))
+  (if (subtypep element-type 'complex)
+      (loop :with array := (make-array shape :element-type 'complex
+                                             :initial-element #C(0 0))
+            :for i :below (reduce #'cl:* shape)
+            :for idx :from 0 :by 2
+            :do (setf (row-major-aref array i)
+                      (complex (mem-aref pointer type idx)
+                               (mem-aref pointer type (1+ idx))))
+            :finally (return array))
+      (loop :with array := (make-array shape :element-type element-type)
+            :for i :below (reduce #'cl:* shape)
+            :do (setf (row-major-aref array i) (mem-aref pointer type i))
+            :finally (return array))))
 
 ;;;; utils.lisp ends here

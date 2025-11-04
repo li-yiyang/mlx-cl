@@ -2,7 +2,7 @@
 
 (uiop:define-package #:mlx-cl.test
   (:use :mlx-cl :fiveam)
-  (:shadow #:!)
+  (:shadowing-import-from #:mlx #:!)
   (:export
    #:run-tests))
 
