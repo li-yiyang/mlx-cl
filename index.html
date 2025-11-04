@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-10-31 Fri 23:37 -->
+<!-- 2025-11-04 Tue 21:23 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>MLX-CL</title>
@@ -213,26 +213,27 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org21ea269">1. About</a></li>
-<li><a href="#org521974f">2. Usage</a>
+<li><a href="#org3dbb538">1. About</a></li>
+<li><a href="#orga07c319">2. Usage</a>
 <ul>
-<li><a href="#orgdaefa34">2.1. Installation</a></li>
-<li><a href="#orgfca7c4c">2.2. Systems and Packages</a></li>
-<li><a href="#orgc32b27b">2.3. Basic Operations</a>
+<li><a href="#orgf7937ea">2.1. Installation</a></li>
+<li><a href="#org6150ea8">2.2. Systems and Packages</a></li>
+<li><a href="#org957bad6">2.3. Basic Operations</a>
 <ul>
-<li><a href="#orga3d318e">2.3.1. Convert</a></li>
-<li><a href="#org8eb6264">2.3.2. Alloc <code>mlx-array</code></a></li>
-<li><a href="#orga655b52">2.3.3. Indexing <code>mlx-array</code></a></li>
-<li><a href="#orgb2c6258">2.3.4. Operations</a></li>
+<li><a href="#org0957ece">2.3.1. Convert</a></li>
+<li><a href="#org909dc9e">2.3.2. Alloc <code>mlx-array</code></a></li>
+<li><a href="#orgb4128ff">2.3.3. Indexing <code>mlx-array</code></a></li>
+<li><a href="#org6ac0be5">2.3.4. Operations</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li><a href="#org455921e">3. Contributing and Developing</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org21ea269" class="outline-2">
-<h2 id="org21ea269"><span class="section-number-2">1.</span> About</h2>
+<div id="outline-container-org3dbb538" class="outline-2">
+<h2 id="org3dbb538"><span class="section-number-2">1.</span> About</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 MLX-CL is a Common Lisp binding for MLX, together with a set of trivial
@@ -247,19 +248,19 @@ data processing library.
 <b>TODO</b>:
 </p>
 <ul class="org-ul">
-<li>more tests (the API tests are under <a href="test/api.lisp"><code>test/api.lisp</code></a>,
-tests of ops are under <a href="test/ops.lisp"><code>test/ops.lisp</code></a>),</li>
+<li>more tests (the API tests are under <code>test/api.lisp</code>,
+tests of ops are under <code>test/ops.lisp</code>),</li>
 <li>more documentations with examples (the ops are self-documented,
 use <code>(documentation #'mlx:+ 'function)</code> or <code>sly-documentation</code> for documentations)</li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org521974f" class="outline-2">
-<h2 id="org521974f"><span class="section-number-2">2.</span> Usage</h2>
+<div id="outline-container-orga07c319" class="outline-2">
+<h2 id="orga07c319"><span class="section-number-2">2.</span> Usage</h2>
 <div class="outline-text-2" id="text-2">
 </div>
-<div id="outline-container-orgdaefa34" class="outline-3">
-<h3 id="orgdaefa34"><span class="section-number-3">2.1.</span> Installation</h3>
+<div id="outline-container-orgf7937ea" class="outline-3">
+<h3 id="orgf7937ea"><span class="section-number-3">2.1.</span> Installation</h3>
 <div class="outline-text-3" id="text-2-1">
 <p>
 You need:
@@ -275,7 +276,7 @@ Here's a possible installation process:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-shell" id="orgabd1637">&gt; mkdir -pv ~/common-lisp/
+<pre class="src src-shell" id="orgca531e7">&gt; mkdir -pv ~/common-lisp/
 &gt; git clone --recursive https://github.com/li-yiyang/mlx-cl.git ~/common-lisp/mlx-cl
 ...
 &gt; sbcl
@@ -309,8 +310,8 @@ To load <span style="color: #9E9E9E;">"mlx-cl"</span>:
 </details>
 </div>
 </div>
-<div id="outline-container-orgfca7c4c" class="outline-3">
-<h3 id="orgfca7c4c"><span class="section-number-3">2.2.</span> Systems and Packages</h3>
+<div id="outline-container-org6150ea8" class="outline-3">
+<h3 id="org6150ea8"><span class="section-number-3">2.2.</span> Systems and Packages</h3>
 <div class="outline-text-3" id="text-2-2">
 <p>
 The core functionalities are provided within system <code>mlx-cl</code>:
@@ -352,19 +353,19 @@ There are some subsystem(s) providing additional functionalities
 above <code>mlx-cl</code>:
 </p>
 <ul class="org-ul">
-<li><code>mlx-cl/image</code>: see under <code>image</code> dir</li>
+<li><code>mlx-cl/image</code>: see <a href="./image/">readme</a> under <code>image</code> dir</li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orgc32b27b" class="outline-3">
-<h3 id="orgc32b27b"><span class="section-number-3">2.3.</span> Basic Operations</h3>
+<div id="outline-container-org957bad6" class="outline-3">
+<h3 id="org957bad6"><span class="section-number-3">2.3.</span> Basic Operations</h3>
 <div class="outline-text-3" id="text-2-3">
 <p>
-See tests in for more examples.
+See tests in test/api.lisp for more examples.
 </p>
 </div>
-<div id="outline-container-orga3d318e" class="outline-4">
-<h4 id="orga3d318e"><span class="section-number-4">2.3.1.</span> Convert</h4>
+<div id="outline-container-org0957ece" class="outline-4">
+<h4 id="org0957ece"><span class="section-number-4">2.3.1.</span> Convert</h4>
 <div class="outline-text-4" id="text-2-3-1">
 <ol class="org-ol">
 <li><p>
@@ -379,7 +380,7 @@ scalar to <code>mlx-array</code>
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgaf85a97">(mlx-array 2)
+<pre class="src src-lisp" id="org68056bc">(mlx-array 2)
 </pre>
 </div>
 
@@ -391,7 +392,7 @@ list to <code>mlx-array</code>
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org4ad6c3e">(mlx-array '((1 2) (3 4)))
+<pre class="src src-lisp" id="org03adba3">(mlx-array '((1 2) (3 4)))
 </pre>
 </div>
 
@@ -405,7 +406,7 @@ array to <code>mlx-array</code>
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org2943924">(mlx-array #3A(((1 2) (3 4))
+<pre class="src src-lisp" id="org8256026">(mlx-array #3A(((1 2) (3 4))
                ((5 6) (7 8))))
 </pre>
 </div>
@@ -431,8 +432,8 @@ data into <code>mlx-array</code>.
 </ol>
 </div>
 </div>
-<div id="outline-container-org8eb6264" class="outline-4">
-<h4 id="org8eb6264"><span class="section-number-4">2.3.2.</span> Alloc <code>mlx-array</code></h4>
+<div id="outline-container-org909dc9e" class="outline-4">
+<h4 id="org909dc9e"><span class="section-number-4">2.3.2.</span> Alloc <code>mlx-array</code></h4>
 <div class="outline-text-4" id="text-2-3-2">
 <ul class="org-ul">
 <li>Generate by range:
@@ -480,8 +481,8 @@ array([[2333, 2333, 2333, 2333, 2333],
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp">(meshgrid (list (arange -2 2)
-                (arange -2 2)))
+<pre class="src src-lisp">(meshgrid (arange -2 2)
+          (arange -2 2))
 </pre>
 </div>
 
@@ -499,8 +500,8 @@ array([[2333, 2333, 2333, 2333, 2333],
 </ul>
 </div>
 </div>
-<div id="outline-container-orga655b52" class="outline-4">
-<h4 id="orga655b52"><span class="section-number-4">2.3.3.</span> Indexing <code>mlx-array</code></h4>
+<div id="outline-container-orgb4128ff" class="outline-4">
+<h4 id="orgb4128ff"><span class="section-number-4">2.3.3.</span> Indexing <code>mlx-array</code></h4>
 <div class="outline-text-4" id="text-2-3-3">
 <ul class="org-ul">
 <li><p>
@@ -580,8 +581,8 @@ first half (<code>1/2</code>) in third axis.
 </ul>
 </div>
 </div>
-<div id="outline-container-orgb2c6258" class="outline-4">
-<h4 id="orgb2c6258"><span class="section-number-4">2.3.4.</span> Operations</h4>
+<div id="outline-container-org6ac0be5" class="outline-4">
+<h4 id="org6ac0be5"><span class="section-number-4">2.3.4.</span> Operations</h4>
 <div class="outline-text-4" id="text-2-3-4">
 <p>
 MLX-CL overwrites a few of Common Lisp's methods (<code>cl:+</code>, <code>cl:-</code>, <code>cl:*</code>, <code>cl:/</code>, &#x2026;)
@@ -639,12 +640,12 @@ the following example came from my Image Processing homework:
 <span style="color: #C3C3C3;">"</span>
   (<span style="color: #F1F1F1;">declare</span> (type (real 0) sigma)
            (type (or null integer) m))
-  (<span style="color: #F1F1F1;">when</span> (&lt; m-val m-min)
+  (<span style="color: #F1F1F1;">when</span> (lisp&lt;- (&lt; m-val m-min))
     (<span style="color: #E8E8E8; background-color: #3C3C3C; font-weight: bold;">warn</span> <span style="color: #9E9E9E;">"Given m=~A is lower than m_min=~A. "</span> m-val m-min))
   (<span style="color: #F1F1F1;">let</span> ((half (/ (1- m-val) 2)))
     (<span style="color: #F1F1F1;">destructuring-bind</span> (x y)
-        (meshgrid (list (arange (- half) (1+ half))
-                        (arange (- half) (1+ half))))
+        (meshgrid (arange (- half) (1+ half))
+                  (arange (- half) (1+ half)))
       (<span style="color: #F1F1F1;">let</span> ((ker (exp (- (/ (+ (square x) (square y))
                             (* 2 (square sigma)))))))
         (/ ker (sum ker))))))
@@ -672,10 +673,24 @@ array([[1.47169e-05, 0.00380683, 1.47169e-05],
 </div>
 </div>
 </div>
+<div id="outline-container-org455921e" class="outline-2">
+<h2 id="org455921e"><span class="section-number-2">3.</span> Contributing and Developing</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+<b>DEV Note</b>:
+</p>
+<ul class="org-ul">
+<li>You could load system <code>mlx-cl/dev</code> to quickly load <code>mlx-cl</code> and <code>mlx-cl/test</code>,
+together with a set of indent rules to use with SLY/SLIME in Emacs.</li>
+<li>There's some helpful Emacs scripts under <code>dev</code> which could help with
+developing MLX-CL</li>
+</ul>
+</div>
+</div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: 凉凉</p>
-<p class="date">Created: 2025-10-31 Fri 23:37</p>
+<p class="date">Created: 2025-11-04 Tue 21:23</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

@@ -16,7 +16,7 @@
    (:file "string"  :depends-on ("utils"))
    (:file "device"  :depends-on ("string"))
    (:file "stream"  :depends-on ("device"))
-   (:file "array"   :depends-on ("utils")) ; NEXT: faster mlx-array with pointer, no copy
+   (:file "array"   :depends-on ("utils"))
    (:file "vector"  :depends-on ("array"))
    (:file "wrap"    :depends-on ("utils" "array"))
    (:file "ops"     :depends-on ("wrap" "vector"))
@@ -68,7 +68,9 @@
   :license "GPL"
   :version "0.0.0"
   :description "For developping `mlx-cl', here's some dev tools. "
-  :depends-on (:trivial-indent :mlx-cl)
+  :depends-on (:trivial-indent
+               :mlx-cl
+               :mlx-cl/test)
   :pathname "dev"
   :components
   ((:file "package")

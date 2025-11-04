@@ -17,8 +17,8 @@ data processing library.
 *NOTE*: Github's org-mode renderer is buggy, please refer [[https://li-yiyang.github.io/mlx-cl][documentation]].
 
 *TODO*:
-+ more tests (the API tests are under [[file:test/api.lisp][=test/api.lisp=]],
-  tests of ops are under [[file:test/ops.lisp][=test/ops.lisp=]]),
++ more tests (the API tests are under =test/api.lisp=,
+  tests of ops are under =test/ops.lisp=),
 + more documentations with examples (the ops are self-documented,
   use =(documentation #'mlx:+ 'function)= or =sly-documentation= for documentations)
 
@@ -96,14 +96,14 @@ would loads the following packages:
 
 There are some subsystem(s) providing additional functionalities
 above =mlx-cl=:
-+ =mlx-cl/image=: see [[image/readme.org][readme]] under =image= dir
++ =mlx-cl/image=: see [[./image/][readme]] under =image= dir
 
 ** Basic Operations
 :PROPERTIES:
 :header-args:lisp: :results verbatim :exports both :package mlx-user
 :END:
 
-See tests in [[test/api.lisp]] for more examples.
+See tests in test/api.lisp for more examples.
 
 *** Convert
 1. Convert from Lisp to =mlx-array=
@@ -181,8 +181,8 @@ See tests in [[test/api.lisp]] for more examples.
   + =(meshgrid arrays &key SPARES INDEXING)=
 
     #+begin_src lisp
-      (meshgrid (list (arange -2 2)
-                      (arange -2 2)))
+      (meshgrid (arange -2 2)
+                (arange -2 2))
     #+end_src
 
     #+RESULTS:
@@ -284,12 +284,12 @@ the following example came from my Image Processing homework:
   "
     (declare (type (real 0) sigma)
              (type (or null integer) m))
-    (when (< m-val m-min)
+    (when (lisp<- (< m-val m-min))
       (warn "Given m=~A is lower than m_min=~A. " m-val m-min))
     (let ((half (/ (1- m-val) 2)))
       (destructuring-bind (x y)
-          (meshgrid (list (arange (- half) (1+ half))
-                          (arange (- half) (1+ half))))
+          (meshgrid (arange (- half) (1+ half))
+                    (arange (- half) (1+ half)))
         (let ((ker (exp (- (/ (+ (square x) (square y))
                               (* 2 (square sigma)))))))
           (/ ker (sum ker))))))
@@ -307,3 +307,11 @@ which would produce:
 :        [1.47169e-05, 0.00380683, 1.47169e-05]], dtype=float32)
 
 #+html: </details>
+
+* Contributing and Developing
+
+*DEV Note*:
++ You could load system =mlx-cl/dev= to quickly load =mlx-cl= and =mlx-cl/test=,
+  together with a set of indent rules to use with SLY/SLIME in Emacs.
++ There's some helpful Emacs scripts under =dev= which could help with
+  developing MLX-CL

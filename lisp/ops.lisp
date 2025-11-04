@@ -1,4 +1,4 @@
-;;;; ops.lisp --- Operators for MLX
+;;;; ops.lisp --- Operators for MLX -*- mlx-cl-test-file: "api.lisp"; after-save-hook: (mlx-cl-highlight-test-tags); -*-
 
 (in-package :mlx)
 
@@ -14,8 +14,6 @@
 ;;   to normalize input parameters
 ;; + the code should be organized in MLX-CL.TEST (mlx-api)
 ;;   by the test sequence
-
-;;; TEST: <<test/api.lisp>>
 
 
 ;;; Config
