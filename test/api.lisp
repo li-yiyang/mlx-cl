@@ -474,8 +474,8 @@ add the test first and then pull a pr. "
                           "For normal number operation, ~A is equal to ~A (args=~A)"
                           mlx-op cl-op args)
                   :do (is (lisp<- (~= (apply mlx-op arg2) (apply cl-op args)))
-                          "For scalar operation, ~A is equal to ~A, too (args=~A)"
-                          mlx-op cl-op args))))
+                          "For scalar operation, ~S is equal to ~S, too (args=~A), got: ~A"
+                          mlx-op cl-op args (apply mlx-op arg2)))))
 
 (test single-op-inv
   (loop :repeat 10

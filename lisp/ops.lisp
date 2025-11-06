@@ -69,22 +69,28 @@ Parameters:
     (if bool +mlx-true+ +mlx-false+))
   ;; TEST: #mlx-array-scalar
   (:method ((number number)
-            &key (dtype (type-of number))
+            &key (dtype (type-of number) dtype?)
             &aux (dtype! (ensure-mlx-dtype dtype)))
-    (wrap-as-mlx-array
-     (ecase dtype!
-       (:bool
-        (mlx_array_new_bool (cl:not (zerop number))))
-       ((:uint8 :uint16 :uint32 :uint64
-         :int8  :int16  :int32  :int64)
-        (mlx_array_new_int (truncate number)))
-       (:float32
-        (mlx_array_new_float32 (coerce number 'single-float)))
-       (:float64
-        (mlx_array_new_float64 (coerce number 'double-float)))
-       (:complex64
-        (mlx_array_new_complex (coerce (cl:realpart number) 'single-float)
-                               (coerce (cl:imagpart number) 'single-float))))))
+    (ecase dtype!
+      (:bool
+       (wrap-as-mlx-array
+        (mlx_array_new_bool (cl:not (zerop number)))))
+      ((:uint8 :uint16 :uint32 :uint64
+        :int8  :int16  :int32  :int64)
+       (let ((int (wrap-as-mlx-array
+                   (mlx_array_new_int (truncate number)))))
+         (if dtype? (as-type int dtype!) int)))
+      (:float32
+       (wrap-as-mlx-array
+        (mlx_array_new_float32 (coerce number 'single-float))))
+      (:float64
+       (wrap-as-mlx-array
+        (mlx_array_new_float64 (coerce number 'double-float))))
+      (:complex64
+       (wrap-as-mlx-array
+        (mlx_array_new_complex
+         (coerce (cl:realpart number) 'single-float)
+         (coerce (cl:imagpart number) 'single-float))))))
   ;; TEST: #mlx-array-array
   (:method ((array array)
             &key (dtype  (mlx-dtype array) dtype?)
