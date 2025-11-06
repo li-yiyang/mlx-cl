@@ -29,8 +29,8 @@
         (message "Moved to MLX-CL test #%s in %s. " tag (buffer-name)))
     (progn
       (end-of-buffer)
-      (open-line)
-      (insert "(test %s\n")
+      (open-line 1)
+      (insert (format "(test %s\n" tag))
       (save-excursion
         (insert "\n)")))))
 
@@ -48,7 +48,7 @@
         ;; Step 2: within that line, find all #tags
         (save-excursion
           (goto-char line-start)
-          (while (re-search-forward "#\\([A-Za-z-/<>]+\\)" line-end t)
+          (while (re-search-forward "#\\([0-9A-Za-z-/<>~=]+\\)" line-end t)
             (let* ((beg (match-beginning 0))
                    (end (match-end       0))
                    (ov  (make-overlay beg end))

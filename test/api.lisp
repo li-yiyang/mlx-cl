@@ -255,7 +255,32 @@ add the test first and then pull a pr. "
              2)))
 
 (test diag
-  )
+  (let ((dat (mlx-array #(1 2) :dtype :int8)))
+    (is (equal (diag dat)
+               #2A((1 0)
+                   (0 2)))
+        "Make a diagonal matrix from 1-D array. ")
+    (is (equal (diag dat 1)
+               #2A((0 1 0)
+                   (0 0 2)
+                   (0 0 0)))
+        "N for diagonal offset")
+    (is (equal (diag dat -1)
+               #2A((0 0 0)
+                   (1 0 0)
+                   (0 2 0)))
+        "N(<0) for offset down"))
+
+  (let ((dat (mlx-array #2a((1 2 3 4)
+                            (5 6 7 8)
+                            (9 0 1 2)
+                            (3 4 5 6))
+                        :dtype :int8)))
+    (is (equal (diag dat) #(1 6 1 6))
+        "extract diagonal. ")
+    (is (equal (diag dat  1) #(2 7 2))
+        "offset")
+    (is (equal (diag dat -1) #(5 0 5)))))
 
 (test dtype
   (let ((arr (mlx-array 2 :dtype :float32)))
@@ -265,6 +290,9 @@ add the test first and then pull a pr. "
     (is (equal (lisp<- arr) #C(2 0)))))
 
 (test finite/nan/inf/neg-inf/pos-inf-p
+  )
+
+(test num<-nan
   )
 
 (test std-var
@@ -289,24 +317,73 @@ add the test first and then pull a pr. "
   (is (equal (~ 2 10 2)     '(~ 2  10  2))
       "(~ 2 10 2) take [2, 10) by step 2. "))
 
+(defmacro is-at (arr expect &rest slices
+                 &aux
+                   (got (gensym "GOT"))
+                   (exp (gensym "EXPECT")))
+  "(is (equal (at ARR . SLICES) EXPECT) ...)"
+  `(let ((,got (at ,arr ,@slices))
+         (,exp ,expect))
+     (is (equal ,got ,exp)
+         "Slice ~{~S~^ ~} shall return ~A, but got:~%~A. "
+         ',slices ,exp ,got)))
+
 (test at
   (let ((arr (arange 10)))
-    (is (equal (at arr 0) 0))
-    (is (equal (at arr :first) 0))
-    (is (equal (at arr '(:first 3))  #(0 1 2)))
-    (is (equal (at arr '(:first -3)) #(2 1 0)))
-    (is (equal (at arr '(:last  1))  9))
-    (is (equal (at arr '(:last  3))  #(7 8 9)))
-    (is (equal (at arr '(:last -3))  #(9 8 7)))
-    (is (equal (at arr 1/2)          #(0 1 2 3 4)))
-    (is (equal (at arr -1/2)         #(5 6 7 8 9)))
-    (is (equal (at arr 1/3)          #(0 1 2 3)))))
+    (is-at arr 0 0)
+    (is-at arr 0 :first)
+    (is-at arr #(0 1 2)      '(:first  3))
+    (is-at arr #(2 1 0)      '(:first -3))
+    (is-at arr 9             '(:last   1))
+    (is-at arr #(7 8 9)      '(:last   3))
+    (is-at arr #(9 8 7)      '(:last  -3))
+    (is-at arr #(0 1 2 3 4)  1/2)
+    (is-at arr #(5 6 7 8 9) -1/2)
+    (is-at arr #(0 1 2 3)    1/3)))
+
+(test evaluate~
+  (let ((arr (arange 10)))
+    ;; step > 0
+    (is-at arr #(0 1 2 3 4 5 6 7 8 9) (~))
+    (is-at arr #(0 1 2 3 4 5 6 7 8)   (~ -1)) ; last element would be ignored
+    (is-at arr #(0 1 2 3 4 5 6 7)     (~ -2)) ; ignore last two elements
+    (is-at arr #(0 1 2 3 4)           (~ -5))
+    (is-at arr #()                    (~ -10)) ; nothing would be sliced
+    (is-at arr #(0 1 2 3 4)           (~  5))  ; [0, 5)
+    (is-at arr #(0 1 2 3 4 5 6 7 8 9) (~  10)) ; [0, 10) => whole
+    (is-at arr #(5 6 7 8 9)           (~ -5 :*)) ; starting from -5
+    (is-at arr #(5 6 7 8 9)           (~  5 :*)) ; starting from  5
+    ;; step < 0
+    (is-at arr #(9 8 7 6 5 4 3 2 1 0) (~ :step -1))
+    (is-at arr #(4 3 2 1 0)           (~ -5    :step -1))
+    (is-at arr #(4 3 2 1 0)           (~  5    :step -1))
+    (is-at arr #(9 8 7 6 5)           (~ -5 :* :step -1))
+    (is-at arr #(9 8 7 6 5)           (~  5 :* :step -1))))
+
+(test evaluate~~
+  (let ((arr (arange 10)))
+    ;; step > 0
+    (is-at arr #(0 1 2 3 4 5 6 7 8 9) (~~))      ; should be same as (~)
+    (is-at arr #(0 1 2 3 4 5 6 7 8 9) (~~ -1))   ; last element would be included
+    (is-at arr #(0 1 2 3 4 5 6 7 8)   (~~ -2))   ; ignore last one elements
+    (is-at arr #(0 1 2 3 4 5)         (~~ -5))
+    (is-at arr #(0)                   (~~ -10))  ; first element would be included
+    (is-at arr #(0 1 2 3 4 5)         (~~  5))   ; [0, 5]
+    (is-at arr #(0 1 2 3 4 5 6 7 8 9) (~~  9))   ; [0, 9] => whole
+    (is-at arr #(5 6 7 8 9)           (~~ -5 :*)) ; starting from -5
+    (is-at arr #(5 6 7 8 9)           (~~  5 :*)) ; starting from  5
+    ;; step < 0
+    (is-at arr #(9 8 7 6 5 4 3 2 1 0) (~~ :step -1))
+    (is-at arr #(5 4 3 2 1 0)         (~~ -5    :step -1))
+    (is-at arr #(5 4 3 2 1 0)         (~~  5    :step -1))
+    (is-at arr #(9 8 7 6 5)           (~~ -5 :* :step -1))
+    (is-at arr #(9 8 7 6 5)           (~~  5 :* :step -1))))
 
 (test at-2d
   (let ((arr (stack (arange 10) (arange 10))))
-    (is (equal (at arr :all   1)     #(1 1)))
-    (is (equal (at arr :first)       #(0 1 2 3 4 5 6 7 8 9)))
-    (is (equal (at arr :first :even) #(0 2 4 6 8)))))
+    (is-at arr #(1 1)                 :all 1)
+    (is-at arr #(0 1 2 3 4 5 6 7 8 9) :first)
+    (is-at arr #(0 2 4 6 8)           :first :even)))
 
 (test at-keep-dim-p
   (let ((arr (stack (arange 10) (arange 10)))
@@ -325,21 +402,60 @@ add the test first and then pull a pr. "
     (is (equal arr #(0 1 2 3 5))
         "(setf at) would modify the given array value")))
 
+(test at-first
+  (let ((arr (arange 10)))
+    (is-at arr 0        :first)
+    (is-at arr #(0 1) '(:first  2))
+    (is-at arr #(1 0) '(:first -2))))
+
 (test at-last
   (let ((arr (arange 10)))
-    (is (equal (at arr :last) 9))
-    (is (equal (at arr '(:last 2))  #(8 9)))
-    (is (equal (at arr '(:last -2)) #(9 8)))))
+    (is-at arr 9        :last)
+    (is-at arr #(8 9) '(:last  2))
+    (is-at arr #(9 8) '(:last -2))))
+
+(test at-nth
+  (let ((arr (arange 10)))
+    (loop :for i :from 1
+          :for k :in  '(:second :third :fourth :fifth :sixth
+                        :seventh :eighth :ninth :tenth)
+          :do (is (equal (at arr i) (at arr k))
+                  "Slice ~S should be alias of ~A. "
+                  k i))))
 
 (test at-middle
   (let ((arr (arange 5)))
     ;; 0 1 2 3 4
-    (is (equal (at arr :middle) 2))
-    (is (equal (at arr '(:middle 2)) #(1 2)))
-    (is (equal (at arr '(:middle 3)) #(1 2 3)))
-    (is (equal (at arr '(:middle -1)) 2))
-    (is (equal (at arr '(:middle -2)) #(2 1)))
-    (is (equal (at arr '(:middle -3)) #(3 2 1)))))
+    (is-at arr 2          :middle)
+    (is-at arr #(1 2)   '(:middle  2))
+    (is-at arr #(1 2 3) '(:middle  3))
+    (is-at arr 2        '(:middle -1))
+    (is-at arr #(2 1)   '(:middle -2))
+    (is-at arr #(3 2 1) '(:middle -3))))
+
+(test at-all
+  (let ((arr (arange 10)))
+    (is (equal (at arr :*)   (at arr :all))
+        "Slice :* should be alias of :all")
+    (is-at arr #(0 1 2 3 4 5 6 7 8 9) :all)))
+
+(test at-reverse
+  (let ((arr (arange 10)))
+    (is (equal (at arr :reverse) (at arr (~ :step -1))))
+    (is-at arr #(9 8 7 6 5 4 3 2 1 0) :reverse)))
+
+(test at-skip
+  (let ((arr (arange 10)))
+    (is-at arr #(0 2 4 6 8)   :skip)
+    (is-at arr #(0 3 6 9)   '(:skip 2))
+    (is-at arr #(1 3 5 7 9) '(:skip 1 :start 1))))
+
+(test at-odd/even
+  (let ((arr (arange 10)))
+    (is (equal (at arr :odd)  (at arr '(:skip 1 :start 1)))
+        "Slice :odd should be alias of (:skip 1 :start 1)")
+    (is (equal (at arr :even) (at arr '(:skip 1 :start 0)))
+        "Slice :even should be alias of (:skip 1 :start 0)")))
 
 
 (def-suite* basic-operations
@@ -353,7 +469,7 @@ add the test first and then pull a pr. "
         :for args := (loop :repeat i :collect (1+ (cl:random 233)))
         :for arg2 := (mapcar #'mlx-array args)
         :do (loop :for mlx-op :in '(+     -    *     /)
-                  :for cl-op  :in '(cl:+  cl:- cl:*  /)
+                  :for cl-op  :in '(cl:+  cl:- cl:*  cl:/)
                   :do (is (equal (apply mlx-op args) (apply cl-op args))
                           "For normal number operation, ~A is equal to ~A (args=~A)"
                           mlx-op cl-op args)
@@ -438,7 +554,7 @@ add the test first and then pull a pr. "
         (div #(1 2 3 4 5 6)))
     (is (equal (remainder num div) (map 'vector #'cl:mod num div)))))
 
-(test mod
+(test divmod
   (loop :for (num div) :in '((9 2)
                              (#(1 2 3 4 5 6 7 8 9) 4)
                              (#(1 2 3 4 5)         #(6 5 3 2 8)))
@@ -451,16 +567,27 @@ add the test first and then pull a pr. "
   :in basic-operations)
 
 (test floor
-  )
+  (is (equal (floor 1.23) (cl:floor 1.23)))
+  (is (equal (floor #(1.23 3.632 0.234 2.0)) #(1 3 0 2)))
+  (is (equal (floor #(4.32 3.132 4.0) 2.0)   #(2 1 2))))
 
 (test ceiling
-  )
+  (is (equal (ceiling 1.23) (cl:ceiling 1.23)))
+  (is (equal (ceiling #(1.23 3.632 0.234 2.0)) #(2 4 1 2)))
+  (is (equal (ceiling #(4.32 3.132 4.0)  2.0)  #(3 2 2))))
 
 (test clip
-  )
+  (is (equal (clip #(1 2 3 4 5 6 7 8 9) :min 3 :max 6)
+             #(3 3 3 4 5 6 6 6 6)))
+  (is (equal (clip #(1 2 3 4 5 6 7) :min 3)
+             #(3 3 3 4 5 6 7)))
+  (is (equal (clip #(1 2 3 4 5 6 7) :max 6)
+             #(1 2 3 4 5 6 6))))
 
 (test round
-  )
+  (is (equal (round 2.34)    2))
+  (is (equal (round 2.34  1) 2.3))
+  (is (equal (round 23.4 -1) 20)))
 
 
 (def-suite* products
@@ -488,10 +615,23 @@ add the test first and then pull a pr. "
                  (30 300 3000)))))
 
 (test kron
-  )
+  (is (equal (kron (id 2) #2A((1 2)
+                              (3 4)))
+             #2A((1 2 0 0)
+                 (3 4 0 0)
+                 (0 0 1 2)
+                 (0 0 3 4)))))
 
 (test tensordot
-  )
+  (is (equal (tensordot #(1.0 2.0 3.0) #(4.0 5.0 6.0) :axis 1)
+             (inner     #(1.0 2.0 3.0) #(4.0 5.0 6.0))))
+  (is (equal (tensordot (id 2) #2A((1 2) (3 4)) :axis 1)
+             (matmul    (id 2) #2A((1 2) (3 4)))))
+
+  (let ((a (reshape (arange 24) #(2 3 4)))
+        (b (reshape (arange 12) #(3 4))))
+    (is (equal (tensordot a b :axes1 #(1 2) :axes2 #(0 1))
+               (einsum "ijk,jk->i" a b)))))
 
 
 (test bitwise-ops
@@ -582,7 +722,9 @@ add the test first and then pull a pr. "
     (atleast 1 #(1 2) #2A((1 2) (3 4)) :dim 4)))
 
 (test expand-dims
-  )
+  (is (equal (shape (expand-dims (ones 3) 0))          '(1 3)))
+  (is (equal (shape (expand-dims (ones 3) 1))          '(3 1)))
+  (is (equal (shape (expand-dims (ones '(2 3 4)) 1 2)) '(2 1 1 3 4))))
 
 (test reshape
   (let ((arr (arange 6)))

@@ -68,11 +68,17 @@
    #:strides
 
    ;;;; ops
+   ;;; config
+   #:*relative-tolerance*
+   #:*absolute-tolerance*
+   #:*nan-equal-p*
+   #:*keep-dim-p*
+
    ;;; Create MLX array
    #:mlx-array
    #:arange
-   #:zeros
-   #:ones
+   #:zeros  #:zeros-like
+   #:ones   #:ones-like
    #:full
    #:id
    #:eye
@@ -107,11 +113,20 @@
    #:abs
    #:exp
    #:log
+   #:+   #:-   #:*   #:/
+   #:add #:sub #:mul #:div
+   #:abs
+   #:exp
+   #:log #:log2 #:log10 #:loge
    #:square
-   #:sqrt
+   #:sqrt #:rsqrt
+   #:imagpart #:realpart
+   #:conjugate
    #:sin  #:cos  #:tan  #:sinh  #:cosh  #:tanh
    #:asin #:acos #:atan #:asinh #:acosh #:atanh
-   #:mod
+   #:logical-not #:! #:lognot
+   #:reciprocal #:negative
+   #:divmod
    #:remainder
    #:floor
    #:ceiling
@@ -123,6 +138,7 @@
    #:kron
    #:tensordot
    #:lognot
+   #:ash
    #:logand #:bit-and
    #:logxor #:bit-xor
    #:logior #:bit-ior #:bit-or
@@ -131,6 +147,11 @@
    #:op2and #:op2or #:logical-and #:logical-or #:logical-not
    #:&& #:|| #:!
    #:~= #:op2~= #:all-close
+   #:all #:any
+   #:argmin #:argmax
+   #:maximum #:minimum
+   #:mean #:prod #:logsumexp #:sum
+   #:softmax #:squeeze
 
    ;;; Operation on Shape
    #:roll
@@ -169,128 +190,7 @@
    ;;; Dev
    #:as-type
    #:view
-
-   ;;; config
-   #:*relative-tolerance*
-   #:*absolute-tolerance*
-   #:*nan-equal-p*
-   #:*keep-dim-p*
-
-   ;;;;; TODO: this would be deleted in the future
-   ;;; wraping
-   #:add #:+
-   #:sub #:-
-   #:div #:*
-   #:mul #:/
-
-   ;; (op ARRAY)
-   #:abs #:erfinv #:square #:sqrt #:rsqrt
-   #:sin #:cos #:tan #:sinh #:cosh #:tanh
-   #:asin #:acos #:atan #:asinh #:acosh #:atanh
-   #:expm1 #:loge #:log10 #:log2 #:sign
-   #:imagpart #:realpart #:copy
-   #:degrees #:radians
-   #:inf-p #:finite-p #:nan-p #:neg-inf-p #:pos-inf-p
-   #:! #:¬ #:negative #:reciprocal #:erf #:stop-gradient
-   #:hadamard-transform #:conjugate #:lognot #:log1+
-   #:sigmoid
-
-   ;; (op ARRAY &optional (DTYPE *default-mlx-dtype*))
-   #:as-type #:view
-
-   ;; (op A B)
-   #:add #:sub #:mul #:div #:mod #:remainder #:expt
-   #:matmul #:@ #:inner #:outer #:kron #:logaddexp
-   #:atan2 #:op2< #:op2<= #:op2> #:op2>=
-   #:op2and #:logical-and #:op2or #:logical-or
-   #:logand #:bit-and #:logxor #:bit-xor #:logior #:bit-ior #:bit-or
-
-   ;; (op ELEM &rest MORE-ELEM)
-   #:+ #:- #:* #:/ #:&& #:∧ #:|| #:∨
-
-   ;; (op ELEM &rest MORE-ELEM)
-   #:at-least-1d #:at-least-2d #:at-least-3d
-
-   ;; (op ARRAY &key axis/axes (ddof 0) (keep-dim-p *keep-dim-p*))
-   #:std #:var
-
-   ;; (op ARRAY &key axis/axes (keep-dim-p *keep-dim-p*))
-   #:all #:any #:maximum #:minimum #:mean #:prod #:logsumexp #:sum
-
-   ;; (op ARRAY &key AXIS/AXES)
-   #:softmax #:squeeze
-
-   ;; (op ARRAY &key AXIS (KEEP-DIM-P *keep-dim-p*))
-   #:argmin #:argmax
-
-   ;; (op ARRAY &key axis)
-   #:argsort #:sort #:stack
-
-   ;; (op (ARRAY :dim 2) &key diag/diagonal)
-   #:tri-lower #:tril #:tri-upper #:triu
-
-   ;; (op ARRAY SHAPE &key DTYPE)
-   #:ones #:zeros #:ones-like #:zeros-like
-
-   ;; (op ARRAY &key AXIS REVERSE INCLUDSIVE)
-   #:cummax #:cummin #:cumprod #:cumsum #:logsumsumexp
-
-   ;; (op ELEM &rest MORE-ELEM)
-   #:=
-
-   ;; (op ELEM &rest MORE-ELEM)
-   #:<= #:< #:>= #:>
-
-   ;; (op ELEM &rest MORE-ELEM)
-   #:~= #:/=
-
-   ;;; op manual bindings
-   #:addmm
-   #:op2~=
-   #:arange
-   #:argpartition
-   #:partition
-   #:as-strided
-   #:atleast
-   #:broadcast-to
-   #:floor
-   #:ceiling
-   #:clip
-   #:concat
-   #:contiguous
-   #:pad
-   #:conv1d #:conv2d #:conv3d
-   #:diag
-   #:einsum
-   #:expand-dims
-   #:eye
-   #:flatten
-   #:full
-   #:id
-   #:linspace
-   #:meshgrid
-   #:moveaxis
-   #:num<-nan
-   #:put-along-axis
-   #:quantize
-   #:quantized-matmul
-   #:repeat
-   #:ash
-   #:roll
-   #:round
-   #:scatter
-   #:op2=
-   #:op2/=
-   #:reshape
-   #:split
-   #:swap-axes
-   #:tensordot
-   #:tile
-   #:topk
-   #:transpose
-   #:tr
-   #:tri
-   #:unflatten
+   #:copy
 
    ;; metal
    #:metal-available-p

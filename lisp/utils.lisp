@@ -364,7 +364,7 @@ Example:
       (normal lambda-list)
       (values normal* optional* rest* keys* others* aux*))))
 
-(defun split-args-keys (args)
+(defun split-args-keys (args &optional (keyp #'keywordp))
   "Split ARGS and return ARGS and KEYS.
 
 Example:
@@ -373,7 +373,7 @@ Example:
     ;; => (x y), (:z z)
 "
   (loop :for (arg . rest) :on args
-        :if (keywordp arg)
+        :if (funcall keyp arg)
           :do (if (oddp (cl:length rest))
                   (return (values arg* (cons arg rest)))
                   (error "Odd number of function key calling arguments ~A. " args))

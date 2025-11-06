@@ -1,4 +1,4 @@
-;;;; wrap.lisp ---- Wrapper tools to create mlx ops methods
+;;;; wrap.lisp ---- Wrapper tools to create mlx ops methods -*- mlx-cl-test-file: "api.lisp" -*-
 
 (in-package :mlx-cl)
 
@@ -516,7 +516,9 @@ The slice method should return (~ START STOP STEP) or sequence of integer. "
     "Reorder syntax [start] stop [step] &key step.
 Return a list of (START STOP STEP). "
     (multiple-value-bind (args plist)
-        (split-args-keys [start]-stop-[step]-&key-step)
+        (flet ((keyp (k) (and (keywordp k)
+                              (not (eql k :*)))))
+          (split-args-keys [start]-stop-[step]-&key-step #'keyp))
       (let ((step (getf plist :step 1)))
         (case (cl:length args)
           (0 `(:* :* ,step))
@@ -526,7 +528,6 @@ Return a list of (START STOP STEP). "
           (t (error "Invalid range syntax of ~S. "
                     [start]-stop-[step]-&key-step)))))))
 
-;; TEST: #~ #~~
 (with-op-template (op cffi docs
                    (start "range start
  if given is `:*', will be 0")
@@ -535,44 +536,59 @@ Return a list of (START STOP STEP). "
                    (step  "range step (default 1)"))
     `(defmacro ,op (&rest [start]-stop-[step]-&key-step)
        ,(apply #'gen-doc docs)
-       `(list '~ ,@(reorder~ [start]-stop-[step]-&key-step)))
-  (~  "Generate a range specification (~ start stop step).")
+       `(list ',',op ,@(reorder~ [start]-stop-[step]-&key-step)))
+  (~  "Generate a range specification (~  start stop step).")
   (~~ "Generate a range specification (~~ start stop step)."))
 
+;; TEST: #evaluate~
 (defun evaluate~ (shape start stop step)
   "Evaluate ~ form to MLX acceptable form.
 Return ~ expression.
 
 Rules:
-+ (~ start stop step>0): the index should be normalized into [0, shape)
-  and START < STOP
-+ (~ start stop step<0): the index should be normalized into [-shape, 0)
-  and START > STOP
++ (~ START STOP step>0)
+  + START -> [0, shape):
+    + :*  => 0
+    + >=0 => min(START, shape)
+    + <0  => mod(START, shape)
+  + STOP  -> [0, shape]:
+    + :*  => shape
+    + >=0 => min(STOP,  shape+1)
+    + <0  => mod(START, shape)
++ (~ START STOP step<0)
+  + START -> [-(shape+1), 0):
+    + :*  => -1
+    + >=0 => STOP-(shape+1)
+    +  <0 => (shape+STOP)-(shape+1)=STOP-1
+  + STOP  -> [-shape,     0):
+    + :*  => -(shape+1)
+    + >=0 => START-(shape+1)
+    +  <0 => (shape+START)-(shape+1)=START-1
 "
   (declare (type (integer 0) shape)
            (type (or integer (eql :*)) start stop)
            (type integer step))
-  (cond ((cl:> step 0)
-         (let ((stop  (cond ((eql stop :*) shape)
-                            ((cl:< stop 0) (cl:+ shape stop))
-                            (t stop)))
-               (start (cond ((eql start :*) 0)
-                            ((cl:< start 0) (cl:+ shape start))
-                            (t start))))
-           (assert (cl:< -1 start stop))
-           (list '~ start stop step)))
-        ((cl:< step 0)
-         (let ((stop*  (cond ((eql stop :*)  (cl:- (cl:1+ shape)))
-                             ((cl:< stop 0)  (cl:- stop 1))
-                             (t              (cl:- stop shape 1))))
-               (start* (cond ((eql start :*) -1)
-                             ((cl:< start 0) (cl:- start 1))
-                             (t              (cl:- start shape 1)))))
-           (assert (cl:> 0 stop* start*))
-           (list '~ stop* start* step)))
-        (t (error "(~ ~A ~A ~A) should have non-zero step. "
-                  start stop step))))
+    (cond ((cl:> step 0)
+           (let ((start  (cond ((eql  start :*) 0)
+                               ((cl:< start  0) (cl:mod start shape))
+                               (t               (cl:min start shape))))
+                 (stop   (cond ((eql  stop :*)  shape)
+                               ((cl:< stop  0)  (cl:min (cl:mod stop shape)
+                                                        (1+ shape)))
+                               (t               (cl:min stop shape)))))
+             (list '~ start stop step)))
+          ((cl:< step 0)
+           (let ((start  (cond ((eql  stop :*)  -1)
+                               ((cl:< stop  0)  (1- stop))
+                               (t               (cl:- stop  (cl:1+ shape)))))
+                 (stop   (cond ((eql  start :*) (cl:- (cl:1+ shape)))
+                               ((cl:< start  0) (1- start))
+                               (t               (cl:- start (cl:1+ shape))))))
+             (list '~ start stop step)))
+          (t (error "(~~ ~A ~A ~A) should have non-zero step. "
+                    start stop step))))
 
+;; TEST: #evaluate~~
 (defun evaluate~~ (shape start stop step)
   "Evaluate ~~ form to MLX acceptable form.
 Return ~ expression.
@@ -583,26 +599,25 @@ see `mlx::evaluate~', the difference is that STOP is included
   (declare (type (integer 0) shape)
            (type (or integer (eql :*)) start stop)
            (type integer step))
-  (cond ((cl:> step 0)
-         (let ((stop  (cond ((eql stop :*) shape)
-                            ((cl:< stop 0) (cl:+ shape stop 1))
-                            (t (cl:1+ stop))))
-               (start (cond ((eql start :*) 0)
-                            ((cl:< start 0) (cl:+ shape start))
-                            (t start))))
-           (assert (cl:< -1 start stop))
-           (list '~ start stop step)))
-        ((cl:< step 0)
-         (let ((stop*  (cond ((eql stop :*)  (cl:- (cl:1+ shape)))
-                             ((cl:< stop 0)  (cl:- stop))
-                             (t              (cl:- stop shape))))
-               (start* (cond ((eql start :*) -1)
-                             ((cl:< start 0) (cl:- start 1))
-                             (t              (cl:- start shape 1)))))
-           (assert (cl:> 0 stop* start*))
-           (list '~ stop* start* step)))
-        (t (error "(~ ~A ~A ~A) should have non-zero step. "
-                  start stop step))))
+    (cond ((cl:> step 0)
+           (let ((start  (cond ((eql  start :*) 0)
+                               ((cl:< start  0) (cl:mod start shape))
+                               (t               (cl:min start shape))))
+                 (stop   (cond ((eql  stop :*)  shape)
+                               ((cl:< stop  0)  (cl:min (1+ (cl:mod stop shape))
+                                                        shape))
+                               (t               (cl:min (1+ stop) shape)))))
+             (list '~ start stop step)))
+          ((cl:< step 0)
+           (let ((start  (cond ((eql  stop :*)  -1)
+                               ((cl:< stop  0)  (1+ (1- stop)))
+                               (t               (1+ (cl:- stop  (cl:1+ shape))))))
+                 (stop   (cond ((eql  start :*) (cl:- (cl:1+ shape)))
+                               ((cl:< start  0) (1- start))
+                               (t               (cl:- start (cl:1+ shape))))))
+             (list '~ start stop step)))
+          (t (error "(~~~~ ~A ~A ~A) should have non-zero step. "
+                    start stop step))))
 
 ;; Dev Note: for detailed `at' rule `defmlx-slice',
 ;; see `lisp/at.lisp'

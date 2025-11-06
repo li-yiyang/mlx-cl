@@ -1,7 +1,8 @@
-;;;; slice.lisp --- Defines mlx slice shortcuts
+;;;; slice.lisp --- Defines mlx slice shortcuts -*- mlx-cl-test-file: "api.lisp" -*-
 
 (in-package :mlx-cl)
 
+;; TEST: #at-first
 (defmlx-slice :first (shape &optional (n 1))
   "Get first N slice of mlx-array. "
   :return "(~ 0 (min N SHAPE) 1/-1) (-1 if N < 0)"
@@ -13,6 +14,7 @@
         ((cl:> n 0) `(~ 0 ,(cl:min       n  shape)  1))
         (t (error "N=~A in (:first N) should not be zero. " n))))
 
+;; TEST: #at-last
 (defmlx-slice :last (shape &optional (n 1))
   "Get last N slice of mlx-array. "
   :return "(~ (max 0 (- SHAPE N)) SHAPE 1)"
@@ -24,14 +26,15 @@
         ((cl:> n 0) `(~ ,(cl:max 0 (cl:- shape n)) ,shape  1))
         (t (error "N=~A in (:last N) should not be zero. " n))))
 
+;; TEST: #at-nth
 (macrolet ((nth* (&rest keyword-n)
              `(progn ,@(loop :for (keyword n) :in keyword-n
                              :collect
                              `(defmlx-slice ,keyword (shape)
                                 ,(format nil "Get ~Dth element of mlx-array. " n)
-                                :return (format nil "(~ ~D ~D 1)" n (cl:1+ n))
+                                :return (format nil "(~ ~D ~D 1)" (1- n) n)
                                 (declare (ignorable shape))
-                                '(~ ,n ,(cl:1+ n) 1))))))
+                                '(~ ,(1- n) ,n 1))))))
   (nth* (:second 2)
         (:third  3)
         (:fourth 4)
@@ -42,6 +45,7 @@
         (:ninth   9)
         (:tenth   10)))
 
+;; TEST: #at-middle
 (defmlx-slice :middle (shape &optional (n 1))
   "Get N (default 1) elements in the middle of mlx-array. "
   :return "(~~ (max 0 middle-half) (max shape middle+half) 1)"
@@ -65,6 +69,7 @@
              ((cl:> n 0)  1)
              (t (error "N=~A in (:middle N) should not be zero. " n))))))
 
+;; TEST: #at-all
 (defmlx-slice :* (shape)
   "Get all elements of axis in mlx-array. "
   :return "(~ 0 SHAPE 1)"
@@ -77,11 +82,13 @@
   :notes "See also `:*'. "
   `(~ 0 ,shape 1))
 
+;; TEST: #at-reverse
 (defmlx-slice :reverse (shape)
   "Get all elements in reverse of axis in mlx-array. "
   :return "(~ 0 SHAPE -1)"
   `(~ 0 ,shape -1))
 
+;; TEST: #at-skip
 (defmlx-slice :skip (shape &optional (n 1) &key (start 0))
   "Get elements on axis, but skip every N (1) element. "
   :return "(~ START :* (1+ N))"
@@ -97,6 +104,7 @@
   (declare (type integer n start))
   `(~ ,start :* ,(cl:1+ n)))
 
+;; TEST: #at-odd/even
 (defmlx-slice :odd (shape)
   "Get odd index elements on axis, this is equal to (:skip 1 :start 1). "
   :return "(~ 1 SHAPE 2)"
