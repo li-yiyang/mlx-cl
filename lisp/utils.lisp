@@ -449,6 +449,7 @@ Parameters:
 
 ;; TODO: accelerate the data coping and data reading
 
+#-sbcl
 (defmacro with-foreign<-sequence ((pointer sequence type
                                    &optional
                                      (length (gensym "LENGTH"))
@@ -472,6 +473,64 @@ Parameters:
                            elem)))
               ,seq))
        ,@body)))
+
+#+sbcl
+(defmacro with-foreign<-sequence ((pointer sequence type
+                                   &optional
+                                     (length (gensym "LENGTH"))
+                                     (elem   (gensym "ELEM"))
+                                     elem-convert)
+                                  &body body
+                                  &aux
+                                    (seq   (gensym "SEQUENCE"))
+                                    (ctype (gensym "TYPE")))
+  "Wrap SEQUENCE as foreign array POINTER of TYPE. "
+  `(let* ((,seq    ,sequence)
+          (,ctype  ,type)
+          (,length (cl:length ,seq)))
+     ,(cond (elem-convert
+             `(with-foreign-pointer
+                  (,pointer (cl:* ,length (foreign-type-size ,ctype)))
+                (let ((idx -1))
+                  (map nil
+                       (lambda (,elem)
+                         (setf (mem-aref ,pointer ,ctype (incf idx)) ,elem-convert))
+                       ,seq))
+                ,@body))
+            ;; Use `cffi:pointer-to-vector-data' to avoid data copying.
+            ;; Credits:
+            ;; https://www.reddit.com/r/Common_Lisp/comments/1ogracb/comment/nlk6l80/
+            ((member type *built-in-foreign-types*)
+             (let ((fn (gensym "FN")))
+               `(flet ((,fn (,pointer ,length)
+                         (declare (ignorable ,length))
+                         ,@body))
+                  (etypecase ,seq
+                    ((simple-array ,(ecase type
+                                      (:int          '(signed-byte   32))
+                                      ((:uint :size) '(unsigned-byte 32))
+                                      (:pointer      'foreign-pointer)))
+                     (with-pointer-to-vector-data (,pointer ,seq)
+                       (,fn  ,pointer ,length)))
+                    (sequence
+                     (with-foreign-pointer
+                         (,pointer (cl:* ,length (foreign-type-size ,ctype)))
+                       (let ((idx -1))
+                         (map nil
+                              (lambda (,elem)
+                                (setf (mem-aref ,pointer ,ctype (incf idx))
+                                      ,elem))
+                              ,seq))
+                       (,fn ,pointer ,length)))))))
+            (t
+             `(with-foreign-pointer
+                  (,pointer (cl:* ,length (foreign-type-size ,ctype)))
+                (let ((idx -1))
+                  (map nil
+                       (lambda (,elem)
+                         (setf (mem-aref ,pointer ,ctype (incf idx)) ,elem))
+                       ,seq))
+                ,@body)))))
 
 (defmacro with-foreign<-array ((pointer array type
                                 &optional

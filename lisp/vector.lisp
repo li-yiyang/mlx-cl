@@ -52,8 +52,10 @@
 (defmacro with-array-vector<-sequence
     ((vector sequence &optional (len (gensym "LEN"))) &body body)
   "Turn SEQUENCE of `mlx-array' into VECTOR. "
-  (let ((data (gensym "DATA")))
-    `(with-foreign<-sequence (,data (map 'list #'mlx-object-pointer ,sequence) :pointer ,len)
+  (let ((data (gensym "DATA"))
+        (elem (gensym "ELEM")))
+    `(with-foreign<-sequence
+         (,data ,sequence :pointer ,len ,elem (mlx-object-pointer ,elem))
        (let ((,vector (mlx_vector_array_new_data ,data ,len)))
          (unwind-protect (progn ,@body)
            (mlx_vector_array_free ,vector))))))

@@ -558,7 +558,7 @@ add the test first and then pull a pr. "
   (loop :for (num div) :in '((9 2)
                              (#(1 2 3 4 5 6 7 8 9) 4)
                              (#(1 2 3 4 5)         #(6 5 3 2 8)))
-        :do (multiple-value-bind (n r) (mod num div)
+        :do (multiple-value-bind (n r) (divmod num div)
               (is (equal num (+ (* n div) r))))))
 
 
