@@ -293,10 +293,14 @@ add the test first and then pull a pr. "
   )
 
 (test num<-nan
-  )
+  (let ((nan (acosh (mlx-array 0.5))))
+    (is (equal (num<-nan nan :nan 0) 0))
+    (is (equal (num<-nan nan :nan 2) 2))))
 
 (test std-var
-  )
+  (let ((arr (mlx-array #(1 2 3 4 5) :dtype :float32)))
+    (is (lisp<- (~= (var arr) (mean (square (- arr (mean arr)))))))
+    (is (lisp<- (~= (var arr) (square (std arr)))))))
 
 
 (def-suite* indexing
@@ -670,11 +674,24 @@ add the test first and then pull a pr. "
 
 ;; Test for `op2<', `op2<=', `op2>', `op2>=', `op2=', `op2/='
 (test comparing
-  )
+  (let ((arr1 #(1 4 2 4))
+        (arr2 #(4 3 2 1))
+        (arr3 #(5 1 2 2)))
+    (loop :for mlxf :in '(<    <=    >     >=    =    /=)
+          :for clf  :in '(cl:< cl:<= cl:>  cl:>= cl:= cl:/=)
+          :do (is (equal (funcall mlxf arr1 arr2 arr3)
+                         (map 'vector clf arr1 arr2 arr3))
+                  "~S should be same ~S, but got: ~A. "
+                  mlxf clf (funcall mlxf arr1 arr2 arr3)))))
 
 ;; Test for `op2and', `op2or', `logical-and', `logial-or', `logical-not'
 (test logical-operation
-  )
+  (is (equal (&& (mlx-array t)    (mlx-array nil)) nil))
+  (is (equal (&& (mlx-array t)    (mlx-array t))   t))
+  (is (equal (|| (mlx-array nil)  (mlx-array t))   t))
+  (is (equal (|| (mlx-array nil)  (mlx-array nil)) nil))
+  (is (equal (!  (mlx-array nil))                  t))
+  (is (equal (!  (mlx-array t))                    nil)))
 
 (test ~=
   ;; ~= should test all elem with all-close

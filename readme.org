@@ -196,7 +196,7 @@ See tests in test/api.lisp for more examples.
     :        [1, 1, 1, 1]], dtype=float32))
 
 *** Indexing =mlx-array=
-+ Use the highlevel API
++ =at=: API like Python's =arr[...]=
   + =(at array &rest indexs)=
   + =(at* array &rest indexs)= (alias for =(lisp<- (at ...))=)
 
@@ -222,26 +222,86 @@ See tests in test/api.lisp for more examples.
     =[0, 2)= elements in third axis:
 
     #+begin_src lisp
-      (let ((arr (reshape (arange 0 9) '(3 3))))
-        (at arr :* 2 (~ 0 2)))
+      (let ((arr (reshape (arange 0 27) '(3 3 3))))
+        (at arr :* 1 (~ 0 2)))
     #+end_src
 
     #+RESULTS:
-    : array([2, 5, 8], dtype=float32)
+    : array([[3, 4],
+    :        [12, 13],
+    :        [21, 22]], dtype=float32)
 
     this can also bewritten as:
 
     #+begin_src lisp
-      (let ((arr (reshape (arange 0 9) '(3 3))))
+      (let ((arr (reshape (arange 0 27) '(3 3 3))))
         (at arr :all :second 1/2))
     #+end_src
 
     #+RESULTS:
-    : array([2, 5, 8], dtype=float32)
+    : array([[3, 4],
+    :        [12, 13],
+    :        [21, 22]], dtype=float32)
 
     which means take all (=:all=) elements in first axis,
     second (=:second=) element in second axis,
     first half (=1/2=) in third axis.
+
+    this is equal to calling MLX Python's API like:
+
+    #+begin_src python :results output :exports both :eval no-export
+      import mlx.core as mx
+      print(mx.arange(0, 27).reshape((3, 3, 3))[:,1,0:2])
+    #+end_src
+
+    #+RESULTS:
+    : array([[3, 4],
+    :        [12, 13],
+    :        [21, 22]], dtype=int32)
+  + take all element in the first axis,
+    the =0, 2, 3= th elements on the second axis:
+
+    #+begin_src lisp
+      (let ((arr (reshape (arange 0 20) '(2 10))))
+        (at arr :* '(0 2 3)))
+    #+end_src
+
+    #+RESULTS:
+    : array([[0, 2, 3],
+    :        [10, 12, 13]], dtype=float32)
+
+    this is equal to calling MLX Python's API like:
+
+    #+begin_src python :results output :exports both :eval no-export
+      import mlx.core as mx
+      print(mx.arange(0, 20).reshape((2, 10))[:,[0, 2, 3]])
+    #+end_src
+
+    #+RESULTS:
+    : array([[0, 2, 3],
+    :        [10, 12, 13]], dtype=int32)
+
+  *Dev Note*: You can use =defmlx-slice= to define alias of the
+  slice shortcuts. For example, the shortcuts of =:all= can
+  be defined as:
+
+  #+begin_src lisp :results silent
+    (defmlx-slice :all (shape)
+      "Slice for all SHAPE. "
+      (~ 0 shape 1))
+  #+end_src
+
+  The documentation of mlx slice can be show by:
+
+  #+begin_src lisp
+    (documentation :* 'at)
+  #+end_src
+
+  #+RESULTS:
+  : Get all elements of axis in mlx-array.
+  : Return (~ 0 SHAPE 1).
+  :
+  : Parameters:
 
 *** Operations
 MLX-CL overwrites a few of Common Lisp's methods (=cl:+=, =cl:-=, =cl:*=, =cl:/=, ...)

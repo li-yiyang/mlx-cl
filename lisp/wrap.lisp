@@ -505,7 +505,7 @@ The slice method should return (~ START STOP STEP) or sequence of integer. "
                         (ignorable ,shape))
                ,@body)))))
 
-(defmethod documentation (method (doc-type (eql 'slice)))
+(defmethod documentation (method (doc-type (eql 'at)))
   "Return documentation"
   (declare (type keyword method))
   (documentation (gethash method *slice-spec-rules*) 'function))

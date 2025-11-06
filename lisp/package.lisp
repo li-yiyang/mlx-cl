@@ -99,6 +99,7 @@
    #:inf-p
    #:neg-inf-p
    #:pos-inf-p
+   #:num<-nan
    #:std
    #:var
 
