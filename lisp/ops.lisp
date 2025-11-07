@@ -1812,8 +1812,6 @@ size will be inferred. "))
       (shape*          :pointer)
       (shape-num       :size))))
 
-;; TODO: where
-
 
 ;;;; Conc and Split `mlx-array'
 
@@ -1939,6 +1937,17 @@ greater or equal to the element at the NTH index")
              (nth  :int))))
   (argpartition "Returns the indices that partition the array.")
   (partition    "Returns a partitioned copy of ARRAY such that smaller NTH elements are first."))
+
+;; TEST: #where
+(defmlx-method where (condition true &optional (false 0))
+  "Select from TRUE or FALSE according to condition. "
+  :parameters ((condition "condition array")
+               (true      "input selected from where condition is true")
+               (false     "input selected from where condition is false (default `0')"))
+  (with-mlx-op "mlx_where"
+    condition
+    true
+    false))
 
 
 ;;;; Sorting Operations

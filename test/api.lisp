@@ -865,6 +865,13 @@ add the test first and then pull a pr. "
       (is (= (shape c :axis 0) 2))
       (is (equal c #(4 5 6 7 8 9))))))
 
+(test where
+  (let ((cond #(t nil t nil))
+        (x    #(1 2   3 4))
+        (y    #(5 6   7 8)))
+    (is (equal (where cond x)   #(1 0 3 0)))
+    (is (equal (where cond x y) #(1 6 3 8)))))
+
 
 (def-suite* sorting-operation
   :description "Operations that sorts the mlx-array. "
