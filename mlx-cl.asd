@@ -28,7 +28,7 @@
    (:file "sugar"   :depends-on ("array")) ; NEXT: math input #$ x * 2 => (* x 2)
 
    ;; (:file "fft"     :depends-on ("array"))
-   ;; (:file "random"  :depends-on ("array"))
+   (:file "random"  :depends-on ("array"))
    ;; (:file "linalg"  :depends-on ("array"))
    )
   :in-order-to ((test-op (test-op :mlx-cl/test))))

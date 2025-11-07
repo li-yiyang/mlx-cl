@@ -248,15 +248,19 @@
   (:use :mlx-cl)
   (:nicknames :mlx.rnd)
   (:export
+   ;;; Random Seed
+   #:prng-key
+   #:split-prng-key
+   #:seed
+
+   ;;; Distribution
    #:bernoulli
    #:categorical
    #:gumbel
-   #:key
    #:normal
+   #:gaussian
    #:multivariate-normal
    #:randint
-   #:speed
-   #:split
    #:truncated-normal
    #:uniform
    #:laplace
