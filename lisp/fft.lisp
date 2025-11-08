@@ -181,8 +181,8 @@ The corresponding axes in the input are truncated or padded with zeros to match 
                (let ((dim (dim array)))
                  (case dim
                    (0 (error "Cannot perform inverse FFT on scalar: ~A. " array))
-                   (1 (1dfft array))
-                   (2 (2dfft array))
+                   (1 (1difft array))
+                   (2 (2difft array))
                    (otherwise
                     (ifft array
                           :size size
