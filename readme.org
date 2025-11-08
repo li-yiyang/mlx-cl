@@ -88,11 +88,22 @@ would loads the following packages:
 
   note that the API of =mlx-cl= overwrites =cl='s functions,
   which makes =(:use :cl :mlx-cl)= difficult
-+ =mlx-cl.fft=
++ =mlx-cl.fft= see [[FFT][FFT]] for examples
 + =mlx-cl.linalg=
-+ =mlx-cl.random=
++ =mlx-cl.random= see [[Random][Random]] for examples
 + =mlx-user= the following documentation are assumed to be written
-  under =mlx-user= package
+  under =mlx-user= package.
+
+  The =mlx-user= package is defined like:
+
+  #+begin_src lisp
+    (defpackage #:mlx-user
+      (:use :mlx-cl)
+      (:local-nicknames
+       (:fft    :mlx-cl.fft)
+       (:rnd    :mlx-cl.random)
+       (:linalg :mlx-cl.linalg)))
+  #+end_src
 
 There are some subsystem(s) providing additional functionalities
 above =mlx-cl=:
@@ -367,6 +378,61 @@ which would produce:
 :        [1.47169e-05, 0.00380683, 1.47169e-05]], dtype=float32)
 
 #+html: </details>
+
+** Random
+:PROPERTIES:
+:header-args:lisp: :results verbatim :exports both :package mlx-user
+:END:
+
+The package =mlx-cl.random= is a collection of PRNG processes in MLX.
+
+#+begin_src lisp :results verbatim
+  (loop :repeat 3 :collect (list (rnd:uniform) (rnd:uniform :key 0)))
+#+end_src
+
+#+RESULTS:
+: ((array(0.0390083, dtype=float32) array(0.418457, dtype=float32))
+:  (array(0.42697, dtype=float32) array(0.418457, dtype=float32))
+:  (array(0.976773, dtype=float32) array(0.418457, dtype=float32)))
+
+the API in =mlx-cl.random= use =:key= as the random seed locally,
+or you could use =mlx.rnd:seed= to set a seed globally.
+
+#+begin_src lisp
+  (rnd:seed 2333)
+  (rnd:uniform 10 :shape '(4 4))
+#+end_src
+
+#+RESULTS:
+: array([[1.27809, 2.80545, 6.38505, 6.99261],
+:        [3.23088, 3.66074, 1.126, 0.481315],
+:        [9.99442, 4.19935, 2.59734, 9.24549],
+:        [1.32391, 1.80017, 5.53488, 4.57218]], dtype=float32)
+
+** FFT
+:PROPERTIES:
+:header-args:lisp: :results verbatim :exports both :package mlx-user
+:END:
+
+The package =mlx-cl.fft= is a collection of FFT processes binding in MLX.
+
+#+begin_src lisp
+  (fft:fft #(1 2 3 4))
+#+end_src
+
+#+RESULTS:
+: array([10+0j, -2+2j, -2+0j, -2-2j], dtype=complex64)
+
+and inverse FFT:
+
+#+begin_src lisp
+  (fft:ifft (fft:fft #(1 2 3 4)))
+#+end_src
+
+#+RESULTS:
+: array([1+-0j, 2+-0j, 3+0j, 4+-0j], dtype=complex64)
+
+Note: in order to acclerate, =mlx.fft:1dfft= =mlx.fft:2dfft= would be faster. 
 
 * Contributing and Developing
 
