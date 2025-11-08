@@ -173,6 +173,7 @@
    #:tile
    #:repeat
    #:split
+   #:where
 
    ;;; Sorting Operation
    #:sort
@@ -209,12 +210,15 @@
    #:load-from
    #:save-to
    #:save
+   #:defmlx-extension
    ))
 
 (uiop:define-package #:mlx-cl.fft
   (:use :mlx-cl)
   (:nicknames :mlx.fft)
   (:export
+   #:1dfft #:1difft
+   #:2dfft #:2difft
    #:fft
    #:ifft
    #:rfft

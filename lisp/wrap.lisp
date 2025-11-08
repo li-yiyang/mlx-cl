@@ -405,8 +405,9 @@ Return:
                              (error "Unknown AXIS/AXES shortcuts ~S. " rule))))
                (normalize (apply rule args))))
            (vec<- (seq)
-             (make-array (length seq) :initial-contents seq
-                                      :element-type '(signed-byte 32)))
+             (make-array (length seq)
+                         :initial-contents seq
+                         :element-type     '(signed-byte 32)))
            (normalize (axis)
              (etypecase axis
                (null nil)
@@ -422,7 +423,7 @@ Return:
                (keyword (apply-rule axis ()))
                (mlx-array
                 (cond ((dim= axis 0) (the integer (lisp<-mlx-array axis)))
-                      ((dim= axis 1) (vec<- (lisp<-mlx-array axis)))
+                      ((dim= axis 1) (vec<- (lisp<-mlx-array (mlx-array axis :dtype :int32))))
                       (t "Expecting scalar or 1-D mlx-array for AXIS/AXES, but got ~A. "
                          axis))))))
     (normalize axis/axes)))

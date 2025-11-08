@@ -1541,7 +1541,8 @@ Either or both input arrays can also be scalars."
 ;; TEST: #min-max, #argmin-argmax
 ;; (op ARRAY &key AXIS KEEP-DIM-P)
 (with-op-template (op cffi docs
-                   (axis "")
+                   (axis "Optional axis to reduce over.
+If unspecified this defaults to reducing over the entire array.")
                    (keep-dim-p "keep reduced axes as singleton dimensions (default `nil')"))
     `(defmlx-method ,op (array &key (axis nil axis?) (keep-dim-p *keep-dim-p*)
                          &aux (axis* (if axis? (axis<- axis) axis)))

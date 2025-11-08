@@ -250,6 +250,7 @@ be scalars or arrays and must be broadcastable to SHAPE."
       (mlx::split-args-keys [low]-[high]-&key-shape-key-dtype)
     (destructuring-bind (&key shape key (dtype *default-mlx-dtype* dtype?)) keys
       (let ((arglen (length args))
+            (shape! (mlx::shape<- shape))
             (dtype  (if dtype? (mlx::ensure-mlx-dtype dtype) dtype))
             low high)
         (cond ((cl:= arglen 0)
@@ -262,7 +263,7 @@ be scalars or arrays and must be broadcastable to SHAPE."
                (setf low  (first  args)
                      high (second args)))
               (t (error "Invalid number of LOW HIGH arguments. ")))
-        (mlx::with-foreign<-sequence (shape* shape :int len)
+        (mlx::with-foreign<-sequence (shape* shape! :int len)
           (mlx::with-mlx-op "mlx_random_uniform"
             low
             high
