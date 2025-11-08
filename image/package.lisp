@@ -2,6 +2,7 @@
 
 (uiop:define-package #:mlx-cl.image
   (:use :mlx-cl)
+  (:nicknames :mlx.img)
   (:export
    #:image
    #:w #:h

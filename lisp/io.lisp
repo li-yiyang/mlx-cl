@@ -124,6 +124,13 @@ Syntax:
                   *mlx-supported-extensions*)
          (error "Unknown extensino format ~A. " pathname)))
 
+(defun mlx-dtype<-bits (d)
+  (ecase d
+    (1  :uint8)
+    (4  :uint8)
+    (8  :uint8)
+    (16 :uint16)))
+
 
 ;;; High-level
 (defgeneric load-from (source format &key &allow-other-keys)
@@ -155,25 +162,10 @@ Syntax:
     (apply #'save-to arr out fmt args)
     output))
 
+(defmethod mlx-array ((filename)))
+
 (defmethod mlx-array ((filespec pathname) &key)
   "Load `mlx-array' from FILESPEC. "
   (load-from filespec (pathname-format filespec)))
-
-
-;;; Low-level bindings
-
-;; TODO: #mlx-cl #optimization
-;; make `load-from' and `save-to' faster using MLX CFFI bindings
-;;
-(defmlx-extension (:npy "NPY")
-  ((:load-path path)
-   "Load from NPY file. "
-   :parameters ((stream "NPY stream to load from"))
-   (mlx-array (numpy-file-format:load-array path)))
-  ((:save-path arr path)
-   "Write as NPY file. "
-   :parameters ((arr    "`mlx-array' to write")
-                (stream "NPY stream to save to"))
-   (numpy-file-format:store-array (lisp<- arr) path)))
 
 ;;;; io.lisp ends here
