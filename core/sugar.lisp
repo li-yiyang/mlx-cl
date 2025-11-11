@@ -17,15 +17,23 @@ Syntax:
 Example:
 
     (->* expr
-      (as-type * :float32))
+      (as-type :float32))
     ;; => (let* ((* expr)
                  (* (as-type * :float32)))
             *)
 "
-  `(let* ((* ,expr)
-          ,@(loop :for expr :in body
-                  :collect `(* ,expr)))
-     *))
+  (labels ((*? (elem)
+             (if (atom elem)
+                 (eql elem '*)
+                 (find-if #'*? (rest elem)))))
+    `(let* ((* ,expr)
+            ,@(loop :for expr :in body
+                    :collect `(* ,(etypecase expr
+                                    (symbol `(,expr *))
+                                    (list
+                                     (if (*? expr) expr
+                                         `(,(first expr) * ,@(rest expr))))))))
+     *)))
 
 (defmacro neq (obj1 obj2)
   "Equal to (not (eq OBJ1 OBJ2)). "

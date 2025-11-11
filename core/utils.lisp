@@ -263,9 +263,10 @@ Return a symbol of MLX-C.CFFI package. "
         (format doc "~%Syntax:~%    ~A~%" syntax))
       (when definition
         (format doc "~%Definition:~%~A~%" (trim definition)))
-      (typecase parameters
-        (string (format doc "~%Parameters:~%~A~%" parameters))
-        (list   (format doc "~%Parameters:~%~{~{+ ~@:(~A~): ~A~}~%~}" parameters)))
+      (when parameters
+        (typecase parameters
+          (string (format doc "~%Parameters:~%~A~%" parameters))
+          (list   (format doc "~%Parameters:~%~{~{+ ~@:(~A~): ~A~}~%~}" parameters))))
       (when note
         (format doc "~%Note:~%~A~%" (trim note)))
       (when dev-note
@@ -279,18 +280,29 @@ Return a symbol of MLX-C.CFFI package. "
 
 (defun split-doc-body (progn)
   "Split PROGN like (doc { keyword value }* . body) pattern.
-Return doc, plist, body. "
-  (let ((doc (first progn)))
-    (if (stringp doc)
-        (loop :for (key . val-body) :on (rest progn) :by #'cddr
-              :if (endp val-body)
-                :return (values doc plist (cons key val-body))
-              :if (keywordp key)
-                :collect key :into plist
-                :and :collect (car val-body) :into plist
-              :else
-                :return (values doc plist (cons key val-body)))
-        (values nil nil progn))))
+Return doc, plist, body.
+
+Test:
++ (split-doc-body ())                 ;; => nil, nil, nil
++ (split-doc-body '(\"doc\"))           ;; => \"doc\", nil, nil
++ (split-doc-body '(\"doc\" :p 1))      ;; => \"doc\", (:p 1), nil
++ (split-doc-body '(:p 1))            ;; => nil, nil, (:p 1)
++ (split-doc-body '(\"doc\" (not doc))) ;; => \"doc\", nil, (not doc)
+"
+  (if (endp progn)
+      (values nil nil progn)
+      (let ((doc (first progn)))
+        (if (stringp doc)
+            (loop :for (key . val-body) :on (rest progn) :by #'cddr
+                  :if (endp val-body)
+                    :return (values doc plist (cons key val-body))
+                  :if (keywordp key)
+                    :collect key :into plist
+                    :and :collect (car val-body) :into plist
+                  :else
+                    :return (values doc plist (cons key val-body))
+                  :finally (return (values doc plist val-body)))
+            (values nil nil progn)))))
 
 (defun parse-lambda-list (lambda-list
                           &key
@@ -308,6 +320,7 @@ Example:
 
     ;; => (x y (z type)), ((y 2 y?)), ((bala 3 bala?)), nil, (...)
 "
+  (declare (type (or list function) lambda-list))
   (let (normal* optional* rest* keys* others* aux*)
     (labels ((normal (lst)
                (loop :for (arg . rst) :on lst
@@ -361,7 +374,19 @@ Example:
                        :and :return (aux rst)
                      :collect (funcall key arg) :into keys
                      :finally (setf keys* keys))))
-      (normal lambda-list)
+      (etypecase lambda-list
+        (list      (normal lambda-list))
+        (function  (normal
+                    #+sbcl      (sb-introspect:function-lambda-list lambda-list)
+                    #+lispworks (lw:function-lambda-list            lambda-list)
+                    #-(or sbcl lispworks)
+                    (error "Don't know how to parse function ~A's lambda list.
+Please add support in mlx-cl/core/utils.lisp like:
+
+  #+sbcl (sb-introspect:function-lambda-list lambda-list)
+
+and pull a request. "
+                           lambda-list))))
       (values normal* optional* rest* keys* others* aux*))))
 
 (defun split-args-keys (args &optional (keyp #'keywordp))
@@ -383,8 +408,8 @@ Example:
 
 (defun alias-symbol-function (symbol function &optional documentation)
   "See `defalias'. "
-  (declare (type (or symbol (cons 'setf (cons symbol null))) symbol)
-           (type (or function symbol (cons 'setf (cons symbol null))) function)
+  (declare (type (or symbol (cons (eql 'setf) (cons symbol null))) symbol)
+           (type (or function symbol (cons (eql 'setf) (cons symbol null))) function)
            (type (cl:or null string) documentation))
   (macrolet ((fn   (sym) `(symbol-function ,sym))
              (ma   (sym) `(macro-function  ,sym))

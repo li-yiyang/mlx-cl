@@ -118,7 +118,7 @@
    #:add #:sub #:mul #:div
    #:abs
    #:exp
-   #:log #:log2 #:log10 #:loge
+   #:log #:log2 #:log10 #:loge #:log1+
    #:square
    #:sqrt #:rsqrt
    #:imagpart #:realpart

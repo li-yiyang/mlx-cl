@@ -162,10 +162,12 @@ Syntax:
     (apply #'save-to arr out fmt args)
     output))
 
-(defmethod mlx-array ((filename)))
+(defmethod mlx-array ((filename string) &rest keys)
+  "Load `mlx-array' from FILENAME. "
+  (apply #'mlx-array (pathname filename) keys))
 
-(defmethod mlx-array ((filespec pathname) &key)
+(defmethod mlx-array ((filespec pathname) &rest keys)
   "Load `mlx-array' from FILESPEC. "
-  (load-from filespec (pathname-format filespec)))
+  (apply #'load-from filespec (pathname-format filespec) keys))
 
 ;;;; io.lisp ends here

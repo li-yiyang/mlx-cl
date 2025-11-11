@@ -8,7 +8,7 @@
   :version "0.0.0"                      ; NEXT: 0.0.1 finish API test
   :description "CL bindings for MLX"
   :depends-on (:mlx-cl/lib :cffi :cffi-libffi :trivial-garbage)
-  :pathname "lisp"
+  :pathname "core"
   :components
   ((:file "package")
    (:file "utils"   :depends-on ("package"))

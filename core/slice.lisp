@@ -26,6 +26,14 @@
         ((cl:> n 0) `(~ ,(cl:max 0 (cl:- shape n)) ,shape  1))
         (t (error "N=~A in (:last N) should not be zero. " n))))
 
+;; TEST: #at-butlast
+(defmlx-slice :butlast (shape &optional (n 1))
+  "Get slice of mlx-array but ignore last N elements. "
+  :return "(~ 0 (max 0 (- SHAPE N)) 1)"
+  :parameters ((n "integer of last N elements to be ignored"))
+  (declare (type (integer 1) n))
+  `(~ 0 ,(cl:max 0 (cl:- shape n)) 1))
+
 ;; TEST: #at-nth
 (macrolet ((nth* (&rest keyword-n)
              `(progn ,@(loop :for (keyword n) :in keyword-n

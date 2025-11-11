@@ -59,6 +59,9 @@ Parameters:
   + if given DTYPE is different to VAL type, will try
     to convert VAL into specific DTYPE
 ")
+  (:method :around (array &key (shape nil shape?))
+    (let ((arr (call-next-method)))
+      (if shape? (reshape arr shape) arr)))
   ;; TEST: #mlx-array-bool
   (:method (bool
             &key (dtype :bool)
@@ -1945,6 +1948,8 @@ greater or equal to the element at the NTH index")
   :parameters ((condition "condition array")
                (true      "input selected from where condition is true")
                (false     "input selected from where condition is false (default `0')"))
+  :methods ((((condition function) true &optional (false 0))
+             (where (the mlx-array (funcall condition true)) true false)))
   (with-mlx-op "mlx_where"
     condition
     true
