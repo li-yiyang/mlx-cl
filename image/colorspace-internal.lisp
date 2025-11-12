@@ -167,11 +167,22 @@ Dev Note: this would not check RULE lambda-list. "
 
 ;;; Dev Interface Wrapper
 
+(defun color-ch-val<- (value)
+  "Convert VALUE as channel value (float [0-1]) for `color'.
+Return a float [0, 1] for generating the color. "
+  (the (float 0 1)
+    (etypecase value
+      (float     value)
+      (integer   (cl:/ value 255.0))
+      (mlx-array (assert (dim= value 0))
+       (color-ch-val<- (lisp<- value))))))
+
 (defmacro define-colorspace (name docstring
                              &rest keys
                              &key channels alias fallback
                              &allow-other-keys)
   "Define colorspace of NAME with OPTIONS.
+Return NAME of colorspace.
 
 Syntax:
 
@@ -179,17 +190,49 @@ Syntax:
       docstring
       :alias     aliases
       :fallback  fallback
+      :channels  channels
       :rgb       function-to-convert-from-RGB
       (:<- :rgb) function-to-convert-from-RGB
-      (:-> :rgb) function-to-convert-to-RGB)
+      (:-> :rgb) function-to-convert-to-RGB
+      . KEYS)
 
+Parameters:
++ NAME:
++ DOCSTRING:
++ CHANNELS:
++ ALIAS:
++ FALLBACK:
++ ...
+
+Note: this will also create a new function of NAME, which
+would CHANNELS number arguments as input and return `color'.
 "
   (declare (type keyword name)
            (type string  docstring)
            (type list    alias)
-           (type (or null keyword) fallback))
-  `(progn
-     (set-%colorspace ,name ,channels ',alias ,fallback ,docstring)
+           (type (or null keyword) fallback)
+           (type (or integer list) channels))
+  (let* ((num-chn (if (integerp channels) channels (length channels)))
+         (chn-var (if (listp channels)
+                      (loop :for var :in channels
+                            :collect (intern (format nil "~:@(~A~)" var)))
+                      (loop :for i :from 1 :upto channels
+                            :collect (intern (format nil "C~D" i))))))
+    `(progn
+       (set-%colorspace ,name ,num-chn ',alias ,fallback ,docstring)
+       (defun ,(intern (symbol-name name)) ,chn-var
+         ,(mlx::gen-doc
+           (format nil "Create a `color' object of colorspace `~S'. " name)
+           :parameters (loop :for var :in chn-var
+                             :collect (list var (format nil "value for channel ~A" var)))
+           :note (format nil
+                         "See documentation of `~S' for colorspace: (documentation ~S 'colorspace). "
+                         name name))
+         (declare (type (or float integer mlx-array) ,@chn-var))
+         (color (mlx-array (list ,@(loop :for var :in chn-var
+                                         :collect `(color-ch-val<- ,var)))
+                           :dtype :float32)
+                :colorspace ,name))
      ,@(loop :with fallback? := nil
              :for (opt fn) :on keys :by #'cddr
              :for (dir space) := (if (keywordp opt)
@@ -217,8 +260,8 @@ Syntax:
                         (when (and fallback (not fallback?))
                           (warn "Colorspace ~S fallbacks to ~S, but not implemented how to convert from ~S. "
                                 name fallback fallback))
-                        def-rules))
-     ',name))
+                        (return def-rules)))
+     ',name)))
 
 (defmacro define-colorspace-convert
     ((colorspace1 dir colorspace2) lambda-list &body body)
@@ -243,12 +286,14 @@ Syntax:
        ;; parse lambda-list
        (multiple-value-bind (required optional rest keys others)
            (mlx::parse-lambda-list lambda-list)
-         (assert (cl:= (length required) 1) ()
-                 "lambda-list should take only one required as image input, but got:~%~S"
-                 required)
-         (assert (endp optional) ()
-                 "the lambda-list should take no optional parameters, but got:~%~S"
-                 optional)
+         (unless (cl:= (length required) 1)
+           (error
+            "lambda-list should take only one required as image input, but got:~%~S"
+            required))
+         (unless (endp optional)
+           (error
+            "the lambda-list should take no optional parameters, but got:~%~S"
+            optional))
          (setf lambda `(,@required
                         ,@(when rest `(&rest ,rest))
                         &key ,@keys
@@ -256,7 +301,13 @@ Syntax:
        ;; parse body
        (multiple-value-bind (doc plist body)
            (mlx::split-doc-body body)
-         (setf docstring (apply #'mlx::gen-doc doc plist))
+         (setf docstring
+               (apply #'mlx::gen-doc
+                      (or doc
+                          (format nil
+                                  "Convert colorspace from `~S' to `~S'. "
+                                  from to))
+                      plist))
          (loop :for (expr . rest) :on body
                :if (and (listp expr)
                         (eql (car expr) 'declare))
@@ -284,7 +335,16 @@ of the colorspace of IMAGE.
 ")
   (:method ((arr mlx-array) (colorspace symbol) &rest keys &key)
     (declare (type keyword colorspace))
-    (apply #'as-colorspace (image arr) colorspace keys))
+    (assert-mlx-array-is-image arr)
+    (let ((space (get-%colorspace colorspace))
+          (image (image arr)))
+      (cond ((cl:= (channels arr)
+                   (%colorspace-channels space))
+             (setf (slot-value image 'colorspace)
+                   (%colorspace-name space))
+             image)
+            (t
+             (apply #'as-colorspace image colorspace keys)))))
   (:method ((image image) (colorspace symbol) &rest keys &key)
     (declare (type keyword colorspace))
     (let* ((source      (colorspace image))
@@ -292,8 +352,8 @@ of the colorspace of IMAGE.
            (target      (%colorspace-name space))
            (convert     (gethash source (%colorspace-convert space)))
            (fallback    (%colorspace-fallback space))
-           (image       (cond (convert
-                               (apply convert image keys))
+           (image       (cond ((eql source target) image)
+                              (convert             (apply convert image keys))
                               (fallback
                                (->* image
                                  ;; 1. convert to fallback colorspace

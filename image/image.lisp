@@ -27,6 +27,8 @@ Use `image' to create images. "))
 (defgeneric image (object &key w h colorspace &allow-other-keys)
   (:documentation
    "Convert OBJECT into `image' object. ")
+  (:method (object &key)
+    (image (mlx-array object)))
   (:method ((arr mlx-array) &key)
     (assert-mlx-array-is-image arr)
     (let* ((w (shape arr :axis 1))
@@ -41,6 +43,10 @@ Use `image' to create images. "))
       img))
   (:method ((img image) &key)
     img))
+
+(defmethod mlx-array ((image image) &key)
+  "Convert `image' as `mlx-array'. "
+  (copy image))
 
 (defgeneric w (image)
   (:documentation "Return width of IMAGE. ")
@@ -87,10 +93,10 @@ Use `image' to create images. "))
 Dev Note:
 if colorspace is not binded with IMAGE, it would be guessed by
 the image channels:
-+ 1: grayscale
-+ 2: grayscale-alpha
-+ 3: rgb
-+ 4: rgba")
++ 1: `:grayscale'
++ 2: `:grayscale-alpha'
++ 3: `:rgb'
++ 4: `:rgba'")
   (:method ((array mlx-array))
     "Guess colorspace from `mlx-array'. "
     (assert-mlx-array-is-image array)

@@ -7,13 +7,6 @@
 
 ;;; Utils
 
-(defun scale<-d (image)
-  "Return IMAGE depth scale factor. "
-  (ecase (dtype image)
-    (:uint8   255)
-    (:uint16  65535)
-    (:float32 1.0)))
-
 (defun alpha<- (image alpha)
   "Rescale ALPHA"
   (etypecase alpha
@@ -35,36 +28,42 @@
                 :dtype (dtype image))
           :axis 2))
 
+(defun reduce-alpha-channel (image &key (background-color :white) &allow-other-keys)
+  "Reduce ALPHA channel of IMAGE. "
+  (let* ((*keep-dim-p* t)
+         (color        (at image :* :* :butlast))
+         (target       (colorspace color))
+         (alpha        (at image :* :* :last))
+         (bgcolor      (full (shape color)
+                             (* (scale<-d image)
+                                (color-value background-color target))
+                             :dtype (dtype image))))
+    (image (+ (* color   alpha)
+              (* bgcolor (- 1 alpha)))
+           :colorspace target)))
+
 ;;; Colorspaces
 
 (define-colorspace :rgb
   "Red Green Blue. "
-  :channels 3
+  :channels (r g b)
   :alias    (:red-green-blue))
 
 (define-colorspace :rgba
   "Red Green Blue Alpha. "
-  :channels  4
+  :channels  (r g b a)
   :alias     (:red-green-blue :rgb-alpha)
   :fallback  :rgb
 
   ;; Convert from:
-  :rgb add-alpha-channel)
+  :rgb add-alpha-channel
 
   ;; Convert to:
-  ;; (:-> :rgb)
-  ;; (lambda (image &key (background-color :white) &allow-other-keys)
-  ;;   (let* ((*keep-dim-p* t)
-  ;;          (rgb          (at image :* :* :butlast))
-  ;;          (alpha        (at image :* :* :last))
-  ;;          (bgcolor      (full (shape rgb)
-  ;;                              (color<- background-color :rgb (scale<-d image)))))
-  ;;     (bgcolor
-
+  (:-> :rgb) reduce-alpha-channel)
 
 (define-colorspace :grayscale
   "Grayscale image. "
-  :channels 1
+  :channels (gray)
   :alias    (:gray)
   :fallback :rgb
 
@@ -88,7 +87,7 @@
                (image :colorspace :grayscale)))
            (nthchn (n)
              (let ((*keep-dim-p* t))
-               (image (at image :* :* n) :colorspace :grayscale))))
+               (image (at image :all :all n) :colorspace :grayscale))))
       (if weight? (clsdot weight)
           (ecase method
             ((:default :ntsc :rec601)     (clsdot #(0.2989 0.5870 0.1140)))
@@ -101,11 +100,14 @@
 
 (define-colorspace :grayscale-alpha
   "Grayscale with ALPHA channel. "
-  :channels 2
+  :channels (gray alpha)
   :alias    (:gray-alpha)
   :fallback :grayscale
 
   ;;; Convert from:
-  :grayscale add-alpha-channel)
+  :grayscale add-alpha-channel
+
+  ;;; Convert to:
+  (:-> :grayscale) reduce-alpha-channel)
 
 ;;;; colorspace.lisp ends here

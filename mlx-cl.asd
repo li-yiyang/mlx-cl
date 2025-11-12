@@ -105,6 +105,8 @@ The main image processing algorithms should be implemented here. "
    (:file "image"               :depends-on ("package"))
    (:file "colorspace-internal" :depends-on ("image"))
    (:file "colorspace"          :depends-on ("colorspace-internal"))
+   (:file "color-internal"      :depends-on ("colorspace-internal"))
+   (:file "color"               :depends-on ("color-internal"))
    (:file "io"                  :depends-on ("image"))))
 
 
