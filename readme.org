@@ -172,6 +172,14 @@ See tests in test/api.lisp for more examples.
     #+RESULTS:
     : array([0, 1, 2, ..., 7, 8, 9], dtype=float32)
   + =(linspace start stop &optional num &key dtype)=
+
+    #+begin_src lisp
+      (linspace 0 10) ; num=50 by default
+    #+end_src
+
+    #+RESULTS:
+    : array([0, 0.204082, 0.408163, ..., 9.59184, 9.79592, 10], dtype=float32)
+
 + Generate array with constant values:
   + =(zeros SHAPE &key DTYPE)=
   + =(ones SHAPE &key DTYPE)=
@@ -311,8 +319,6 @@ See tests in test/api.lisp for more examples.
   #+RESULTS:
   : Get all elements of axis in mlx-array.
   : Return (~ 0 SHAPE 1).
-  :
-  : Parameters:
 
 *** Operations
 MLX-CL overwrites a few of Common Lisp's methods (=cl:+=, =cl:-=, =cl:*=, =cl:/=, ...)
@@ -432,7 +438,7 @@ and inverse FFT:
 #+RESULTS:
 : array([1+-0j, 2+-0j, 3+0j, 4+-0j], dtype=complex64)
 
-Note: in order to acclerate, =mlx.fft:1dfft= =mlx.fft:2dfft= would be faster. 
+Note: in order to acclerate, =mlx.fft:1dfft=, =mlx.fft:2dfft= would be faster.
 
 * Contributing and Developing
 

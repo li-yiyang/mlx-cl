@@ -1,6 +1,6 @@
 ;;;; mlx-cl.asd --- CL bindings for MLX
 
-;;; MLX-CL
+;;; MLX-CL core
 
 (defsystem #:mlx-cl
   :author ("凉凉")
@@ -30,21 +30,7 @@
    (:file "random"  :depends-on ("array"))
    ;; (:file "linalg"  :depends-on ("array"))
    )
-  :in-order-to ((test-op (test-op :mlx-cl/test))))
-
-(defsystem #:mlx-cl/test
-  :author ("凉凉")
-  :license "GPL"
-  :version "0.0.0"                      ; NEXT: 0.0.1 finish API test
-  :description "Test for MLX-CL"
-  :depends-on (:mlx-cl :fiveam)
-  :pathname "test"
-  :components
-  ((:file "package")
-   (:file "device" :depends-on ("package"))
-   (:file "api"    :depends-on ("package")))
-  :perform (test-op (op c)
-             (symbol-call :mlx-cl.test :run-tests)))
+  :in-order-to ((test-op (test-op :mlx-cl/test/core))))
 
 ;;; MLX-CL/Lib
 
@@ -75,6 +61,34 @@
   :components
   ((:file "package")
    (:file "indent")))
+
+
+;;; Tests
+
+(defsystem #:mlx-cl/test
+  :author ("凉凉")
+  :license "GPL"
+  :description "Load all the tests"
+  :depends-on (:mlx-cl
+               :fiveam
+               :mlx-cl/test/core))
+
+(defsystem #:mlx-cl/test/core
+  :author ("凉凉")
+  :license "GPL"
+  :version "0.0.0"                      ; NEXT: 0.0.1 finish API test
+  :description "Test for MLX-CL core API"
+  :depends-on (:mlx-cl :fiveam)
+  :pathname "test/core"
+  :components
+  ((:file "package")
+   (:file "device" :depends-on ("package"))
+   (:file "api"    :depends-on ("package"))
+   (:file "fft"    :depends-on ("package")))
+  :perform (test-op (op c)
+             (symbol-call :mlx-cl.test :run-tests)))
+
+;; TODO: test for mlx-cl/image
 
 
 ;;;; Submodules
