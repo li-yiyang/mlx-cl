@@ -5,8 +5,12 @@
   (:nicknames :mlx.img)
   (:export
    #:image
-   #:w #:h
-   #:colorspace))
+   #:w #:h #:d
+   #:colorspace
+   #:as-colorspace
+
+   ;; Sugar
+   #:colorspace=))
 
 (in-package :mlx-cl.image)
 

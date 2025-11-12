@@ -418,6 +418,13 @@ add the test first and then pull a pr. "
     (is-at arr #(8 9) '(:last  2))
     (is-at arr #(9 8) '(:last -2))))
 
+(test at-butlast
+  (let ((arr (arange 10)))
+    (is-at arr #(0 1 2 3 4 5 6 7 8) :butlast)
+    (is-at arr #(0 1 2 3 4 5 6 7)   '(:butlast 2))
+    (signals error
+      (is-at arr #(0 1 2 3 4 5 6)   '(:butlast -2)))))
+
 (test at-nth
   (let ((arr (arange 10)))
     (loop :for i :from 1

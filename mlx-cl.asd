@@ -69,7 +69,8 @@
   :description "For developping `mlx-cl', here's some dev tools. "
   :depends-on (:trivial-indent
                :mlx-cl
-               :mlx-cl/test)
+               :mlx-cl/test
+               :mlx-cl/image)
   :pathname "dev"
   :components
   ((:file "package")
@@ -101,9 +102,11 @@ The main image processing algorithms should be implemented here. "
   :pathname "image"
   :components
   ((:file "package")
-   (:file "image"      :depends-on ("package"))
-   (:file "colorspace" :depends-on ("image"))
-   (:file "io"         :depends-on ("image"))))
+   (:file "image"               :depends-on ("package"))
+   (:file "colorspace-internal" :depends-on ("image"))
+   (:file "colorspace"          :depends-on ("colorspace-internal"))
+   (:file "io"                  :depends-on ("image"))))
+
 
 
 ;;;; IO Submodules
