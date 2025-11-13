@@ -6,11 +6,25 @@
   (:export
    #:image
    #:w #:h #:d
+   #:channels
    #:colorspace
+   #:colorspace=
+
+   ;;; colorspace
+   #:*colorspace*
+   #:define-colorspace
+   #:define-colorspace-convert
    #:as-colorspace
 
-   ;; Sugar
-   #:colorspace=))
+   #:rgb
+   #:rgba
+   #:grayscale
+   #:grayscale-alpha
+
+   ;;; color
+   #:color
+   #:define-color
+   ))
 
 (in-package :mlx-cl.image)
 

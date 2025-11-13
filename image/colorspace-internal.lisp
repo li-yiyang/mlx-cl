@@ -123,8 +123,7 @@ Parameters:
 + COLORSPACE: original colorspace
 + ALIAS: alias of colorspace"
   (declare (type keyword colorspace alias))
-  (let ((colorspace (or (gethash colorspace *colorspaces*)
-                        (error "Unknown colorspace ~S. " colorspace))))
+  (let ((colorspace (get-%colorspace colorspace)))
     (pushnew alias (%colorspace-alias colorspace))
     (setf (gethash alias *colorspaces*) colorspace)))
 

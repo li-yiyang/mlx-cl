@@ -116,12 +116,17 @@ The main image processing algorithms should be implemented here. "
   :pathname "image"
   :components
   ((:file "package")
-   (:file "image"               :depends-on ("package"))
+   (:file "utils"               :depends-on ("package"))
+   (:file "image"               :depends-on ("utils"))
    (:file "colorspace-internal" :depends-on ("image"))
    (:file "colorspace"          :depends-on ("colorspace-internal"))
    (:file "color-internal"      :depends-on ("colorspace-internal"))
    (:file "color"               :depends-on ("color-internal"))
-   (:file "io"                  :depends-on ("image"))))
+   (:file "io"                  :depends-on ("image"))
+   (:file "sugar"               :depends-on ("image"
+                                             "colorspace-internal"
+                                             "color-internal"))))
+
 
 
 
