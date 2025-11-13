@@ -646,6 +646,7 @@ that API design. "
 ;; TEST: #at-setf
 (defmlx-method (setf at) (value array &rest slices)
   "Set SLICES of ARRAY by VALUE. "
+  :return "return updated `mlx-array' ARRAY"
   :parameters ((value "value to be updated to ARRAY slices
 
 the value would be boardcast to fit ARRAY, for example:
@@ -656,6 +657,12 @@ the value would be boardcast to fit ARRAY, for example:
                (slices "see `at' for the slice rules"))
   :dev-note "
 "
+  :methods ((:around
+             (value (array mlx-array) &rest slices)
+             (declare (ignorable slices))
+             (let ((res (call-next-method)))
+               (%steal-mlx-array-pointer res array)
+               array)))
   (let* ((len  (dim array))
          (size (cl:* len (foreign-type-size :int))))
     (with-foreign-pointer (start* size)
@@ -674,17 +681,15 @@ the value would be boardcast to fit ARRAY, for example:
                   ;; to (setf (at arr '(0 1 2)) #(0 1 2))
                   :do (error "Taking index ~A is not supported yet. "
                              slice))
-          (let ((res (with-mlx-op "mlx_slice_update"
-                       array
-                       value
-                       (start* :pointer)
-                       (len    :size)
-                       (stop*  :pointer)
-                       (len    :size)
-                       (step*  :pointer)
-                       (len    :size))))
-            (%steal-mlx-array-pointer res array)
-            array))))))
+          (with-mlx-op "mlx_slice_update"
+            array
+            value
+            (start* :pointer)
+            (len    :size)
+            (stop*  :pointer)
+            (len    :size)
+            (step*  :pointer)
+            (len    :size)))))))
 
 (defun at* (array &rest indexs)
   "(lisp<- (at ARRAY . INDEXS))"

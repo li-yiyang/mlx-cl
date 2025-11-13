@@ -85,10 +85,24 @@
    (:file "device" :depends-on ("package"))
    (:file "api"    :depends-on ("package"))
    (:file "fft"    :depends-on ("package")))
-  :perform (test-op (op c)
-             (symbol-call :mlx-cl.test :run-tests)))
+  :perform (test-op (op c) (symbol-call :mlx-cl.test :run-tests)))
 
 ;; TODO: test for mlx-cl/image
+
+(defsystem #:mlx-cl/test/image
+  :author ("凉凉")
+  :license "GPL"
+  :version "0.0.0"
+  :description "Test for MLX-CL.IMAGE. "
+  :depends-on (:mlx-cl
+               :fiveam
+               :mlx-cl/image)
+  :pathname "test/image"
+  :components
+  ((:file "package")
+   (:file "color"  :depends-on ("package")))
+
+  :perform (test-op (op c) (symbol-call :mlx-cl.test.image :run-tests)))
 
 
 ;;;; Submodules
@@ -102,7 +116,8 @@
                :mlx-cl/image/minimal
                :mlx-cl/io/tiff
                :mlx-cl/io/png
-               :mlx-cl/io/jpeg))
+               :mlx-cl/io/jpeg)
+  :perform (test-op (op c) (symbol-call :mlx-cl.test :run-tests)))
 
 (defsystem #:mlx-cl/image/minimal
   :author ("凉凉")

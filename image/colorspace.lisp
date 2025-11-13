@@ -28,18 +28,19 @@
                 :dtype (dtype image))
           :axis 2))
 
-(defun reduce-alpha-channel (image &key (background-color :white) &allow-other-keys)
+(defun reduce-alpha-channel (image &key (background-color :brightwhite) &allow-other-keys)
   "Reduce ALPHA channel of IMAGE. "
   (let* ((*keep-dim-p* t)
          (color        (at image :* :* :butlast))
          (target       (colorspace color))
-         (alpha        (at image :* :* :last))
+         (scale        (scale<-dtype (dtype image)))
+         (alpha        (/ (at image :* :* :last) scale))
          (bgcolor      (full (shape color)
-                             (* (scale<-d image)
-                                (color-value background-color target))
-                             :dtype (dtype image))))
+                             (* scale (color-value background-color target))
+                             :dtype :float32)))
     (image (+ (* color   alpha)
-              (* bgcolor (- 1 alpha)))
+              (* bgcolor (- 1.0 alpha)))
+           :dtype      (dtype image)
            :colorspace target)))
 
 ;;; Colorspaces
