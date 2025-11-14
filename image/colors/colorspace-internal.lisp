@@ -176,10 +176,18 @@ Return a float [0, 1] for generating the color. "
       (mlx-array (assert (dim= value 0))
        (color-ch-val<- (lisp<- value))))))
 
-(defmacro define-colorspace (name docstring
-                             &rest keys
-                             &key channels alias fallback
-                             &allow-other-keys)
+(defmacro define-colorspace
+    #+sbcl
+    (name docstring
+     &rest keys
+     &key channels alias fallback
+     &allow-other-keys)
+  #+lispworks
+  (name docstring &rest keys
+        &aux
+        (channels (getf keys :channels))
+        (alias    (getf keys :alias))
+        (fallback (getf keys :fallback)))
   "Define colorspace of NAME with OPTIONS.
 Return NAME of colorspace.
 

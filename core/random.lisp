@@ -1,4 +1,4 @@
-;;;; random.lisp ---- Random -*- mlx-cl-test-file: "rnd.lisp" -*-
+;;;; random.lisp ---- Random
 
 (in-package :mlx-cl.random)
 
@@ -139,15 +139,17 @@ That means x ~ N(0, 1) for real numbers and Re(x), Im(x) sim N(0, 1/2) for compl
   :aliases (gaussian)
   :parameters ((shape "shape of the output (default `()')")
                (dtype "type of the output (default `*default-mlx-dtype*')")
-               (μ     "N(μ, σ) mean of the deistribution (default `nil')")
-               (σ     "N(μ, σ) standard deviation of the distribution (default `nil')")
+               #-lispworks
+               (μ     "N(mu, sigma) mean of the deistribution (default `nil')")
+               #-lispworks
+               (σ     "N(mu, sigma) standard deviation of the distribution (default `nil')")
                (key   "PRNG key (default `nil')")
-               (mean  "alias of μ, mean")
-               (std   "alias of σ, standard deviation")
-               (mu    "alias of μ, mean")
-               (sigma "alias of σ, standard deviation")
-               (loc   "alias of μ, mean")
-               (scale "alias of σ, standard deviation"))
+               (mean  "alias of mu, mean")
+               (std   "alias of sigma, standard deviation")
+               (mu    "alias of mu, mean")
+               (sigma "alias of sigma, standard deviation")
+               (loc   "alias of mu, mean")
+               (scale "alias of sigma, standard deviation"))
   (if (and (typep mean! '(or null number))
            (typep std!  '(or null number)))
       (mlx::with-foreign<-sequence (shape* (mlx::shape<- shape) :int len)
