@@ -13,7 +13,7 @@
    (assert (or (mlx:dim= img 2)
                (mlx:dim= img 3)))
    (jpeg:encode-image pathname
-                      (mlx:lisp<- img)
+                      (mlx:lisp<- (mlx:flatten img))
                       (if (mlx:dim= img 3)
                           (mlx:shape img :axis 2)
                           1)

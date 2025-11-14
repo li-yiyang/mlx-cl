@@ -76,7 +76,14 @@ This should be a list of -D...=... flags toggling options ON/OFF. ")
 
     t))
 
+(defun clean-build ()
+  "Clean up mlx build directory. "
+  (uiop:delete-directory-tree
+   (format nil "~A/~A/" *libmlxc-src-dir* *libmlxc-build-dir*)
+   :validate t))
+
 (defun install-libmlxc ()
+  "Build libmlxc. "
   (unless (libmlxc-builded-p) (build-libmlxc)))
 
 (defun libmlxc-dir ()

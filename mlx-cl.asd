@@ -37,8 +37,27 @@
 (defsystem #:mlx-cl/lib
   :author ("凉凉")
   :license "MIT"
-  :version "0.0.0"
+  :version "0.26.3"
   :description "Compiling libmlxc.dylib. "
+  :long-description
+  "This calls cmake to build the mlx-c git submodule.
+
+If you want to modify the mlx library buiding parameters,
+load `mlx-cl/lib' first and customize `*libmlxc-flags*'
+and run `mlx-cl.lib:load-libmlxc'.
+
+If you already built mlx library, use `mlx-cl.lib:clean-build'
+to clean the build directory (which would cause rebuilding
+next time you load mlx library).
+
+If you're having trouble building the library, set
+`mlx-cl.lib:*debug-output*' as non-nil and `mlx-cl.lib:clean-build',
+after that, use `mlx-cl.lib:load-libmlxc' to rebuild and load
+the library.
+
+The system version of `mlx-cl/lib' is be same as mlx library, use
+`mlx:mlx-version' should get the lib version.
+"
   :serial t
   :depends-on (:cffi)
   :components
@@ -83,7 +102,7 @@
   :components
   ((:file "package")
    (:file "device" :depends-on ("package"))
-   (:file "api"    :depends-on ("package"))
+   (:file "ops"    :depends-on ("package"))
    (:file "fft"    :depends-on ("package")))
   :perform (test-op (op c) (symbol-call :mlx-cl.test :run-tests)))
 
@@ -114,6 +133,7 @@
   :description "Use mlx-cl for image processing. "
   :depends-on (:mlx-cl
                :mlx-cl/image/minimal
+               :mlx-cl/image/colors
                :mlx-cl/io/tiff
                :mlx-cl/io/png
                :mlx-cl/io/jpeg)
@@ -133,16 +153,45 @@ The main image processing algorithms should be implemented here. "
   ((:file "package")
    (:file "utils"               :depends-on ("package"))
    (:file "image"               :depends-on ("utils"))
-   (:file "colorspace-internal" :depends-on ("image"))
-   (:file "colorspace"          :depends-on ("colorspace-internal"))
-   (:file "color-internal"      :depends-on ("colorspace-internal"))
-   (:file "color"               :depends-on ("color-internal"))
+
+   ;; Color and Colorspace
+   (:module :colors
+    :depends-on ("image")
+    :components ((:file "colorspace-internal")
+                 (:file "colorspace"          :depends-on ("colorspace-internal"))
+                 (:file "color-internal"      :depends-on ("colorspace-internal"))
+                 (:file "color"               :depends-on ("color-internal"))))
+
+   ;; I/O
    (:file "io"                  :depends-on ("image"))
+
+   ;;
    (:file "sugar"               :depends-on ("image"
-                                             "colorspace-internal"
-                                             "color-internal"))))
+                                             :colors))))
 
+(defsystem #:mlx-cl/image/colors
+  :author ("凉凉")
+  :license "GPL"
+  :version "0.0.0"                      ; NEXT: 0.0.1 colorspace, io
+  :description "Load all the colors into `mlx-cl.image'. "
+  :long-description
+  ""
+  :depends-on (:mlx-cl
+               :mlx-cl/image/minimal
+               ; :mlx-cl/image/colors/apple
+               ; :mlx-cl/image/colors/triditional-chinese-color
+               ; :mlx-cl/image/colors/triditional-japanese-color
+               ))
 
+(defsystem #:mlx-cl/image/colors/apple
+  :author ("凉凉")
+  :license "GPL"
+  :version "0.0.0"
+  :description "Colors for Apple built-in colors. "
+  :depends-on (:mlx-cl
+               :mlx-cl/image)
+  :pathname "image/colors"
+  :components ((:file "apple")))
 
 
 ;;;; IO Submodules

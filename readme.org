@@ -1,3 +1,6 @@
+:PROPERTIES:
+:header-args:lisp: :results verbatim output :exports results :package mlx-user :eval no-export
+:END:
 #+title: MLX-CL
 #+subtitle: Common Lisp bindings for MLX
 #+author: 凉凉
@@ -16,11 +19,10 @@ data processing library.
 
 *NOTE*: Github's org-mode renderer is buggy, please refer [[https://li-yiyang.github.io/mlx-cl][documentation]].
 
-*TODO*:
-+ more tests (the API tests are under =test/api.lisp=,
-  tests of ops are under =test/ops.lisp=),
-+ more documentations with examples (the ops are self-documented,
-  use =(documentation #'mlx:+ 'function)= or =sly-documentation= for documentations)
+*NOTE*: Although it may not be exactly true, but every exposed function,
+class, variable in =mlx-cl= should came with feature-rich documentation.
+If you've found documentation missing or not clear, it is DEFINITELY
+an issue.
 
 * Usage
 ** Installation
@@ -110,11 +112,7 @@ above =mlx-cl=:
 + =mlx-cl/image=: see [[./image/][readme]] under =image= dir
 
 ** Basic Operations
-:PROPERTIES:
-:header-args:lisp: :results verbatim :exports both :package mlx-user
-:END:
-
-See tests in test/api.lisp for more examples.
+See tests in =test/core/api.lisp= for more examples.
 
 *** Convert
 1. Convert from Lisp to =mlx-array=
@@ -161,16 +159,89 @@ See tests in test/api.lisp for more examples.
    data into =mlx-array=.
 2. Use =lisp<-= to convert =mlx-array= into Lisp value.
 
+   For example:
+
+   #+begin_src lisp
+     (lisp<- (mlx.rnd:randint 10 :shape #(5 5)))
+   #+end_src
+
+   #+RESULTS:
+   : #2A((3 1 2 9 9) (8 9 0 1 1) (5 6 7 7 9) (3 4 5 2 7) (8 1 2 3 7))
+
+3. Use =(mlx-array pathname)= to load =mlx-array= from =pathname=,
+   how to load the =mlx-array= depends on the extension name
+   of the pathname.
+
+   For example, subsystem =mlx-cl/io/npy= provides NPY file I/O
+   functionalities.
+
+   #+begin_src lisp :results silent
+     (ql:quickload :mlx-cl/io/npy)
+   #+end_src
+
+   If having a NPY file:
+
+   #+begin_src python :results silent
+     import numpy as np
+
+     np.save("./res/tmp/example.npy", np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32))
+   #+end_src
+
+   #+begin_src lisp
+     (mlx-array "./res/tmp/example.npy")
+   #+end_src
+
+   #+RESULTS:
+   : array([[1, 2, 3],
+   :        [4, 5, 6]], dtype=float32)
+
+   You could write =mlx-array= as NPY using =save= function:
+
+   #+begin_src lisp
+     (->* (mlx-array #2A((1 2 3) (4 5 6)) :dtype :uint8)
+       (save * :output "./res/tmp/example.npy"))
+   #+end_src
+
+   #+RESULTS:
+   : ./res/tmp/example.npy
+
+   #+begin_src python :results output
+     import numpy as np
+
+     print(np.load("./res/tmp/example.npy"))
+   #+end_src
+
+   #+RESULTS:
+   : [[1 2 3]
+   :  [4 5 6]]
+
+   See [[I/O][I/O]] for more detailed description.
+
 *** Alloc =mlx-array=
 + Generate by range:
   + =(arange [start] stop [step] &key step dtype)=
 
     #+begin_src lisp
-      (arange 10)
+      (arange 10)                             ; (arange STOP)
     #+end_src
 
     #+RESULTS:
     : array([0, 1, 2, ..., 7, 8, 9], dtype=float32)
+
+    #+begin_src lisp
+      (arange 5 10)                           ; (arange START STOP)
+    #+end_src
+
+    #+RESULTS:
+    : array([5, 6, 7, 8, 9], dtype=float32)
+
+    #+begin_src lisp
+      (arange 2 10 2)                         ; (arange START STOP STEP)
+    #+end_src
+
+    #+RESULTS:
+    : array([2, 4, 6, 8], dtype=float32)
+
   + =(linspace start stop &optional num &key dtype)=
 
     #+begin_src lisp
@@ -386,10 +457,6 @@ which would produce:
 #+html: </details>
 
 ** Random
-:PROPERTIES:
-:header-args:lisp: :results verbatim :exports both :package mlx-user
-:END:
-
 The package =mlx-cl.random= is a collection of PRNG processes in MLX.
 
 #+begin_src lisp :results verbatim
@@ -416,10 +483,6 @@ or you could use =mlx.rnd:seed= to set a seed globally.
 :        [1.32391, 1.80017, 5.53488, 4.57218]], dtype=float32)
 
 ** FFT
-:PROPERTIES:
-:header-args:lisp: :results verbatim :exports both :package mlx-user
-:END:
-
 The package =mlx-cl.fft= is a collection of FFT processes binding in MLX.
 
 #+begin_src lisp
@@ -439,6 +502,59 @@ and inverse FFT:
 : array([1+-0j, 2+-0j, 3+0j, 4+-0j], dtype=complex64)
 
 Note: in order to acclerate, =mlx.fft:1dfft=, =mlx.fft:2dfft= would be faster.
+
+** I/O
+:PROPERTIES:
+:header-args:lisp: :results verbatim output :exports results :package mlx-user :eval no-export
+:END:
+
+The high-level API of reading and writing =mlx-array= is:
++ =(mlx-array pathname &key ...)=
++ =(save mlx-array &key output ...)=
+
+Behind the scene, it calls:
+
++ =(load-from source format &key)=
++ =(save-to object output format &key)=
+
+Use these functions if failed to guess correct =format= keyword from
+the pathname.
+
+If you want to define your own format reading and writing functionalities,
+you can use the: =(defmlx-extension (format . extensions) &rest options)=.
+
+#+begin_src lisp
+  (write-string (documentation 'defmlx-extension 'function))
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Define the implementation of mlx FORMAT.
+Add EXTENSIONS to `*mlx-supported-extensions*' as FORMAT.
+
+Syntax:
+
+    (defmlx-extension (format . extensions)
+      ((:load-path path :lambda-list ... :element-type ...)
+        load-doc
+        load-code)
+      ((:load stream :lambda-list ... :element-type ...)
+        load-doc
+        load-code)
+      ((:save-path arr path :lambda-list ... :element-type ...)
+        save-doc
+        save-code)
+      ((:save arr stream :lambda-list ... :element-type ...)
+        save-doc
+        save-code))
+
+#+end_example
+
+Currently implemented io submodules are:
++ [[./io/npy/][=mlx-cl/io/npy=]]: read and write NPY file via [[https://github.com/marcoheisig/numpy-file-format][marcoheisig/numpy-file-format]]
++ [[./io/png/][=mlx-cl/io/png=]]: read and write PNG file via [[https://github.com/lisp-mirror/pngload][pngload]] and [[https://www.quicklisp.org/beta/UNOFFICIAL/docs/zpng/doc/index.html][zpng]]
++ [[./io/jpeg/][=mlx-cl/io/jpeg=]]: read and write JPEG file via [[https://github.com/sharplispers/cl-jpeg][sharplispers/cl-jpeg]]
++ [[./io/tiff/][=mlx-cl/io/tiff=]]: read and write TIFF file via [[https://github.com/slyrus/retrospectiff][slyrus/retrospectiff]]
 
 * Contributing and Developing
 

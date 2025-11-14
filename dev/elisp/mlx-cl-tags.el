@@ -6,22 +6,20 @@
 ;;   refresh buffer's `mlx-cl-highlight' overlay,
 ;;   add highlights and jumps to test cases
 
-(defgroup mlx-cl ()
-  "MLX-CL dev tools. "
-  :prefix "mlx-cl")
+(require 'mlx-cl)
 
 (defface mlx-cl-test-tag-face
   '((t :background "#ffd278"
        :foreground "#ff6a0d"))
-  "Highlight test tags for MLX-CL. ")
+  "Highlight test tags for MLX-CL. "
+  :group 'mlx-cl)
 
 (defvar mlx-cl-test-file)
 
-(defvar mlx-cl-test-dir "~/common-lisp/mlx-cl/test/")
-
 (defun mlx-cl-goto-test (tag)
   "Goto test. "
-  (find-file-other-window (expand-file-name mlx-cl-test-file mlx-cl-test-dir))
+  (find-file-other-window
+   (expand-file-name mlx-cl-test-file mlx-cl-test-dir))
   (goto-char (point-min))
   (if (re-search-forward (format "^(test %s$" (regexp-quote tag)) nil t)
       (progn
@@ -65,6 +63,22 @@
                  (define-key map (kbd "C-c C-o")        goto)
                  (define-key map (kbd "Enter")          goto)
                  map)))))))))
+
+(define-minor-mode mlx-cl-tag-mode
+  "Enable tag jump in code. "
+  :init-value nil
+  :group      mlx-cl
+  (cond (mlx-cl-tag-mode
+         (make-local-variable 'mlx-cl-test-file)
+         (setq-local mlx-cl-test-file
+                     (file-relative-name (buffer-file-name)
+                                         mlx-cl-root-dir))
+         (mlx-cl-highlight-test-tags)
+         (add-hook 'after-save-hook 'mlx-cl-highlight-test-tags nil t))
+        (t
+         (kill-local-variable 'mlx-cl-test-file)
+         (remove-overlays (point-min) (point-max) 'mlx-cl-highlight t)
+         (remove-hook 'after-save-hook 'mlx-cl-highlight-test-tags t))))
 
 (provide 'mlx-cl-tags)
 

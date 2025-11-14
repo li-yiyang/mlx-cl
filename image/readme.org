@@ -1,0 +1,41 @@
+:PROPERTIES:
+:header-args:lisp: :results verbatim :exports both :package mlx-image-demo :eval no-export
+:END:
+#+title: MLX-CL/Image
+#+subtitle: MLX subsystem for Image Processing
+#+author: 凉凉
+#+html_head: <!-- The documentation is generated on 11111000000/tao-theme-emacs (tao-yin) with org literal programming style.  -->
+#+html_head: <!-- The Unifont is destributed on cdn.jsdelivr.net -->
+#+html_head: <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/unifont@5.2.5/index.min.css">
+#+html_head: <style> body { font-size: 1.05em; background-color: #171717; color: #dadada } </style>
+#+html_head: <style> pre, code { font-family: "Unifont", monospace; }</style>
+#+html_head: <style> pre { background-color: #171717; } </style>
+#+html_head: <style> a { display: inline-block; border: 1px solid; border-radius: 0px; border-color: #f6f6f6; text-decoration: none; color: #f6f6f6; padding: 1px; margin: 1px; } </style>
+#+html_head: <style> a:hover { color: #0e0e0e; background-color: #c3c3c3 } </style>
+#+html_head: <style> .title { padding-top: 100px; padding-bottom: 10px } </style>
+* About
+MLX-CL/IMAGE is a subsystem for using MLX-CL for image processing.
+It is a collection of functions for manipulating the =mlx-array= as =image=,
+=color= objects.
+
+* Usage
+** Load =mlx-cl/image=
+To load =mlx-cl/image=:
+
+#+begin_src lisp :results silent
+  (ql:quickload :mlx-cl/image)
+#+end_src
+
+To create a package using =mlx-cl.image=:
+
+#+name: defpackage-mlx-image-demo
+#+begin_src lisp :results silent
+  (defpackage #:mlx-image-demo
+    (:use :mlx-cl :mlx-cl.image))
+
+  (in-package :mlx-image-demo)
+#+end_src
+
+** Basic Operations
+*** I/O
+1.

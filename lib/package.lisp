@@ -7,6 +7,7 @@
    #:*debug-output*
    #:*libmlxc-flags*
    #:install-libmlxc
-   #:load-libmlxc))
+   #:load-libmlxc
+   #:clean-build))
 
 ;;;; package.lisp ends here

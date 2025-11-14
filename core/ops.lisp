@@ -1,4 +1,4 @@
-;;;; ops.lisp --- Operators for MLX -*- mlx-cl-test-file: "api.lisp" -*-
+;;;; ops.lisp --- Operators for MLX
 
 (in-package :mlx)
 
@@ -658,7 +658,7 @@ the value would be boardcast to fit ARRAY, for example:
   :dev-note "
 "
   :methods ((:around
-             (value (array mlx-array) &rest slices)
+             ((value mlx-array) (array mlx-array) &rest slices)
              (declare (ignorable slices))
              (let ((res (call-next-method)))
                (%steal-mlx-array-pointer res array)
