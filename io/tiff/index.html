@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-11-15 Sat 01:37 -->
+<!-- 2025-11-15 Sat 02:49 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>MLX-CL/IO/TIFF</title>
@@ -207,25 +207,25 @@
 <div id="content" class="content">
 <h1 class="title">MLX-CL/IO/TIFF
 <br />
-<span class="subtitle">Support PNG file read and write</span>
+<span class="subtitle">Support TIFF file read and write</span>
 </h1>
 <div id="table-of-contents" role="doc-toc">
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org13c0081">1. About</a></li>
-<li><a href="#org6560cdb">2. Usage</a>
+<li><a href="#org4b1e26b">1. About</a></li>
+<li><a href="#org33428be">2. Usage</a>
 <ul>
-<li><a href="#org4cb0a8d">2.1. Loading</a></li>
-<li><a href="#org637b093">2.2. Reading TIFF file</a></li>
-<li><a href="#orgc3d17fb">2.3. Wrting TIFF file</a></li>
+<li><a href="#orgfe71f25">2.1. Loading</a></li>
+<li><a href="#orgbcc1027">2.2. Reading TIFF file</a></li>
+<li><a href="#org33c5f16">2.3. Wrting TIFF file</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org13c0081" class="outline-2">
-<h2 id="org13c0081"><span class="section-number-2">1.</span> About</h2>
+<div id="outline-container-org4b1e26b" class="outline-2">
+<h2 id="org4b1e26b"><span class="section-number-2">1.</span> About</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 MLX-CL/IO/TIFF add support for reading and writing <code>mlx-array</code> from and to
@@ -237,12 +237,12 @@ TIFF file via <a href="https://github.com/slyrus/retrospectiff">slyrus/retrospec
 </p>
 </div>
 </div>
-<div id="outline-container-org6560cdb" class="outline-2">
-<h2 id="org6560cdb"><span class="section-number-2">2.</span> Usage</h2>
+<div id="outline-container-org33428be" class="outline-2">
+<h2 id="org33428be"><span class="section-number-2">2.</span> Usage</h2>
 <div class="outline-text-2" id="text-2">
 </div>
-<div id="outline-container-org4cb0a8d" class="outline-3">
-<h3 id="org4cb0a8d"><span class="section-number-3">2.1.</span> Loading</h3>
+<div id="outline-container-orgfe71f25" class="outline-3">
+<h3 id="orgfe71f25"><span class="section-number-3">2.1.</span> Loading</h3>
 <div class="outline-text-3" id="text-2-1">
 <div class="org-src-container">
 <pre class="src src-lisp">(ql:quickload <span style="color: #F6F6F6;">:mlx-cl/io/tiff</span>)
@@ -255,8 +255,8 @@ TIFF file via <a href="https://github.com/slyrus/retrospectiff">slyrus/retrospec
 </p>
 </div>
 </div>
-<div id="outline-container-org637b093" class="outline-3">
-<h3 id="org637b093"><span class="section-number-3">2.2.</span> Reading TIFF file</h3>
+<div id="outline-container-orgbcc1027" class="outline-3">
+<h3 id="orgbcc1027"><span class="section-number-3">2.2.</span> Reading TIFF file</h3>
 <div class="outline-text-3" id="text-2-2">
 <div class="org-src-container">
 <pre class="src src-lisp">(mlx-array <span style="color: #9E9E9E;">"xxx.tiff"</span>)
@@ -264,8 +264,8 @@ TIFF file via <a href="https://github.com/slyrus/retrospectiff">slyrus/retrospec
 </div>
 </div>
 </div>
-<div id="outline-container-orgc3d17fb" class="outline-3">
-<h3 id="orgc3d17fb"><span class="section-number-3">2.3.</span> Wrting TIFF file</h3>
+<div id="outline-container-org33c5f16" class="outline-3">
+<h3 id="org33c5f16"><span class="section-number-3">2.3.</span> Wrting TIFF file</h3>
 <div class="outline-text-3" id="text-2-3">
 <div class="org-src-container">
 <pre class="src src-lisp">(save xxx <span style="color: #F6F6F6;">:output</span> <span style="color: #9E9E9E;">"xxx.tif"</span>)
@@ -273,7 +273,7 @@ TIFF file via <a href="https://github.com/slyrus/retrospectiff">slyrus/retrospec
 </div>
 
 <p>
-<b>NOTE</b>: need an idea of generating a different image pattern for writing&#x2026; 
+<b>NOTE</b>: need an idea of generating a different image pattern for writing&#x2026;
 </p>
 </div>
 </div>
@@ -281,7 +281,7 @@ TIFF file via <a href="https://github.com/slyrus/retrospectiff">slyrus/retrospec
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: 凉凉</p>
-<p class="date">Created: 2025-11-15 Sat 01:37</p>
+<p class="date">Created: 2025-11-15 Sat 02:49</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

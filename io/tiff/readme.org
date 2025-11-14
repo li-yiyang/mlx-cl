@@ -2,7 +2,7 @@
 :header-args:lisp: :results verbatim :exports both :package mlx-user :eval no-export
 :END:
 #+title: MLX-CL/IO/TIFF
-#+subtitle: Support PNG file read and write
+#+subtitle: Support TIFF file read and write
 #+author: 凉凉
 #+html_head: <!-- The documentation is generated on 11111000000/tao-theme-emacs (tao-yin) with org literal programming style.  -->
 #+html_head: <!-- The Unifont is destributed on cdn.jsdelivr.net -->
@@ -38,4 +38,4 @@ TIFF file via [[https://github.com/slyrus/retrospectiff][slyrus/retrospectiff]].
   (save xxx :output "xxx.tif")
 #+end_src
 
-*NOTE*: need an idea of generating a different image pattern for writing... 
+*NOTE*: need an idea of generating a different image pattern for writing...

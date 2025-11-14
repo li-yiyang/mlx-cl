@@ -563,3 +563,5 @@ Currently implemented io submodules are:
   together with a set of indent rules to use with SLY/SLIME in Emacs.
 + There's some helpful Emacs scripts under =dev= which could help with
   developing MLX-CL
+
+  read more in [[./dev/elisp/][MLX-CL/DEV/ELISP]]
