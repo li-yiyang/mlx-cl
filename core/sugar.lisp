@@ -17,9 +17,9 @@ Syntax:
 Example:
 
     (->* expr
-      (as-type :float32))
+      (as-dtype :float32))
     ;; => (let* ((* expr)
-                 (* (as-type * :float32)))
+                 (* (as-dtype * :float32)))
             *)
 "
   (labels ((*? (elem)

@@ -37,9 +37,9 @@
 (defmethod (setf at) :around ((color symbol) (image image) &rest slices)
   (declare (type keyword color))
   (apply #'call-next-method
-         (as-type (* (color-value color (colorspace image))
-                     (scale<-dtype (dtype image)))
-                  (dtype image))
+         (as-dtype (* (color-value color (colorspace image))
+                      (scale<-dtype (dtype image)))
+                   (dtype image))
          image
          slices))
 

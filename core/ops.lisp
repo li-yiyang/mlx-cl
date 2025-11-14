@@ -82,7 +82,7 @@ Parameters:
         :int8  :int16  :int32  :int64)
        (let ((int (wrap-as-mlx-array
                    (mlx_array_new_int (truncate number)))))
-         (if dtype? (as-type int dtype!) int)))
+         (if dtype? (as-dtype int dtype!) int)))
       (:float32
        (wrap-as-mlx-array
         (mlx_array_new_float32 (coerce number 'single-float))))
@@ -149,7 +149,7 @@ Otherwise, the LIST should be in valid shape. "
   ;; TEST: #mlx-array-mlx-array
   (:method ((arr mlx-array) &key dtype)
     (if dtype
-        (as-type arr dtype)
+        (as-dtype arr dtype)
         arr)))
 
 ;; TEST: #arange
@@ -234,7 +234,7 @@ if given as `mlx-array', will use shape of `mlx-array'")
                     (,quick (shape list) :dtype dtype))
                    (((number number) &key (dtype (dtype number)))
                     (,quick () :dtype dtype)))
-         (let ((arr (if dtype? (as-type array dtype) array)))
+         (let ((arr (if dtype? (as-dtype array dtype) array)))
            (with-mlx-op ,(sconc "mlx_" cffi) arr))))
   ((ones-like  "ones_like")
    "Construct an array of ones as shape of ARRAY. "
@@ -2298,7 +2298,7 @@ result into crashes."
        (with-mlx-op ,(sconc "mlx_" cffi)
          array
          (dtype! mlx-dtype)))
-  ((as-type "astype")
+  ((as-dtype "astype")
    "Convert ARRAY as a different type. "
    :parameters ((dtype "the `mlx-dtype' to change to"))
    :aliases    (dtype<-))
@@ -2317,7 +2317,7 @@ type and the input dtype do not have the same size."))))
    `(defgeneric (setf ,op) (dtype array)
       (:documentation ,(apply #'gen-doc docs))
       (:method (dtype (array mlx-array))
-        (let ((arr (as-type array (ensure-mlx-dtype dtype))))
+        (let ((arr (as-dtype array (ensure-mlx-dtype dtype))))
           (%steal-mlx-array-pointer arr array)
           array)))
   (mlx-dtype "Set ARRAY's data mlx-dtype as DTYPE. ")

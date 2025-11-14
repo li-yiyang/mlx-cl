@@ -43,7 +43,7 @@ via [[https://github.com/lisp-mirror/pngload][pngload]] and [[https://www.quickl
                   (mask y)                ; G
                   (mask (- 1 x y))        ; B
                   :axis 2)                ; on channel axis
-        (as-type (* * 255) :uint8)
+        (as-dtype (* * 255) :uint8)
         (save * :output "./res/img/write-png-example.png"))))
 #+end_src
 

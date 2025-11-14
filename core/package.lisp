@@ -190,7 +190,7 @@
    #:einsum
 
    ;;; Dev
-   #:as-type
+   #:as-dtype
    #:view
    #:copy
 
