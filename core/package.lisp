@@ -230,7 +230,7 @@
   (:use :mlx-cl)
   (:nicknames :mlx.linalg)
   (:export
-   #:inv
+   #:matinv
    #:tri-inv
    #:norm
    #:cholesky
