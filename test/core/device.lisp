@@ -22,6 +22,12 @@
     ;; default mlx-cpu-device
     (is (equal :cpu *mlx-device*))
     (is (equal *mlx-device* :cpu))
+    (is (equal (princ-to-string *mlx-device*) "Device(cpu, 0)")))
+
+  (with-mlx-device :cpu
+    ;; default mlx-cpu-device
+    (is (equal :cpu *mlx-device*))
+    (is (equal *mlx-device* :cpu))
     (is (equal (princ-to-string *mlx-device*) "Device(cpu, 0)"))))
 
 ;;;; device.lisp ends here

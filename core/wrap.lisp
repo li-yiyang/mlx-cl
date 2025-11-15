@@ -1,4 +1,4 @@
-;;;; wrap.lisp ---- Wrapper tools to create mlx ops methods -*- mlx-cl-test-file: "api.lisp" -*-
+;;;; wrap.lisp ---- Wrapper tools to create mlx ops methods -*- mlx-cl-test-file: "core/ops.lisp" -*-
 
 (in-package :mlx-cl)
 

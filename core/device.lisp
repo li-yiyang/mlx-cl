@@ -140,7 +140,11 @@ Or use `mlx-device' to define a new device. "))
 
 (defmacro with-mlx-device (device &body body)
   "Bind default mlx-device as DEVICE locally within BODY. "
-  (let ((prev (gensym "PREV")))
+  (let ((prev   (gensym "PREV"))
+        (device (case device
+                  (:cpu `(mlx-device :type :cpu))
+                  (:gpu `(mlx-device :type :gpu))
+                  (otherwise device))))
     `(let ((,prev *mlx-device*))
        (unwind-protect (progn
                          (setf *mlx-device* (the mlx-device ,device))
