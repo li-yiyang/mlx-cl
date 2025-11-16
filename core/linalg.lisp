@@ -78,7 +78,8 @@ and raise a ValueError when (dim A) is not equal to 2.
 ")
                (axis "AXIS/AXES to norm over (default `nil')
  + integer: axis of ARRAY along which to compute the vector norms
- + sequence(dim=2): axes holding 2-D matrices, the matrix norms of these matrices are computed
+ + sequence(dim=2): axes holding 2-D matrices,
+   the matrix norms of these matrices are computed
  + nil: depends on the dim of the ARRAY")
                (axes "alias of AXIS")
                (keep-dim-p "whether the axes are normed over left in the result as dimensions with size one (default `*keep-dim-p*')"))
@@ -246,27 +247,150 @@ If the size is 2 then the third value is assumed to be zero."
       (values (mlx-cl::wrap-as-mlx-array Q)
               (mlx-cl::wrap-as-mlx-array R)))))
 
-;; (mlx::defmlx-method svd (array)
-;;   "The Singular Value Decoposition (SVD) of the input matrix. "
-;;   :parameters ((array "input array"))
-;;   )
+(mlx::defmlx-method svd (array &key (uv t uv?)
+                         &aux (uv! (if uv? (mlx::bool<- uv) uv)))
+  "The Singular Value Decoposition (SVD) of the input matrix. "
+  :parameters ((array "input array (dim>=2)
+if ARRAY has more than 2-D, the function iterates over
+all indices of the first (dim ARRAY) SVD is applied to the
+last two indices")
+               (uv    "whether compute U V decomposition (default `t')
+ + if non-nil: return U, S, and Vt components
+ + if nil: return only S array"))
+  :definition "A = (@ U (diag S) Vt)"
+  :return "values of U, S and Vt if UV, otherwise, only S"
+  (mlx::with-mlx-op "mlx_linalg_svd"
+    array
+    (uv! :bool)))
 
-;; (mlx::defmlx-method eigvals (array)
-;;   )
+;; TEST: #eigvals
+(mlx::defmlx-method eigvals (array)
+  "Compute the eigenvalues of a square matrix. "
+  :parameters ((array "input array (dim>=2)
+if ARRAY has more than 2-D, the eigen values are computed for each
+matrix in the last two dimensions"))
+  :return "eigen values"
+  (mlx::with-mlx-op "mlx_linalg_eigvals"
+    array))
 
-;; (mlx::defmlx-method eigh (array)
-;;   )
+(mlx::defmlx-method eig (array)
+  "Compute the eigenvalues and eigenvectors of a square matrix. "
+  :parameters ((array "input array (dim>=2)
+if ARRAY has more than 2-D, the eigen values and eign vectors are
+computed for each matrix in the last two dimensions"))
+  :return "values of eigen values and normalized right eign vectors
+The column (at V :* I) is the eigen vector corresponding to the I-th
+eigen value. "
+  (mlx-cl::with-elem& (val val& :type :pointer :alloc (mlx-cl::mlx_array_new))
+    (mlx-cl::with-elem& (vec vec& :type :pointer :alloc (mlx-cl::mlx_array_new))
+      (mlx-cl::ensure-success "mlx_linalg_eig"
+        :pointer val&
+        :pointer vec&
+        :pointer (mlx-cl::mlx-object-pointer array)
+        :pointer (mlx-cl::mlx-object-pointer (mlx-cl::default-mlx-stream)))
+      (values (mlx-cl::wrap-as-mlx-array val)
+              (mlx-cl::wrap-as-mlx-array vec)))))
 
-;; (mlx::defmlx-method lu (array)
-;;   )
+(defparameter +L+ (cffi:foreign-string-alloc "L"))
+(defparameter +U+ (cffi:foreign-string-alloc "U"))
 
-;; (mlx::defmlx-method pinv (array)
-;;   )
+(mlx::defmlx-method eigvalsh (array &optional (tri :lower))
+  "Compute the eigenvalues of a complex Hermitian or real symmetric matrix. "
+  :parameters ((array "input array (dim>=2)
+must be a real symmetric or complex Hermitian matrix")
+               (tri   "using which part of ARRAY to use
+ + `:upper': upper triangle of the matrix
+ + `:lower': lower triangle of the matrix"))
+  :return "the eign values in ascending order"
+  :note "
+The input matrix is assumed to be symmetric (or Hermitian).
+Only the selected triangle is used. No checks for symmetry are performed."
+  (declare (type (member :lower :upper) tri))
+  (mlx::with-mlx-op "mlx_linalg_eigvalsh"
+    array
+    ((ecase tri
+       (:lower +L+)
+       (:upper +U+))
+     :pointer)))
 
-;; (mlx::defmlx-method solve (array array)
-;;   )
+(mlx::defmlx-method eigh (array &optional (tri :lower))
+  "Compute the eigenvalues of a complex Hermitian or real symmetric matrix. "
+  :parameters ((array "input array (dim>=2)
+must be a real symmetric or complex Hermitian matrix")
+               (tri   "using which part of ARRAY to use
+ + `:upper': upper triangle of the matrix
+ + `:lower': lower triangle of the matrix"))
+  :return "values of eign values and eign vectors"
+  :note "
+The input matrix is assumed to be symmetric (or Hermitian).
+Only the selected triangle is used. No checks for symmetry are performed."
+  (declare (type (member :lower :upper) tri))
+  (mlx-cl::with-elem& (val val& :type :pointer :alloc (mlx-cl::mlx_array_new))
+    (mlx-cl::with-elem& (vec vec& :type :pointer :alloc (mlx-cl::mlx_array_new))
+      (mlx-cl::ensure-success "mlx_linalg_eigh"
+        :pointer val&
+        :pointer vec&
+        :pointer (mlx-cl::mlx-object-pointer array)
+        :pointer (ecase tri
+                   (:lower +L+)
+                   (:upper +U+))
+        :pointer (mlx-cl::mlx-object-pointer (mlx-cl::default-mlx-stream)))
+      (values (mlx-cl::wrap-as-mlx-array val)
+              (mlx-cl::wrap-as-mlx-array vec)))))
 
-;; (mlx::defmlx-method solve-triangular (array array)
-;;   )
+(mlx::defmlx-method lu (array)
+  "Compute the LU factorization of the given matrix ARRAY. "
+  :parameters ((array "input array (dim>=2)"))
+  :return "values of p, L and U `mlx-array', such that A = (@ (at L p :*) U)"
+  (mlx::with-mlx-op ("mlx_linalg_lu" :alloc mlx::mlx_vector_array_new
+                                     :wrap  mlx::wrap-as-mlx-array-list
+                                     :free  mlx::mlx_vector_array_free)
+    array))
+
+(mlx::defmlx-method lu-factor (array)
+  "Computes a compact representation of the LU factorization. "
+  :parameters ((array "input array (dim>=2)"))
+  :return "LU matrix and pivots `mlx-array'"
+  (mlx::with-elem& (LU LU& :type :pointer :alloc (mlx-cl::mlx_array_new))
+    (mlx::with-elem& (pivots pivots& :type :pointer :alloc (mlx-cl::mlx_array_new))
+      (mlx-cl::ensure-success "mlx_linalg_lu_factor"
+        :pointer LU&
+        :pointer pivots&
+        :pointer (mlx-cl::mlx-object-pointer array)
+        :pointer (mlx-cl::mlx-object-pointer (mlx-cl::default-mlx-stream)))
+      (values (mlx-cl::wrap-as-mlx-array LU)
+              (mlx-cl::wrap-as-mlx-array pivots)))))
+
+(mlx::defmlx-method pinv (array)
+  "Compute the (Moore-Penrose) pseudo-inverse of a matrix. "
+  :parameters ((array "input array (dim>=2)"))
+  :return "APLUS such that (@ ARRAY APLUS ARRAY) = ARRAY"
+  (mlx::with-mlx-op "mlx_linalg_pinv"
+    array))
+
+(mlx::defmlx-method solve (A B)
+  "Compute the solution to a system of linear equations (@ A X) = B. "
+  :parameters ((A "weights array")
+               (B "base array"))
+  :return "The unique solution to the system A X = B"
+  (mlx::with-mlx-op "mlx_linalg_solve"
+    A
+    B))
+
+(mlx::defmlx-method solve-triangular (A B &optional (tri :lower))
+  "Computes the solution of a triangular system of linear equations (@ A X) = B. "
+  :parameters ((A "weights triangular array")
+               (B "base array")
+               (tri "shape of triangular weights array (default `:lower')
+ + `:lower': lower triangular
+ + `:upper': upper triangular"))
+  :return "the unique solution to the system (@ A X) = B"
+  (mlx::with-mlx-op "mlx_linalg_solve_triangular"
+    A
+    B
+    ((ecase tri
+       (:lower nil)
+       (:upper t))
+     :bool)))
 
 ;;;; linalg.lisp ends here

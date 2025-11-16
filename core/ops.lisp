@@ -415,7 +415,8 @@ except for the DIAG diagonal, whose values are equal to one."
         (declare (type (member :xy :ij) indexing))
         (with-array-vector<-sequence (vec (cons array more-arr))
           (with-mlx-op ("mlx_meshgrid" :alloc mlx_vector_array_new
-                                       :wrap  wrap-as-mlx-array-list)
+                                       :wrap  wrap-as-mlx-array-list
+                                       :free  mlx_vector_array_free)
             (vec :pointer)
             ((bool<- spares) :bool)
             ((ecase indexing
@@ -892,7 +893,8 @@ Either or both input arrays can also be scalars.
   (values-list
    (with-mlx-op ("mlx_divmod"
                  :alloc mlx_vector_array_new
-                 :wrap  wrap-as-mlx-array-list)
+                 :wrap  wrap-as-mlx-array-list
+                 :free  mlx_vector_array_free)
      a
      b)))
 
@@ -1906,7 +1908,8 @@ and repeats along axis 0
              (declare (type (integer 0) num-splits)
                       (type integer axis!))
              (with-mlx-op ("mlx_split" :alloc mlx_vector_array_new
-                                       :wrap  wrap-as-mlx-array-list)
+                                       :wrap  wrap-as-mlx-array-list
+                                       :free  mlx_vector_array_free)
                arr
                (num-splits :int)
                (axis!      :int)))
@@ -1915,7 +1918,8 @@ and repeats along axis 0
   (declare (type integer axis!))
   (with-foreign<-sequence (indices* split-or-indices :int len)
     (with-mlx-op ("mlx_split_sections" :alloc mlx_vector_array_new
-                                       :wrap  wrap-as-mlx-array-list)
+                                       :wrap  wrap-as-mlx-array-list
+                                       :free  mlx_vector_array_free)
       array
       (indices* :pointer)
       (len      :int)

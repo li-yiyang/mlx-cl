@@ -55,7 +55,7 @@ Parameters:
 Syntax:
 
     (with-mlx-op
-      { name | (name &key alloc wrap) }
+      { name | (name &key alloc wrap free) }
       { arg | (arg type) }*
       )
 
@@ -71,10 +71,14 @@ this is equal to calling:
   (let ((res  (gensym "RES"))
         (res& (gensym "RES&")))
     (destructuring-bind
-        (name &key (alloc 'mlx_array_new) (wrap 'wrap-as-mlx-array))
+        (name &key
+                (alloc 'mlx_array_new)
+                (wrap  'wrap-as-mlx-array)
+                (free  nil free?))
         (listfy name)
       `(with-elem& (,res ,res& :type  :pointer
-                               :alloc (,alloc))
+                               :alloc (,alloc)
+                    ,@(when free? `(:free (,free ,res))))
          (ensure-success ,name
            :pointer ,res&
            ,@(loop :for arg-type :in arg-type?
