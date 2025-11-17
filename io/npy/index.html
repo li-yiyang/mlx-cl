@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-11-15 Sat 02:49 -->
+<!-- 2025-11-18 Tue 00:36 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>MLX-CL/IO/NPY</title>
@@ -58,7 +58,7 @@
   pre.src-awk:before { content: 'Awk'; }
   pre.src-authinfo::before { content: 'Authinfo'; }
   pre.src-C:before { content: 'C'; }
-  pre.src-C\+\+:before { content: 'C++'; }
+  /* pre.src-C++ doesn't work in CSS */
   pre.src-clojure:before { content: 'Clojure'; }
   pre.src-css:before { content: 'CSS'; }
   pre.src-D:before { content: 'D'; }
@@ -213,19 +213,19 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org15ced7d">1. About</a></li>
-<li><a href="#org7f0b95f">2. Usage</a>
+<li><a href="#org31eb54b">1. About</a></li>
+<li><a href="#org5911a03">2. Usage</a>
 <ul>
-<li><a href="#org3e9652e">2.1. Loading</a></li>
-<li><a href="#org834a058">2.2. Reading NPY file</a></li>
-<li><a href="#orgbe6f26b">2.3. Writing NPY file</a></li>
+<li><a href="#org8c9e2d1">2.1. Loading</a></li>
+<li><a href="#org7a43305">2.2. Reading NPY file</a></li>
+<li><a href="#org73b07dc">2.3. Writing NPY file</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org15ced7d" class="outline-2">
-<h2 id="org15ced7d"><span class="section-number-2">1.</span> About</h2>
+<div id="outline-container-org31eb54b" class="outline-2">
+<h2 id="org31eb54b"><span class="section-number-2">1.</span> About</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 <code>MLX-CL/IO/NPY</code> add support for reading and writing <code>mlx-array</code> from and to NPY file
@@ -233,24 +233,24 @@ via <a href="https://github.com/marcoheisig/numpy-file-format">marcoheisig/numpy
 </p>
 </div>
 </div>
-<div id="outline-container-org7f0b95f" class="outline-2">
-<h2 id="org7f0b95f"><span class="section-number-2">2.</span> Usage</h2>
+<div id="outline-container-org5911a03" class="outline-2">
+<h2 id="org5911a03"><span class="section-number-2">2.</span> Usage</h2>
 <div class="outline-text-2" id="text-2">
 </div>
-<div id="outline-container-org3e9652e" class="outline-3">
-<h3 id="org3e9652e"><span class="section-number-3">2.1.</span> Loading</h3>
+<div id="outline-container-org8c9e2d1" class="outline-3">
+<h3 id="org8c9e2d1"><span class="section-number-3">2.1.</span> Loading</h3>
 <div class="outline-text-3" id="text-2-1">
 <div class="org-src-container">
-<pre class="src src-lisp">(ql:quickload <span style="color: #F6F6F6;">:mlx-cl/io/npy</span>)
+<pre class="src src-lisp">(ql:quickload :mlx-cl/io/npy)
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-org834a058" class="outline-3">
-<h3 id="org834a058"><span class="section-number-3">2.2.</span> Reading NPY file</h3>
+<div id="outline-container-org7a43305" class="outline-3">
+<h3 id="org7a43305"><span class="section-number-3">2.2.</span> Reading NPY file</h3>
 <div class="outline-text-3" id="text-2-2">
 <div class="org-src-container">
-<pre class="src src-lisp">(mlx-array <span style="color: #9E9E9E;">"./res/dat/example.npy"</span>)
+<pre class="src src-lisp">(mlx-array "./res/dat/example.npy")
 </pre>
 </div>
 
@@ -265,16 +265,16 @@ this is equal to calling:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp">(load-from <span style="color: #9E9E9E;">"./res/dat/example.npy"</span> <span style="color: #F6F6F6;">:npy</span>)
+<pre class="src src-lisp">(load-from "./res/dat/example.npy" :npy)
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-orgbe6f26b" class="outline-3">
-<h3 id="orgbe6f26b"><span class="section-number-3">2.3.</span> Writing NPY file</h3>
+<div id="outline-container-org73b07dc" class="outline-3">
+<h3 id="org73b07dc"><span class="section-number-3">2.3.</span> Writing NPY file</h3>
 <div class="outline-text-3" id="text-2-3">
 <div class="org-src-container">
-<pre class="src src-lisp">(save (mlx-array #2A((1 2 3) (4 5 6))) <span style="color: #F6F6F6;">:output</span> <span style="color: #9E9E9E;">"./res/tmp/example.npy"</span>)
+<pre class="src src-lisp">(save (mlx-array #2A((1 2 3) (4 5 6))) :output "./res/tmp/example.npy")
 </pre>
 </div>
 
@@ -284,8 +284,8 @@ this is equal to calling:
 
 
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #F1F1F1;">import</span> numpy <span style="color: #F1F1F1;">as</span> np
-<span style="color: #F6F6F6;">print</span>(np.load(<span style="color: #9E9E9E;">"./res/tmp/example.npy"</span>))
+<pre class="src src-python">import numpy as np
+print(np.load("./res/tmp/example.npy"))
 </pre>
 </div>
 
@@ -299,7 +299,7 @@ this is equal to calling:
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: 凉凉</p>
-<p class="date">Created: 2025-11-15 Sat 02:49</p>
+<p class="date">Created: 2025-11-18 Tue 00:36</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

@@ -1,5 +1,5 @@
 :PROPERTIES:
-:header-args:lisp: :results verbatim :exports both :package mlx-user :eval no-export
+:header-args:lisp: :results verbatim :exports both :package mlx-user :eval no-export :dir (expand-file-name "../../")
 :END:
 #+title: MLX-CL/IO/TIFF
 #+subtitle: Support TIFF file read and write
@@ -34,8 +34,36 @@ TIFF file via [[https://github.com/slyrus/retrospectiff][slyrus/retrospectiff]].
 #+end_src
 
 ** Wrting TIFF file
+#+header: :results file
+#+header: :var size=200
 #+begin_src lisp
-  (save xxx :output "xxx.tif")
+    (destructuring-bind (x y)
+        (meshgrid (linspace 0 1 size)
+                  (linspace 0 1 size))
+      (->* (stack x
+                  y
+                  (zeros-like x)
+                  :axis 2)
+        (as-dtype (* * 255) :uint8)
+        (save * :output "./res/img/write-tiff-example.tif")))
 #+end_src
 
-*NOTE*: need an idea of generating a different image pattern for writing...
+#+RESULTS:
+[[file:../../res/img/write-tiff-example.tif]]
+
+*NOTE*: the original code is from [[https://thebookofshaders.com/03/][The Book of Shaders]]:
+
+#+begin_src c
+  #ifdef GL_ES
+  precision mediump float;
+  #endif
+
+  uniform vec2 u_resolution;
+  uniform vec2 u_mouse;
+  uniform float u_time;
+
+  void main() {
+  	vec2 st = gl_FragCoord.xy/u_resolution;
+  	gl_FragColor = vec4(st.x,st.y,0.0,1.0);
+  }
+#+end_src

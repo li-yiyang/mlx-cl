@@ -1,0 +1,66 @@
+#+title: MLX-CL/DEV/ELISP
+#+subtitle: Emacs functionalities for developping MLX-CL
+#+author: 凉凉
+#+html_head: <!-- The documentation is generated on 11111000000/tao-theme-emacs (tao-yin) with org literal programming style.  -->
+#+html_head: <!-- The Unifont is destributed on cdn.jsdelivr.net -->
+#+html_head: <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/unifont@5.2.5/index.min.css">
+#+html_head: <style> body { font-size: 1.05em; background-color: #171717; color: #dadada } </style>
+#+html_head: <style> pre, code { font-family: "Unifont", monospace; }</style>
+#+html_head: <style> pre { background-color: #171717; } </style>
+#+html_head: <style> a { display: inline-block; border: 1px solid; border-radius: 0px; border-color: #f6f6f6; text-decoration: none; color: #f6f6f6; padding: 1px; margin: 1px; } </style>
+#+html_head: <style> a:hover { color: #0e0e0e; background-color: #c3c3c3 } </style>
+#+html_head: <style> .title { padding-top: 100px; padding-bottom: 10px } </style>
+* About
+MLX-CL/DEV/ELISP is a set of Emacs lisp functions that helps with
+developing with MLX-CL.
+
+* Usage
+** Loading
+#+html: <details><summary>If you have not used Emacs before</summary>
+
+It maybe a little difficult to switch from vim or VSCode.
+But the general idea is likely to be the same:
+
+1. install Emacs
+
+   #+begin_src shell
+     brew install jimeh/emacs-builds/emacs-app-good
+     # or
+     brew install d12frosted/emacs-plus/emacs-plus
+   #+end_src
+2. load extension for lisp support
+
+   there're planty tutorials about it, but if you just want
+   to try it quickly:
+   + =M-x list-packages= will show a list of avaliable packages
+   + search for =sly= and click to install it should done
+   + and you may enjoy configuring your Emacs
+3. load the mlx-cl helping scripts
+
+   + =M-x load-file= and enter the path to the =mlx-cl.el= and so on
+   + or you can add =mlx-cl/dev/elisp= to your load-path
+
+#+html: </details>
+
+** Tags
++ =M-x load-file mlx-cl/dev/elisp/mlx-cl-tags.el=
++ =mlx-cl-tag-mode=: would toggle minor mode to highlight the tag in the code:
+  + =;; TEST: #tag=: would highlight =#tag=
+
+    when clicking the =#tag=, will jump to the test code named
+    of =#tag= like =(test tag ...)=
+
+** GEN-DOC
++ =M-x load-file mlx-cl/dev/elisp/mlx-cl-gen-doc.el=
++ =M-x mlx-cl-gen-doc=: would generate the documentation
+  (export =.org= file as =index.html=)
++ Use =mlx-cl-before-gen-doc-hook= and =mlx-cl-after-gen-doc-hook=
+  to ensure Emacs is ready and clean up Emacs.
+
+  For example, I use [[https://github.com/11111000000/tao-theme-emacs][11111000000/tao-theme-emacs]] and [[https://github.com/emacsorphanage/htmlize][emacsorphanage/htmlize]]
+  to generate the documentation, and here's my hook:
+
+  #+begin_src emacs-lisp
+    (add-hook 'mlx-cl-before-gen-doc-hook (lambda () (ryo.ui:mac-apply-theme 'dark)))
+    (add-hook 'mlx-cl-after-gen-doc-hook  (lambda () (ryo.ui:mac-apply-theme ns-system-appearance)))
+  #+end_src

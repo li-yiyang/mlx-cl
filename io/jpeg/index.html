@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-11-15 Sat 02:49 -->
+<!-- 2025-11-18 Tue 00:36 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>MLX-CL/IO/JPEG</title>
@@ -58,7 +58,7 @@
   pre.src-awk:before { content: 'Awk'; }
   pre.src-authinfo::before { content: 'Authinfo'; }
   pre.src-C:before { content: 'C'; }
-  pre.src-C\+\+:before { content: 'C++'; }
+  /* pre.src-C++ doesn't work in CSS */
   pre.src-clojure:before { content: 'Clojure'; }
   pre.src-css:before { content: 'CSS'; }
   pre.src-D:before { content: 'D'; }
@@ -213,19 +213,19 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org2fda92c">1. About</a></li>
-<li><a href="#orgdc5cc41">2. Usage</a>
+<li><a href="#org377da5d">1. About</a></li>
+<li><a href="#orga2f6ce6">2. Usage</a>
 <ul>
-<li><a href="#org9fbd2c1">2.1. Loading</a></li>
-<li><a href="#org5e19308">2.2. Reading JPEG file</a></li>
-<li><a href="#org05bc126">2.3. Write JPEG file</a></li>
+<li><a href="#org1d3cf7a">2.1. Loading</a></li>
+<li><a href="#orgbc88867">2.2. Reading JPEG file</a></li>
+<li><a href="#orgb1d3eca">2.3. Write JPEG file</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org2fda92c" class="outline-2">
-<h2 id="org2fda92c"><span class="section-number-2">1.</span> About</h2>
+<div id="outline-container-org377da5d" class="outline-2">
+<h2 id="org377da5d"><span class="section-number-2">1.</span> About</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 MLX-CL/IO/JPEG add support for reading and writing <code>mlx-array</code> from and to
@@ -241,15 +241,15 @@ or have some ideas about how to improve it).
 </p>
 </div>
 </div>
-<div id="outline-container-orgdc5cc41" class="outline-2">
-<h2 id="orgdc5cc41"><span class="section-number-2">2.</span> Usage</h2>
+<div id="outline-container-orga2f6ce6" class="outline-2">
+<h2 id="orga2f6ce6"><span class="section-number-2">2.</span> Usage</h2>
 <div class="outline-text-2" id="text-2">
 </div>
-<div id="outline-container-org9fbd2c1" class="outline-3">
-<h3 id="org9fbd2c1"><span class="section-number-3">2.1.</span> Loading</h3>
+<div id="outline-container-org1d3cf7a" class="outline-3">
+<h3 id="org1d3cf7a"><span class="section-number-3">2.1.</span> Loading</h3>
 <div class="outline-text-3" id="text-2-1">
 <div class="org-src-container">
-<pre class="src src-lisp">(ql:quickload <span style="color: #F6F6F6;">:mlx-cl/io/jpeg</span>)
+<pre class="src src-lisp">(ql:quickload :mlx-cl/io/jpeg)
 </pre>
 </div>
 
@@ -259,15 +259,15 @@ or have some ideas about how to improve it).
 </p>
 </div>
 </div>
-<div id="outline-container-org5e19308" class="outline-3">
-<h3 id="org5e19308"><span class="section-number-3">2.2.</span> Reading JPEG file</h3>
+<div id="outline-container-orgbc88867" class="outline-3">
+<h3 id="orgbc88867"><span class="section-number-3">2.2.</span> Reading JPEG file</h3>
 <div class="outline-text-3" id="text-2-2">
 <div class="org-src-container">
-<pre class="src src-lisp">(mlx-array <span style="color: #9E9E9E;">"./res/img/avatar.jpg"</span>)
+<pre class="src src-lisp">(mlx-array "./res/img/avatar.jpg")
 </pre>
 </div>
 
-<pre class="example" id="org7a23a9a">
+<pre class="example" id="org9afa61a">
 array([[[254, 254, 254],
         [254, 254, 254],
         [254, 254, 254],
@@ -319,7 +319,7 @@ use <code>mlx.img:image</code> function to load image file.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp">(mlx.img:image <span style="color: #9E9E9E;">"./res/img/avatar.jpg"</span>)
+<pre class="src src-lisp">(mlx.img:image "./res/img/avatar.jpg")
 </pre>
 </div>
 
@@ -328,23 +328,23 @@ use <code>mlx.img:image</code> function to load image file.
 </pre>
 </div>
 </div>
-<div id="outline-container-org05bc126" class="outline-3">
-<h3 id="org05bc126"><span class="section-number-3">2.3.</span> Write JPEG file</h3>
+<div id="outline-container-orgb1d3eca" class="outline-3">
+<h3 id="orgb1d3eca"><span class="section-number-3">2.3.</span> Write JPEG file</h3>
 <div class="outline-text-3" id="text-2-3">
 <div class="org-src-container">
-<pre class="src src-lisp">(-&gt;* (full #(200 200 3) <span style="color: #C3C3C3;">; 512x512 channels=3 RGB file</span>
-           #(0 0 0)     <span style="color: #C3C3C3;">; #x000 for black color</span>
-           <span style="color: #F6F6F6;">:dtype</span> <span style="color: #F6F6F6;">:uint8</span>)
+<pre class="src src-lisp">(-&gt;* (full #(200 200 3) ; 512x512 channels=3 RGB file
+           #(0 0 0)     ; #x000 for black color
+           :dtype :uint8)
   (setf (at *
-            '(<span style="color: #F6F6F6;">:middle</span> 60)              <span style="color: #C3C3C3;">; 60px long</span>
-            '(<span style="color: #F6F6F6;">:middle</span> 10))             <span style="color: #C3C3C3;">; 10px width</span>
-        #(255 255 255))                <span style="color: #C3C3C3;">; white rectangle in the middle</span>
-  (save * <span style="color: #F6F6F6;">:output</span> <span style="color: #9E9E9E;">"./res/img/write-jpeg-example-1.jpg"</span>))
+            '(:middle 60)              ; 60px long
+            '(:middle 10))             ; 10px width
+        #(255 255 255))                ; white rectangle in the middle
+  (save * :output "./res/img/write-jpeg-example-1.jpg"))
 </pre>
 </div>
 
 
-<div id="orgd7aac91" class="figure">
+<div id="orga3fabd5" class="figure">
 <p><img src="../../res/img/write-jpeg-example-1.jpg" alt="write-jpeg-example-1.jpg" />
 </p>
 </div>
@@ -355,14 +355,14 @@ subsystem (which is from my Image Processing homework):
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp">(-&gt;* (mlx.img:image <span style="color: #F6F6F6;">:black</span> <span style="color: #F6F6F6;">:w</span> 512 <span style="color: #F6F6F6;">:h</span> 512)
-  (setf (at * '(<span style="color: #F6F6F6;">:middle</span> 60) '(<span style="color: #F6F6F6;">:middle</span> 10)) <span style="color: #F6F6F6;">:brightwhite</span>)
-  (save * <span style="color: #F6F6F6;">:output</span> <span style="color: #9E9E9E;">"./res/img/write-jpeg-example-2.jpg"</span>))
+<pre class="src src-lisp">(-&gt;* (mlx.img:image :black :w 512 :h 512)
+  (setf (at * '(:middle 60) '(:middle 10)) :brightwhite)
+  (save * :output "./res/img/write-jpeg-example-2.jpg"))
 </pre>
 </div>
 
 
-<div id="org1a1e6dd" class="figure">
+<div id="orga572486" class="figure">
 <p><img src="../../res/img/write-jpeg-example-2.jpg" alt="write-jpeg-example-2.jpg" />
 </p>
 </div>
@@ -372,7 +372,7 @@ subsystem (which is from my Image Processing homework):
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: 凉凉</p>
-<p class="date">Created: 2025-11-15 Sat 02:49</p>
+<p class="date">Created: 2025-11-18 Tue 00:36</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

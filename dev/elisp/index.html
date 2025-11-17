@@ -6,7 +6,7 @@
 <!-- 2025-11-18 Tue 00:36 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>MLX-CL/Image</title>
+<title>MLX-CL/DEV/ELISP</title>
 <meta name="author" content="凉凉" />
 <meta name="generator" content="Org Mode" />
 <style type="text/css">
@@ -205,78 +205,125 @@
 </head>
 <body>
 <div id="content" class="content">
-<h1 class="title">MLX-CL/Image
+<h1 class="title">MLX-CL/DEV/ELISP
 <br />
-<span class="subtitle">MLX subsystem for Image Processing</span>
+<span class="subtitle">Emacs functionalities for developping MLX-CL</span>
 </h1>
 <div id="table-of-contents" role="doc-toc">
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org8090173">1. About</a></li>
-<li><a href="#org3f2dd98">2. Usage</a>
+<li><a href="#orgfb10099">1. About</a></li>
+<li><a href="#orga21999d">2. Usage</a>
 <ul>
-<li><a href="#org618864b">2.1. Load <code>mlx-cl/image</code></a></li>
-<li><a href="#org6e5fc62">2.2. Basic Operations</a>
-<ul>
-<li><a href="#org21a3577">2.2.1. I/O</a></li>
-</ul>
-</li>
+<li><a href="#org3e4ec5d">2.1. Loading</a></li>
+<li><a href="#org5476c67">2.2. Tags</a></li>
+<li><a href="#org7cb7b6e">2.3. GEN-DOC</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org8090173" class="outline-2">
-<h2 id="org8090173"><span class="section-number-2">1.</span> About</h2>
+<div id="outline-container-orgfb10099" class="outline-2">
+<h2 id="orgfb10099"><span class="section-number-2">1.</span> About</h2>
 <div class="outline-text-2" id="text-1">
 <p>
-MLX-CL/IMAGE is a subsystem for using MLX-CL for image processing.
-It is a collection of functions for manipulating the <code>mlx-array</code> as <code>image</code>,
-<code>color</code> objects.
+MLX-CL/DEV/ELISP is a set of Emacs lisp functions that helps with
+developing with MLX-CL.
 </p>
 </div>
 </div>
-<div id="outline-container-org3f2dd98" class="outline-2">
-<h2 id="org3f2dd98"><span class="section-number-2">2.</span> Usage</h2>
+<div id="outline-container-orga21999d" class="outline-2">
+<h2 id="orga21999d"><span class="section-number-2">2.</span> Usage</h2>
 <div class="outline-text-2" id="text-2">
 </div>
-<div id="outline-container-org618864b" class="outline-3">
-<h3 id="org618864b"><span class="section-number-3">2.1.</span> Load <code>mlx-cl/image</code></h3>
+<div id="outline-container-org3e4ec5d" class="outline-3">
+<h3 id="org3e4ec5d"><span class="section-number-3">2.1.</span> Loading</h3>
 <div class="outline-text-3" id="text-2-1">
-<p>
-To load <code>mlx-cl/image</code>:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-lisp">(ql:quickload :mlx-cl/image)
-</pre>
-</div>
+<details><summary>If you have not used Emacs before</summary>
 
 <p>
-To create a package using <code>mlx-cl.image</code>:
+It maybe a little difficult to switch from vim or VSCode.
+But the general idea is likely to be the same:
 </p>
 
-<div class="org-src-container">
-<pre class="src src-lisp" id="orge8a748e">(defpackage #:mlx-image-demo
-  (:use :mlx-cl :mlx-cl.image))
-
-(in-package :mlx-image-demo)
-</pre>
-</div>
-</div>
-</div>
-<div id="outline-container-org6e5fc62" class="outline-3">
-<h3 id="org6e5fc62"><span class="section-number-3">2.2.</span> Basic Operations</h3>
-<div class="outline-text-3" id="text-2-2">
-</div>
-<div id="outline-container-org21a3577" class="outline-4">
-<h4 id="org21a3577"><span class="section-number-4">2.2.1.</span> I/O</h4>
-<div class="outline-text-4" id="text-2-2-1">
 <ol class="org-ol">
-<li></li>
+<li><p>
+install Emacs
+</p>
+
+<div class="org-src-container">
+<pre class="src src-shell">brew install jimeh/emacs-builds/emacs-app-good
+# or
+brew install d12frosted/emacs-plus/emacs-plus
+</pre>
+</div></li>
+<li><p>
+load extension for lisp support
+</p>
+
+<p>
+there're planty tutorials about it, but if you just want
+to try it quickly:
+</p>
+<ul class="org-ul">
+<li><code>M-x list-packages</code> will show a list of avaliable packages</li>
+<li>search for <code>sly</code> and click to install it should done</li>
+<li>and you may enjoy configuring your Emacs</li>
+</ul></li>
+<li>load the mlx-cl helping scripts
+
+<ul class="org-ul">
+<li><code>M-x load-file</code> and enter the path to the <code>mlx-cl.el</code> and so on</li>
+<li>or you can add <code>mlx-cl/dev/elisp</code> to your load-path</li>
+</ul></li>
 </ol>
+
+</details>
 </div>
+</div>
+<div id="outline-container-org5476c67" class="outline-3">
+<h3 id="org5476c67"><span class="section-number-3">2.2.</span> Tags</h3>
+<div class="outline-text-3" id="text-2-2">
+<ul class="org-ul">
+<li><code>M-x load-file mlx-cl/dev/elisp/mlx-cl-tags.el</code></li>
+<li><code>mlx-cl-tag-mode</code>: would toggle minor mode to highlight the tag in the code:
+<ul class="org-ul">
+<li><p>
+<code>;; TEST: #tag</code>: would highlight <code>#tag</code>
+</p>
+
+<p>
+when clicking the <code>#tag</code>, will jump to the test code named
+of <code>#tag</code> like <code>(test tag ...)</code>
+</p></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org7cb7b6e" class="outline-3">
+<h3 id="org7cb7b6e"><span class="section-number-3">2.3.</span> GEN-DOC</h3>
+<div class="outline-text-3" id="text-2-3">
+<ul class="org-ul">
+<li><code>M-x load-file mlx-cl/dev/elisp/mlx-cl-gen-doc.el</code></li>
+<li><code>M-x mlx-cl-gen-doc</code>: would generate the documentation
+(export <code>.org</code> file as <code>index.html</code>)</li>
+<li><p>
+Use <code>mlx-cl-before-gen-doc-hook</code> and <code>mlx-cl-after-gen-doc-hook</code>
+to ensure Emacs is ready and clean up Emacs.
+</p>
+
+<p>
+For example, I use <a href="https://github.com/11111000000/tao-theme-emacs">11111000000/tao-theme-emacs</a> and <a href="https://github.com/emacsorphanage/htmlize">emacsorphanage/htmlize</a>
+to generate the documentation, and here's my hook:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(add-hook 'mlx-cl-before-gen-doc-hook (lambda () (ryo.ui:mac-apply-theme 'dark)))
+(add-hook 'mlx-cl-after-gen-doc-hook  (lambda () (ryo.ui:mac-apply-theme ns-system-appearance)))
+</pre>
+</div></li>
+</ul>
 </div>
 </div>
 </div>
