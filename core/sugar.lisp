@@ -22,18 +22,20 @@ Example:
                  (* (as-dtype * :float32)))
             *)
 "
-  (labels ((*? (elem)
-             (if (atom elem)
-                 (eql elem '*)
-                 (find-if #'*? (rest elem)))))
-    `(let* ((* ,expr)
-            ,@(loop :for expr :in body
-                    :collect `(* ,(etypecase expr
-                                    (symbol `(,expr *))
+  (let ((sym* (intern "*")))
+    (labels ((*? (elem)
+               (if (symbolp elem)
+                   (eql sym* elem)
+                   (find-if #'*? (rest elem)))))
+      `(let* ((,sym* ,expr)
+              ,@(loop :for expr :in body
+                      :collect `(,sym*
+                                 ,(etypecase expr
+                                    (symbol `(,expr ,sym*))
                                     (list
                                      (if (*? expr) expr
-                                         `(,(first expr) * ,@(rest expr))))))))
-     *)))
+                                         `(,(first expr) ,sym* ,@(rest expr))))))))
+         ,sym*))))
 
 (defmacro neq (obj1 obj2)
   "Equal to (not (eq OBJ1 OBJ2)). "
