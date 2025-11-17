@@ -102,7 +102,8 @@ The system version of `mlx-cl/lib' is be same as mlx library, use
   ((:file "package")
    (:file "device" :depends-on ("package"))
    (:file "ops"    :depends-on ("package"))
-   (:file "fft"    :depends-on ("package")))
+   (:file "fft"    :depends-on ("package"))
+   (:file "linalg" :depends-on ("package")))
   :perform (test-op (op c) (symbol-call :mlx-cl.test :run-tests)))
 
 ;; TODO: test for mlx-cl/image
