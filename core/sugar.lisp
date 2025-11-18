@@ -24,7 +24,7 @@ Example:
 "
   (let ((sym* (intern "*")))
     (labels ((*? (elem)
-               (if (symbolp elem)
+               (if (atom elem)
                    (eql sym* elem)
                    (find-if #'*? (rest elem)))))
       `(let* ((,sym* ,expr)

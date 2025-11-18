@@ -185,6 +185,10 @@
 
    ;;; Cummulative Operation
    #:cumsum
+   #:cumprod
+   #:cummax
+   #:cummin
+   #:logcumsumexp
 
    ;;; Einsum
    #:einsum
