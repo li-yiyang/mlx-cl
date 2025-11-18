@@ -15,7 +15,7 @@
      (assert (cl:<= 0 alpha 1) ()
              "Expect alpha scale to be [0, 1], but got: ~A"
              alpha)
-     (cl:* alpha (scale<-d image)))
+     (cl:* alpha (scale<-dtype (dtype image))))
     (mlx-array
      (assert (dim= alpha 0))
      (alpha<- image (lisp<- alpha)))))

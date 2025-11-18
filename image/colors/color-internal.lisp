@@ -131,7 +131,7 @@ see `mlx.img::ensure-mlx-array-is-color'. "
     (change-class
      (if (eql (colorspace      image)
               (colorspace-name colorspace))
-         (/ image (scale<-d (dtype image)))
+         (/ image (scale<-dtype (dtype image)))
          (/ (apply #'as-colorspace image colorspace keys)
             (scale<-dtype (dtype image))))
      'color)))
