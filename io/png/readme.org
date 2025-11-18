@@ -1,5 +1,5 @@
 :PROPERTIES:
-:header-args:lisp: :results verbatim :exports both :package mlx-user :eval no-export :dir ../../
+:header-args:lisp: :results verbatim :exports both :package mlx-user :eval no-export :dir (expand-file-name "../../")
 :END:
 #+title: MLX-CL/IO/PNG
 #+subtitle: Support PNG file read and write

@@ -228,31 +228,40 @@ object and call default method.
   ((dim>= >=) "Test if ARRAY's dim is greater than or equal to DIM. ")
   ((dim/= /=) "Test if ARRAY's dim is not equal to DIM. "))
 
+(macrolet ((convert (arr)
+             `(ecase (mlx-dtype ,arr)
+                ,@(loop :for dtype :in +supported-mlx-dtypes+
+                        :collect
+                        `(,dtype (,(intern* 'mlx_array_item_ dtype)
+                                  (mlx-object-pointer arr)))))))
+  (defun value<-mlx-array (arr)
+    (declare (type mlx-array arr))
+    (assert (dim= arr 0))
+    (mlx_array_eval (mlx-object-pointer arr))
+    (convert arr)))
+
+(macrolet ((convert (arr)
+             `(ecase (mlx-dtype ,arr)
+                ,@(loop :for dtype :in +supported-mlx-dtypes+
+                        :collect
+                        `(,dtype (,(intern* 'mlx_array_data_ dtype)
+                                  (mlx-object-pointer arr)))))))
+  (defun foreign-pointer<-mlx-array (arr)
+    (declare (type mlx-array arr))
+    (assert (dim> arr 0))
+    (let ((arr (as-strided (contiguous arr))))
+      (mlx_array_eval (mlx-object-pointer arr))
+      (convert arr))))
+
 (defun lisp<-mlx-array (arr)
   (declare (type mlx-array arr))
-  (let ((arr (as-strided (contiguous arr))))
-    (mlx_array_eval  (mlx-object-pointer arr))
-    (mlx_synchronize (mlx-object-pointer *mlx-stream*))
-    (let ((shape (shape arr))
-          (dtype (mlx-dtype arr)))
-      (if (endp shape) ;; scalar
-          (macrolet ((convert ()
-                       `(ecase dtype
-                          ,@(loop :for dtype :in +supported-mlx-dtypes+
-                                  :collect
-                                  `(,dtype (,(intern* 'mlx_array_item_ dtype)
-                                            (mlx-object-pointer arr)))))))
-            (convert))
-          (macrolet ((convert ()
-                       `(ecase dtype
-                          ,@(loop :for dtype :in +supported-mlx-dtypes+
-                                  :collect
-                                  `(,dtype (,(intern* 'mlx_array_data_ dtype)
-                                            (mlx-object-pointer arr)))))))
-            (array<-foreign (convert)
-                            (cffi-type<-mlx-dtype dtype)
-                            shape
-                            (lisp-type<-mlx-dtype dtype)))))))
+  (if (dim= arr 0)
+      (value<-mlx-array   arr)
+      (let ((dtype (mlx-dtype arr)))
+        (array<-foreign (foreign-pointer<-mlx-array arr)
+                        (cffi-type<-mlx-dtype dtype)
+                        (shape arr)
+                        (lisp-type<-mlx-dtype dtype)))))
 
 (defgeneric lisp<- (array)
   (:documentation

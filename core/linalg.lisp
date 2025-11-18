@@ -145,10 +145,10 @@ References:
       (keyword
        (ecase ord
          ((:fro :frobenius)
-          (assert (dim= matrix/vector 2))
+          (assert (dim>= matrix/vector 2))
           (linalg_norm +fro+))
          ((:nuc :nuclear)
-          (assert (dim= matrix/vector 2))
+          (assert (dim>= matrix/vector 2))
           (linalg_norm +nuc+))
          ((:inf :infinity :pos-inf :positive-infinity)
           (linalg_norm #+sbcl      sb-ext:double-float-positive-infinity

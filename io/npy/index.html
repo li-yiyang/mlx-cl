@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-11-18 Tue 00:36 -->
+<!-- 2025-11-19 Wed 02:19 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>MLX-CL/IO/NPY</title>
@@ -213,19 +213,19 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org31eb54b">1. About</a></li>
-<li><a href="#org5911a03">2. Usage</a>
+<li><a href="#org54f9a98">1. About</a></li>
+<li><a href="#orgd135358">2. Usage</a>
 <ul>
-<li><a href="#org8c9e2d1">2.1. Loading</a></li>
-<li><a href="#org7a43305">2.2. Reading NPY file</a></li>
-<li><a href="#org73b07dc">2.3. Writing NPY file</a></li>
+<li><a href="#orgabbfd86">2.1. Loading</a></li>
+<li><a href="#org19eb85f">2.2. Reading NPY file</a></li>
+<li><a href="#org7f5c269">2.3. Writing NPY file</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org31eb54b" class="outline-2">
-<h2 id="org31eb54b"><span class="section-number-2">1.</span> About</h2>
+<div id="outline-container-org54f9a98" class="outline-2">
+<h2 id="org54f9a98"><span class="section-number-2">1.</span> About</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 <code>MLX-CL/IO/NPY</code> add support for reading and writing <code>mlx-array</code> from and to NPY file
@@ -233,12 +233,12 @@ via <a href="https://github.com/marcoheisig/numpy-file-format">marcoheisig/numpy
 </p>
 </div>
 </div>
-<div id="outline-container-org5911a03" class="outline-2">
-<h2 id="org5911a03"><span class="section-number-2">2.</span> Usage</h2>
+<div id="outline-container-orgd135358" class="outline-2">
+<h2 id="orgd135358"><span class="section-number-2">2.</span> Usage</h2>
 <div class="outline-text-2" id="text-2">
 </div>
-<div id="outline-container-org8c9e2d1" class="outline-3">
-<h3 id="org8c9e2d1"><span class="section-number-3">2.1.</span> Loading</h3>
+<div id="outline-container-orgabbfd86" class="outline-3">
+<h3 id="orgabbfd86"><span class="section-number-3">2.1.</span> Loading</h3>
 <div class="outline-text-3" id="text-2-1">
 <div class="org-src-container">
 <pre class="src src-lisp">(ql:quickload :mlx-cl/io/npy)
@@ -246,8 +246,8 @@ via <a href="https://github.com/marcoheisig/numpy-file-format">marcoheisig/numpy
 </div>
 </div>
 </div>
-<div id="outline-container-org7a43305" class="outline-3">
-<h3 id="org7a43305"><span class="section-number-3">2.2.</span> Reading NPY file</h3>
+<div id="outline-container-org19eb85f" class="outline-3">
+<h3 id="org19eb85f"><span class="section-number-3">2.2.</span> Reading NPY file</h3>
 <div class="outline-text-3" id="text-2-2">
 <div class="org-src-container">
 <pre class="src src-lisp">(mlx-array "./res/dat/example.npy")
@@ -270,8 +270,8 @@ this is equal to calling:
 </div>
 </div>
 </div>
-<div id="outline-container-org73b07dc" class="outline-3">
-<h3 id="org73b07dc"><span class="section-number-3">2.3.</span> Writing NPY file</h3>
+<div id="outline-container-org7f5c269" class="outline-3">
+<h3 id="org7f5c269"><span class="section-number-3">2.3.</span> Writing NPY file</h3>
 <div class="outline-text-3" id="text-2-3">
 <div class="org-src-container">
 <pre class="src src-lisp">(save (mlx-array #2A((1 2 3) (4 5 6))) :output "./res/tmp/example.npy")
@@ -299,7 +299,7 @@ print(np.load("./res/tmp/example.npy"))
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: 凉凉</p>
-<p class="date">Created: 2025-11-18 Tue 00:36</p>
+<p class="date">Created: 2025-11-19 Wed 02:19</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
