@@ -45,6 +45,20 @@ Example:
   "Test OBJ1 and OBJ2 are NOT equal. "
   `(cl:not (equal ,obj1 ,obj2)))
 
+(with-op-template (op cffi docs
+                   (array "input `mlx-array'")
+                   (len   "len to compare")
+                   (axis  "length on dimension, see `len'"))
+    `(defmacro ,op (array len &optional (axis 0))
+       ,(apply #'gen-doc `(,(first docs) ,@(rest docs) :return "t or nil"))
+       `(the boolean (,',(intern (string-upcase cffi) :cl) (len ,array ,axis) ,len)))
+  ((len=  =)  "Test if ARRAY's len is equal to LEN. ")
+  ((len<  <)  "Test if ARRAY's len is less than LEN. ")
+  ((len>  >)  "Test if ARRAY's len is greater then LEN. ")
+  ((len<= <=) "Test if ARRAY's len is less than or equal to LEN. ")
+  ((len>= >=) "Test if ARRAY's len is greater than or equal to LEN. ")
+  ((len/= /=) "Test if ARRAY's len is not equal to LEN. "))
+
 
 ;;;; TODO:
 ;; Math reader macro #$ EXPR

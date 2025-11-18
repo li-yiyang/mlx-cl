@@ -88,6 +88,7 @@
 
    ;;; MLX attributes
    #:shape
+   #:len
    #:sign
    #:degrees
    #:radians
@@ -208,6 +209,7 @@
 
    ;;;; sugar
    #:dim= #:dim/= #:dim> #:dim< #:dim<= #:dim>=
+   #:len= #:len/= #:len> #:len< #:len<= #:dim>=
    #:->*
 
    ;;;; io

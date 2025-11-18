@@ -129,7 +129,7 @@ References:
                       (mlx_linalg_norm        ord ptr len)
                       (mlx_linalg_norm_matrix ord ptr len))))
                (sequence
-                (assert (cl:= (length axis!) 2))
+                (assert (cl:= (cl:length axis!) 2))
                 (mlx::with-foreign<-sequence (ptr axis! :int len)
                   (if (numberp ord)
                       (mlx_linalg_norm        ord ptr len)

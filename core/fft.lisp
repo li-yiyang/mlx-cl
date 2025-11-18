@@ -1,4 +1,4 @@
-;;;; fft.lisp --- FFT bindings -*- mlx-cl-test-file: "fft.lisp" -*-
+;;;; fft.lisp --- FFT bindings
 
 (in-package :mlx-cl.fft)
 
@@ -40,8 +40,8 @@ zeros to match the sizes in SIZE. ")
                          (t     (mlx::axes<- #(-2 -1)))))
             (size* (or size (mlx::shape<- (shape array :axis axis*)))))
        ,@docs
-       (assert (cl:= (length axis*) 2))
-       (assert (cl:= (length size*) 2))
+       (assert (cl:= (cl:length axis*) 2))
+       (assert (cl:= (cl:length size*) 2))
        (mlx::with-foreign<-sequence (axis& axis* :int)
          (mlx::with-foreign<-sequence (size& size* :int)
            (mlx::with-mlx-op ,(mlx::sconc "mlx_fft_" cffi)
@@ -102,8 +102,8 @@ The corresponding axes in the input are truncated or padded with zeros to match 
                (1dfft array :size size))
               (sequence
                (fft array :size size
-                          :dim  (length size)
-                          :axis (loop :for i :below (length size)
+                          :dim  (cl:length size)
+                          :axis (loop :for i :below (cl:length size)
                                       :collect i)))))
            (t
             (case dim
@@ -117,7 +117,7 @@ The corresponding axes in the input are truncated or padded with zeros to match 
     (integer
      (1dfft array :axis axis* :size size))
     (sequence
-     (let ((adim (length axis)))
+     (let ((adim (cl:length axis)))
        (when (and dim (cl:/= dim adim))
          (error "AXIS/AXES ~A should match with FFT dim ~A. "
                 axis* dim))
@@ -132,7 +132,7 @@ The corresponding axes in the input are truncated or padded with zeros to match 
                         (integer
                          (loop :for i :below adim :collect size))
                         (sequence
-                         (unless (cl:= (length size) adim)
+                         (unless (cl:= (cl:length size) adim)
                            (error "SIZE ~A should be same dim ~A as AXIS/AXES. "
                                   size adim))
                          size))))
@@ -192,8 +192,8 @@ The corresponding axes in the input are truncated or padded with zeros to match 
                (1difft array :size size))
               (sequence
                (ifft array :size size
-                           :dim  (length size)
-                           :axis (loop :for i :below (length size)
+                           :dim  (cl:length size)
+                           :axis (loop :for i :below (cl:length size)
                                        :collect i)))))
            (t
             (case dim
@@ -207,7 +207,7 @@ The corresponding axes in the input are truncated or padded with zeros to match 
     (integer
      (1difft array :axis axis* :size size))
     (sequence
-     (let ((adim (length axis)))
+     (let ((adim (cl:length axis)))
        (when (and dim (cl:/= dim adim))
          (error "AXIS/AXES ~A should match with FFT dim ~A. "
                 axis* dim))
@@ -222,7 +222,7 @@ The corresponding axes in the input are truncated or padded with zeros to match 
                         (integer
                          (loop :for i :below adim :collect size))
                         (sequence
-                         (unless (cl:= (length size) adim)
+                         (unless (cl:= (cl:length size) adim)
                            (error "SIZE ~A should be same dim ~A as AXIS/AXES. "
                                   size adim))
                          size))))

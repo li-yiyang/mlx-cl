@@ -251,7 +251,7 @@ be scalars or arrays and must be broadcastable to SHAPE."
   (multiple-value-bind (args keys)
       (mlx::split-args-keys [low]-[high]-&key-shape-key-dtype)
     (destructuring-bind (&key shape key (dtype *default-mlx-dtype* dtype?)) keys
-      (let ((arglen (length args))
+      (let ((arglen (cl:length args))
             (shape! (mlx::shape<- shape))
             (dtype  (if dtype? (mlx::ensure-mlx-dtype dtype) dtype))
             low high)
@@ -286,7 +286,7 @@ be scalars or arrays and must be broadcastable to SHAPE."
   (multiple-value-bind (args keys)
       (mlx::split-args-keys [low]-[high]-&key-shape-key-dtype)
     (destructuring-bind (&key shape key (dtype *default-mlx-int-dtype* dtype?)) keys
-      (let ((arglen (length args))
+      (let ((arglen (cl:length args))
             (dtype  (if dtype? (mlx::ensure-mlx-dtype dtype) dtype))
             (shape! (mlx::shape<- shape))
             low high)

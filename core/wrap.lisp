@@ -314,11 +314,11 @@ this should be used to parse mlx method parameters like
      (make-array 1 :initial-element shape
                    :element-type '(signed-byte 32)))
     (list
-     (make-array (length shape)
+     (make-array (cl:length shape)
                  :initial-contents shape
                  :element-type '(signed-byte 32)))
     (simple-array
-     (make-array (length shape)
+     (make-array (cl:length shape)
                  :initial-contents shape
                  :element-type '(signed-byte 32)))
     (mlx-array
@@ -337,11 +337,11 @@ this should be used to parse mlx method parameters like
      (make-array 1 :initial-element seq
                    :element-type '(signed-byte 32)))
     (list
-     (make-array (length seq)
+     (make-array (cl:length seq)
                  :initial-contents seq
                  :element-type '(signed-byte 32)))
     (simple-array
-     (make-array (length seq)
+     (make-array (cl:length seq)
                  :initial-contents seq
                  :element-type '(signed-byte 32)))
     (mlx-array
@@ -409,7 +409,7 @@ Return:
                              (error "Unknown AXIS/AXES shortcuts ~S. " rule))))
                (normalize (apply rule args))))
            (vec<- (seq)
-             (make-array (length seq)
+             (make-array (cl:length seq)
                          :initial-contents seq
                          :element-type     '(signed-byte 32)))
            (normalize (axis)
@@ -420,7 +420,7 @@ Return:
                (list
                 (cond ((keywordp (car axis))
                        (apply-rule (car axis) (cdr axis)))
-                      ((cl:= (length axis) 1)
+                      ((cl:= (cl:length axis) 1)
                        (the integer (car axis)))
                       (t (vec<- axis))))
                (sequence (vec<- axis))
@@ -439,7 +439,7 @@ Return:
       (null    nil)
       (integer axes)
       (simple-vector
-       (if (cl:= (length axes) 1)
+       (if (cl:= (cl:length axes) 1)
            (svref axes 0)
            (error "Expecting single AXIS, but got ~A. " axes))))))
 

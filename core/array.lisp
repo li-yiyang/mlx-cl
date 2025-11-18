@@ -455,7 +455,7 @@ Examples:
 ")
   (:method (object)
     "For Lisp OBJECT, ndim of OBJECT is (length (shape object)). "
-    (length (shape object)))
+    (cl:length (shape object)))
   (:method ((array mlx-array))
     (foreign-funcall "mlx_array_ndim"
                      :pointer (mlx-object-pointer array)
@@ -494,7 +494,7 @@ Examples:
     "See `array-dimensions' and `array-dimension'. "
     (declare (type (cl:or null integer sequence) axis*))
     (if axis*
-        (let ((len (length (array-dimensions array))))
+        (let ((len (cl:length (array-dimensions array))))
           (flet ((got (axis)
                    (handler-case
                        (array-dimension array (cl:mod axis len))
@@ -537,18 +537,18 @@ where nil is considered as boolean.
                ;; lst : (lst1 lst2 ...) -> (cons (lengsh lst) (dim lst1))
                (if (atom lst) (err)
                    (let ((first (first lst)))
-                     (if (atom first) (list (length lst))
+                     (if (atom first) (list (cl:length lst))
                          (let ((first-dim (dim first)))
                            (if (every (lambda (dim) (equal first-dim dim))
                                       (mapcar #'dim (rest lst)))
-                               (cons (length lst) first-dim)
+                               (cons (cl:length lst) first-dim)
                                (err))))))))
       (let ((shape (if (endp list) '(0) (dim list))))
         (if axis*
             (flet ((got (axis)
                      (cl:or (if (cl:< axis 0)
-                                (unless (cl:< (+ axis (length shape)) 0)
-                                  (nth (cl:+ axis (length shape)) shape))
+                                (unless (cl:< (+ axis (cl:length shape)) 0)
+                                  (nth (cl:+ axis (cl:length shape)) shape))
                                 (nth axis shape))
                             (error 'mlx-axis-error
                                    :axis    axis
@@ -577,6 +577,21 @@ where nil is considered as boolean.
                             :pointer (mlx-object-pointer array)
                             :pointer)
                            :int (dim array)))))
+
+;; LENGTH
+
+(defgeneric len (object &optional axis)
+  (:documentation
+   "Return length of OBJECT on AXIS.
+
+Note: this is equal to calling (shape OBJECT :axis AXIS). ")
+  (:method (object &optional axis)
+    (declare (ignore axis))
+    (cl:length object))
+  (:method ((array array) &optional (axis 0))
+    (array-dimension array axis))
+  (:method ((arr mlx-array) &optional (axis 0))
+    (shape arr :axis axis)))
 
 (defgeneric size (object)
   (:documentation

@@ -66,10 +66,10 @@ Syntax:
          (err            `(error 'mlx-cffi-error
                                  :function ,cffi-calling
                                  :return   ,res))
-         (arg            (if (evenp (length {type-arg}*-ignore-error-p?))
+         (arg            (if (evenp (cl:length {type-arg}*-ignore-error-p?))
                              {type-arg}*-ignore-error-p?
                              (butlast {type-arg}*-ignore-error-p?)))
-         (ignore-error-p (if (oddp (length {type-arg}*-ignore-error-p?))
+         (ignore-error-p (if (oddp (cl:length {type-arg}*-ignore-error-p?))
                              (car (last {type-arg}*-ignore-error-p?))
                              nil)))
     (assert (symbolp ignore-error-p))
@@ -201,7 +201,7 @@ Dev: should implement `copy' method for each different type. ")
 (defun len<=2-listfy (elem)
   "Turn ELEM as a list with length <= 2. "
   (cond ((atom elem) (list elem))
-        ((cl:<= (length elem) 2) elem)
+        ((cl:<= (cl:length elem) 2) elem)
         (t (subseq elem 0 2))))
 
 (defun listfy (elem)

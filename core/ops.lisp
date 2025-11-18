@@ -278,7 +278,7 @@ or `*default-mlx-dtype*'"))
   (let ((shape (etypecase shape!
                  (integer shape!)
                  (simple-array
-                  (ecase (length shape!)
+                  (ecase (cl:length shape!)
                     (1 (aref shape! 0))
                     (2
                      (assert (cl:= (aref shape! 0) (aref shape! 1)) ()
@@ -310,7 +310,7 @@ except for the DIAG diagonal, whose values are equal to one."
        (setf n shape!
              m shape!))
       (sequence
-       (case (length shape!)
+       (case (cl:length shape!)
          (1 (setf n (aref shape! 0)
                   m (aref shape! 0)))
          (2 (setf n (aref shape! 0)
@@ -1096,7 +1096,7 @@ Note: this is equal to calling:
          (let ((axes1 (axes<- axes1))
                (axes2 (axes<- axes2)))
            (declare (type (simple-array (signed-byte 32)) axes1 axes2))
-           (assert (cl:= (length axes1) (length axes2)))
+           (assert (cl:= (cl:length axes1) (length axes2)))
            (with-foreign<-sequence (axes1* axes1 :int len1)
              (with-foreign<-sequence (axes2* axes2 :int len2)
                (with-mlx-op "mlx_tensordot"
@@ -1651,12 +1651,12 @@ the shape is restored."
       (sequence
        (let ((shift (etypecase shift
                       (integer
-                       (make-array (length axis!)
+                       (make-array (cl:length axis!)
                                    :initial-element shift
                                    :element-type    '(signed-byte 32)))
                       (sequence
-                       (assert (cl:= (length shift) (length axis!)))
-                       (make-array (length axis!)
+                       (assert (cl:= (cl:length shift) (cl:length axis!)))
+                       (make-array (cl:length axis!)
                                    :initial-contents shift
                                    :element-type     '(signed-byte 32))))))
          (with-foreign<-sequence (shift* shift :int shift-num)
@@ -2230,7 +2230,7 @@ if unspecified or `nil', apply on the flattened array")
        (strides! (if strides
                      (shape<- strides)
                      (loop :with shape := (cl:reverse (shape array))
-                           :with strides := (make-array (length shape)
+                           :with strides := (make-array (cl:length shape)
                                                         :element-type '(signed-byte 32))
                            :for idx :from 0
                            :for elem :in shape
@@ -2400,11 +2400,11 @@ Parameters:
 ;; (defgeneric depends (inputs dependencies))
 
 (defmethod equal ((arr array) (elem number))
-  (and (cl:= (length arr) 1)
+  (and (cl:= (cl:length arr) 1)
        (cl:= (aref arr 0) elem)))
 
 (defmethod equal ((elem number) (arr array))
-  (and (cl:= (length arr) 1)
+  (and (cl:= (cl:length arr) 1)
        (cl:= (aref arr 0) elem)))
 
 (defmethod equal ((arr mlx-array) elem)
