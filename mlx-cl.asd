@@ -25,6 +25,7 @@
    (:file "metal"   :depends-on ("utils")) ; NEXT: metal trace for debug
    (:file "io"      :depends-on ("array"))
    (:file "sugar"   :depends-on ("array")) ; NEXT: math input #$ x * 2 => (* x 2)
+   (:file "memory"  :depends-on ("utils"))
 
    (:file "fft"     :depends-on ("array"))
    (:file "random"  :depends-on ("array"))

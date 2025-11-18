@@ -218,6 +218,17 @@
    #:save-to
    #:save
    #:defmlx-extension
+
+   ;;;; memory
+   #:clear-cache
+   #:get-active-memory
+   #:get-peak-memory
+   #:reset-peak-memory
+   #:get-cache-memory
+   #:set-memory-limit
+   #:set-cache-limit
+   #:set-wired-limit
+   #:gc-all
    ))
 
 (uiop:define-package #:mlx-cl.fft
