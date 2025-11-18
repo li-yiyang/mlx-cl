@@ -109,8 +109,8 @@ Parameters:
                   (loop :for i :below size
                         :for idx :from 0 :by 2
                         :for c := (funcall coerce (row-major-aref array i))
-                        :do (setf (mem-aref array* :float idx)      (cl:realpart c)
-                                  (mem-aref array* :float (1+ idx)) (cl:imagpart c)))
+                        :do (setf (mem-aref array* :float idx)         (cl:realpart c)
+                                  (mem-aref array* :float (cl:1+ idx)) (cl:imagpart c)))
                   (with-foreign<-sequence (shape* shape :int dim)
                     (mlx_array_new_data array* shape* dim dtype!))))))
             (t
@@ -2114,9 +2114,9 @@ Example:
 + group=C_in: one kernel per input channel
 + 1 < group < C_in: split input channels into n GROUP subgroups"))
     (let* ((dim (getf (rest docs) :dim))
-           (strides   (loop :repeat (1- dim) :collect (list (gensym "STRIDE")   'stride)))
-           (paddings  (loop :repeat (1- dim) :collect (list (gensym "PADDING")  'padding)))
-           (dilations (loop :repeat (1- dim) :collect (list (gensym "DILATION") 'dilation))))
+           (strides   (loop :repeat (cl:1- dim) :collect (list (gensym "STRIDE")   'stride)))
+           (paddings  (loop :repeat (cl:1- dim) :collect (list (gensym "PADDING")  'padding)))
+           (dilations (loop :repeat (cl:1- dim) :collect (list (gensym "DILATION") 'dilation))))
       `(defmlx-method ,op (array weight &key (stride 1) (padding 0) (dilation 1) (groups 1))
          ,@docs
          (declare (type (cl:or sequence integer) stride padding dilation)

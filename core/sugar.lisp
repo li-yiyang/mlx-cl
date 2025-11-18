@@ -59,6 +59,26 @@ Example:
   ((len>= >=) "Test if ARRAY's len is greater than or equal to LEN. ")
   ((len/= /=) "Test if ARRAY's len is not equal to LEN. "))
 
+(defmacro 1- (arr)
+  "Return (- ARR 1). "
+  `(sub ,arr 1))
+
+(defmacro 1+ (arr)
+  "Return (+ ARR 1). "
+  `(add 1 ,arr))
+
+(defmacro 2+ (arr)
+  "Return (+ ARR 2). "
+  `(add 2 ,arr))
+
+(defmacro 2* (arr)
+  "Return (* ARR 2). "
+  `(mul 2 ,arr))
+
+(defmacro /2 (arr)
+  "Return (/ ARR 2). "
+  `(div ,arr 2))
+
 
 ;;;; TODO:
 ;; Math reader macro #$ EXPR

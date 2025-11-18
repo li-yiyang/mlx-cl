@@ -604,7 +604,7 @@ Parameters:
             :for idx :from 0 :by 2
             :do (setf (row-major-aref array i)
                       (complex (mem-aref pointer type idx)
-                               (mem-aref pointer type (1+ idx))))
+                               (mem-aref pointer type (cl:1+ idx))))
             :finally (return array))
       (loop :with array := (make-array shape :element-type element-type)
             :for i :below (reduce #'cl:* shape)

@@ -6,7 +6,7 @@
   (:use :cl :cffi)
   (:nicknames #:mlx)
   (:shadow
-   #:+ #:- #:* #:/
+   #:+ #:- #:* #:/ #:1+ #:1-
    #:= #:/= #:< #:> #:<= #:>=
    #:sin  #:cos  #:tan  #:asin  #:acos  #:atan
    #:sinh #:cosh #:tanh #:asinh #:acosh #:atanh
@@ -210,6 +210,7 @@
    ;;;; sugar
    #:dim= #:dim/= #:dim> #:dim< #:dim<= #:dim>=
    #:len= #:len/= #:len> #:len< #:len<= #:dim>=
+   #:1+ #:1- #:2+ #:2- #:2* #:/2
    #:->*
 
    ;;;; io

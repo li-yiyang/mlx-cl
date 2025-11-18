@@ -1,4 +1,4 @@
-;;;; slice.lisp --- Defines mlx slice shortcuts -*- mlx-cl-test-file: "api.lisp" -*-
+;;;; slice.lisp --- Defines mlx slice shortcuts -*- mlx-cl-test-file: "core/ops.lisp" -*-
 
 (in-package :mlx-cl)
 
@@ -40,9 +40,9 @@
                              :collect
                              `(defmlx-slice ,keyword (shape)
                                 ,(format nil "Get ~Dth element of mlx-array. " n)
-                                :return (format nil "(~ ~D ~D 1)" (1- n) n)
+                                :return (format nil "(~ ~D ~D 1)" (cl:1- n) n)
                                 (declare (ignorable shape))
-                                '(~ ,(1- n) ,n 1))))))
+                                '(~ ,(cl:1- n) ,n 1))))))
   (nth* (:second 2)
         (:third  3)
         (:fourth 4)
