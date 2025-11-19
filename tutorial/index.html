@@ -6,7 +6,7 @@
 <!-- 2025-11-19 Wed 19:00 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>MLX-CL/IO/TIFF</title>
+<title>Tutorials of MLX-CL</title>
 <meta name="author" content="凉凉" />
 <meta name="generator" content="Org Mode" />
 <style type="text/css">
@@ -205,105 +205,30 @@
 </head>
 <body>
 <div id="content" class="content">
-<h1 class="title">MLX-CL/IO/TIFF
-<br />
-<span class="subtitle">Support TIFF file read and write</span>
-</h1>
+<h1 class="title">Tutorials of MLX-CL</h1>
 <div id="table-of-contents" role="doc-toc">
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org3dc1030">1. About</a></li>
-<li><a href="#org2948cdd">2. Usage</a>
-<ul>
-<li><a href="#org03fa510">2.1. Loading</a></li>
-<li><a href="#org7c0546b">2.2. Reading TIFF file</a></li>
-<li><a href="#org0e5261f">2.3. Wrting TIFF file</a></li>
-</ul>
-</li>
+<li><a href="#org61dc358">1. About</a></li>
+<li><a href="#org36b4cd9">2. Contents</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org3dc1030" class="outline-2">
-<h2 id="org3dc1030"><span class="section-number-2">1.</span> About</h2>
+<div id="outline-container-org61dc358" class="outline-2">
+<h2 id="org61dc358"><span class="section-number-2">1.</span> About</h2>
 <div class="outline-text-2" id="text-1">
 <p>
-MLX-CL/IO/TIFF add support for reading and writing <code>mlx-array</code> from and to
-TIFF file via <a href="https://github.com/slyrus/retrospectiff">slyrus/retrospectiff</a>.
-</p>
-
-<p>
-<b>NOTE</b>: I'm considering using <a href="https://libtiff.gitlab.io/">libTIFF</a> to replace <a href="https://github.com/slyrus/retrospectiff">slyrus/retrospectiff</a>.
+These should be a collection of tutorial for MLX-CL.
 </p>
 </div>
 </div>
-<div id="outline-container-org2948cdd" class="outline-2">
-<h2 id="org2948cdd"><span class="section-number-2">2.</span> Usage</h2>
+<div id="outline-container-org36b4cd9" class="outline-2">
+<h2 id="org36b4cd9"><span class="section-number-2">2.</span> Contents</h2>
 <div class="outline-text-2" id="text-2">
-</div>
-<div id="outline-container-org03fa510" class="outline-3">
-<h3 id="org03fa510"><span class="section-number-3">2.1.</span> Loading</h3>
-<div class="outline-text-3" id="text-2-1">
-<div class="org-src-container">
-<pre class="src src-lisp">(ql:quickload :mlx-cl/io/tiff)
-</pre>
-</div>
-
-<p>
-<b>NOTE</b>: if you load <a href="../../image/"><code>mlx-cl/image</code></a>, it would automatically load
-<code>mlx-cl/io/tiff</code> and other image file IO support.
-</p>
-</div>
-</div>
-<div id="outline-container-org7c0546b" class="outline-3">
-<h3 id="org7c0546b"><span class="section-number-3">2.2.</span> Reading TIFF file</h3>
-<div class="outline-text-3" id="text-2-2">
-<div class="org-src-container">
-<pre class="src src-lisp">(mlx-array "xxx.tiff")
-</pre>
-</div>
-</div>
-</div>
-<div id="outline-container-org0e5261f" class="outline-3">
-<h3 id="org0e5261f"><span class="section-number-3">2.3.</span> Wrting TIFF file</h3>
-<div class="outline-text-3" id="text-2-3">
-<div class="org-src-container">
-<pre class="src src-lisp">(destructuring-bind (x y)
-    (meshgrid (linspace 0 1 size)
-              (linspace 0 1 size))
-  (-&gt;* (stack x
-              y
-              (zeros-like x)
-              :axis 2)
-    (as-dtype (* * 255) :uint8)
-    (save * :output "./res/img/write-tiff-example.tif")))
-</pre>
-</div>
-
-<p>
-<a href="../../res/img/write-tiff-example.tif">../../res/img/write-tiff-example.tif</a>
-</p>
-
-<p>
-<b>NOTE</b>: the original code is from <a href="https://thebookofshaders.com/03/">The Book of Shaders</a>:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-c">#ifdef GL_ES
-precision mediump float;
-#endif
-
-uniform vec2 u_resolution;
-uniform vec2 u_mouse;
-uniform float u_time;
-
-void main() {
-  vec2 st = gl_FragCoord.xy/u_resolution;
-  gl_FragColor = vec4(st.x,st.y,0.0,1.0);
-}
-</pre>
-</div>
-</div>
+<ul class="org-ul">
+<li><a href="./drawings/">drawings</a>: Just draw something for fun</li>
+</ul>
 </div>
 </div>
 </div>

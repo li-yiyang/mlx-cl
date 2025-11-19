@@ -2,3 +2,4 @@
 /lib/*.dylib
 /res/tmp/
 *.~*~
+tmp
