@@ -136,6 +136,7 @@ The system version of `mlx-cl/lib' is be same as mlx library, use
                :mlx-cl/image/minimal
                :mlx-cl/image/colors
                :mlx-cl/io/tiff
+               :mlx-cl/io/ppm
                :mlx-cl/io/png
                :mlx-cl/io/jpeg)
   :perform (test-op (op c) (symbol-call :mlx-cl.test :run-tests)))
@@ -225,6 +226,18 @@ The main image processing algorithms should be implemented here. "
 ;; for C libraries. maybe not easy.
 ;;
 
+(defsystem #:mlx-cl/io/utils
+  :author ("凉凉")
+  :license "GPL"
+  :version "0.0.0"
+  :description "Utils for MLX/IO"
+  :pathname "io/utils"
+  :depends-on (:cffi :mmap)
+  :serial t
+  :components
+  ((:file "package")
+   (:file "utils")))
+
 (defsystem #:mlx-cl/io/npy
   :author ("凉凉")
   :license "GPL"
@@ -232,6 +245,20 @@ The main image processing algorithms should be implemented here. "
   :description "Support TIFF format IO for mlx-array numpy-file-format. "
   :pathname "io/npy"
   :depends-on (:mlx-cl :numpy-file-format)
+  :serial t
+  :components
+  ((:file "package")
+   (:file "io")))
+
+(defsystem #:mlx-cl/io/ppm
+  :author ("凉凉")
+  :license "GPL"
+  :version "0.0.0"
+  :description "Support PPM format IO for mlx-array. "
+  :pathname "io/ppm"
+  :depends-on (:mlx-cl
+               :mlx-cl/io/utils
+               :mmap)
   :serial t
   :components
   ((:file "package")
