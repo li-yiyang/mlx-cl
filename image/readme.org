@@ -30,7 +30,7 @@ To create a package using =mlx-cl.image=:
 
 #+name: defpackage-mlx-image-demo
 #+begin_src lisp :results silent
-  (defpackage #:mlx-image-demo
+  (defpackage #:mlx-image-demo            ; you name it
     (:use :mlx-cl :mlx-cl.image))
 
   (in-package :mlx-image-demo)
@@ -38,4 +38,4 @@ To create a package using =mlx-cl.image=:
 
 ** Basic Operations
 *** I/O
-1.
+1. 

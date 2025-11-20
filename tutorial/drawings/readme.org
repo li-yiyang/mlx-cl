@@ -19,6 +19,7 @@ To run the example codes, you should load the [[Package][package]] and switch to
 =mlx-cl.tutorial.drawings= package.
 
 * Waves
+** Wave on x-axis
 Consider a wave on x-axis: \(\mathrm{e}^{- \boldsymbol{k} \boldsymbol{x}}\), aka, \(\cos x\).
 
 #+name: waves-x
@@ -33,7 +34,13 @@ Consider a wave on x-axis: \(\mathrm{e}^{- \boldsymbol{k} \boldsymbol{x}}\), aka
 #+RESULTS: waves-x
 [[file:./img/waves-x.png]]
 
-considering the coordinates multiplied with the rotation matrix [[rotate2d][=rotate2d=]]:
+*Explanation*:
++ [[->o][=->o=]] is a wrapper of =(->* ... ensure-mlx-array-as-rgb-img (save :output output))=
++ [[fc][=fc=]] generate a 2-D matrix of coordinates \(\left(\begin{matrix} x \\ y \end{matrix}\right)\),
+  and [[fc-xy][=x=]] returns a 2-D matrix of \(x\)
+
+** Matrix that performs rotation transformation
+Considering the coordinates multiplied with the rotation matrix [[rotate2d][=rotate2d=]]:
 \(\left(\begin{matrix} \cos \theta & -\sin \theta \\ \sin \theta & \cos \theta \end{matrix}\right) \left(\begin{matrix} x \\ y \end{matrix}\right)\), which is equal to appling a rotation transformation
 on the original coordinates:
 
@@ -50,6 +57,12 @@ on the original coordinates:
 #+RESULTS: waves-rotate-x
 [[file:./img/waves-rotate-x.png]]
 
+*Explanation*:
++ [[rotate2d][=rotate2d=]] generates the rotation matrix
++ =matmul= is taking on the last two axis (axis =-2=, =-1=) by default,
+  so we should reshape the =fc= from =(H W 2)= into =(H W 2 1)= first (=expand-dims=)
+
+** Waves interference
 If adding two waves together, it would generate a pattern of interference fringes:
 
 #+name: waves-2x
@@ -66,7 +79,8 @@ If adding two waves together, it would generate a pattern of interference fringe
 #+RESULTS: waves-2x
 [[file:./img/waves-2x.png]]
 
-if adding multiple waves all together:
+** The Waves
+So, if adding multiple waves all together:
 
 #+name: waves
 #+header: :var size=400 output="./img/waves.png" scale=0.8 repeat=40
@@ -107,7 +121,179 @@ if adding multiple waves all together:
   #+RESULTS: waves-repeat20
   [[file:./img/waves-repeat20.png]]
 
+#+html: </details>
 
+#+html: <details><summary>The Original Shader</summary>
+The original shader code is from [[https://x.com/XorDev/status/1702764934898024916][Waves]]:
+
+#+begin_src c
+  for(vec2 p=FC.xy-r*.5,i;i.x++<40.;o+=cos(p.x))p*=mat2(8,-6,6,8)*.1;
+#+end_src
+#+html: </details>
+
+* Equinox
+** Linear \(\Vert \boldsymbol{r} \Vert\)
+Recall that the [[fc][=fc=]] give us a 2-D matrix of coordinates \(\left(\begin{matrix} x \\ y \end{matrix}\right)\),
+so if we take =la:norm= on the coordinates, we'd get \(\Vert \boldsymbol{r} \Vert = \sqrt{x^2 + y^2}\):
+
+#+name: img-of-r
+#+header: :var size=200 output="./img/img-of-r.png" scale=1.1
+#+begin_src lisp
+  (->o (fc size :xmin (- scale) :xmax scale
+                :ymin (- scale) :ymax scale)
+    (la:norm * nil :axis -1)
+    output)
+#+end_src
+
+#+caption: Image of \(\Vert \boldsymbol{r} \Vert\)
+#+RESULTS: img-of-r
+[[file:./img/img-of-r.png]]
+
+It's easy to spot that the center color value is =0=, resulting black color.
+And it "literally" transforms into outter white color linearly [fn:color-and-gamma].
+
+#+html: <details><summary>How does <code>scale</code> parameter affect the output?</summary>
+#+name: img-of-r-by-scale
+#+header: :var size=200 output="./img/img-of-r-by-scale.gif" smin=0.5 ds=0.1
+#+begin_src lisp
+  (->frame (i 30 output :framerate 6)
+    (+ (* i ds) smin)                     ; scale
+    (fc size :xmin (- *) :xmax *
+             :ymin (- *) :ymax *)
+    (la:norm * nil :axis -1))
+#+end_src
+
+#+caption: =scale= from =0.5= to =3.5=,
+#+caption: which controls the size of the sphere clipping radius
+#+RESULTS: img-of-r-by-scale
+[[file:./img/img-of-r-by-scale.gif]]
+#+html: </details>
+
+** Sphere
+Considering the shape of a sphere \(\boldsymbol{r}^2 = 1\), we could calculate the depth of the
+sphere by \(\sqrt{1 - r^2}\), where \(r\) is the linear \(\Vert r \Vert\) we calculate previously.
+
+#+name: img-of-sphere
+#+header: :var size=200 output="./img/img-of-sphere.png" scale=1.1
+#+begin_src lisp
+  (let ((p (fc size :xmin (- scale) :xmax scale
+                    :ymin (- scale) :ymax scale)))
+    (->o (la:norm p nil :axis -1)         ; (ref:linear-r)
+      (sqrt (abs (- 1 (square *))))       ; sqrt(1 - r^2)
+      (- 1 *)                             ; (ref:invert-color)
+      output))
+#+end_src
+
+#+caption: Image of sphere (with color inverted)
+#+RESULTS: img-of-sphere
+[[file:./img/img-of-sphere.png]]
+
+*Explanation*:
++ [[(linear-r)][=(abs (- 1 (square *)))=]]: use =abs= to avoid negative =sqrt=
++ [[(invert-color)][=(- 1 *)=]]: inverse the color
+
+** Lighting along y-axis
+#+name: sphere-y-lighting
+#+header: :var size=200 output="./img/sphere-y-lighting.png" scale=1.1 offset=0
+#+begin_src lisp
+  (let ((p (fc size :xmin (- scale) :xmax scale
+                    :ymin (- scale) :ymax scale)))
+    (->o (la:norm p nil :axis -1)
+      (- 1 (sqrt (abs (- 1 (square *)))))
+      (* (y p) *)                         ; (ref:sphere-y)
+      (sin (+ offset *))                  ; (ref:sphere-offset)
+      output))
+#+end_src
+
+#+caption: Sphere lighting on y-axis
+#+RESULTS: sphere-y-lighting
+[[file:./img/sphere-y-lighting.png]]
+
+*Explanation*:
++ [[(sphere-y)][=(* (y p) *)=]] multiply the sphere by [[fc-xy][=(y p)=]],
+  which modifies the intensity of the sphere, resulting
+
+  #+html: <details><summary>Example for not using y-axis direction</summary>
+  #+name: sphere-any-direction-lighting
+  #+header: :var size=200 output="./img/sphere-any-direction-lighting.gif" scale=1.1 dt=0.1 offset=0
+  #+begin_src lisp
+    (let ((p (fc size :xmin (- scale) :xmax scale
+                      :ymin (- scale) :ymax scale)))
+      (->frame (i 60 output :framerate 10)
+        (dot p p)
+        (- 1 (sqrt (abs (- 1 *))))
+        (* (dot (dirvec2 (* dt i)) p) *)    ; (ref:sphere-dot-dirvec2)
+        (sin (+ offset *))))
+  #+end_src
+
+  #+caption: Animation of different =theta= (=(dot (dirvec2 (* dt i)) p)=)
+  #+RESULTS: sphere-any-direction-lighting
+  [[file:./img/sphere-any-direction-lighting.gif]]
+
+  Note that [[(sphere-dot-dirvec2)][=(dot (dirvec2 #|theta|#) p)=]] generates patterns like =(y p)=.
+  =(y p)= is equal to calling =(dot (dirvec2 (radians 90)) p)=.
+
+  #+html: </details>
++ [[(sphere-offset)][=(sin (+ offset *))=]]: the =offset= modifys the center position of colors,
+  and =sin= makes sure that the intensity of color is periodic.
+
+  #+html: <details><summary>How <code>offset</code> affects the result</summary>
+  #+name: sphere-offset
+  #+header: :var size=200 output="./img/sphere-offset.gif" scale=1.1 dt=0.1
+  #+begin_src lisp
+    (let ((p (fc size :xmin (- scale) :xmax scale
+                      :ymin (- scale) :ymax scale)))
+      (->frame (i 60 output :framerate 10)
+        (dot p p)
+        (- 1 (sqrt (abs (- 1 *))))
+        (* (y p) *)                         ; (dot dirvec2 sphere)
+        (sin (+ (* dt i) *))))
+  #+end_src
+
+  #+caption: Animation of different =offset= (=(* dt i)=)
+  #+RESULTS: sphere-offset
+  [[file:./img/sphere-offset.gif]]
+
+  Note that \(\sin \theta < 0\ \mathrm{if}\ \theta \in [\pi, 2 \pi]\), which results in black image.
+  #+html: </details>
+
+** The Equinox
+An colorful RGB image can be considered as mixing of R, G, B channel grayscale
+images [fn:colorspace]. Thus we could generate a colorful pattern:
+
+#+name: equinox
+#+header: :var size=200 output="./img/equinox.gif" scale=1.1 dt=0.1 theta=90
+#+begin_src lisp
+  (let* ((p      (fc size :xmin (- scale) :xmax scale
+                          :ymin (- scale) :ymax scale))
+         (sphere (- 1 (sqrt (abs (- 1 (dot p p))))))
+         (light  (* (dot (dirvec2 (radians theta)) p) sphere))
+         (rgb    (reshape (repeat light 3) (list size size 3)))) ; (ref:equinox-rgb)
+    (->frame (i 60 output :framerate 10)
+      (+ (* dt i) rgb #(4 5 6))           ; (ref:equinox-pharse)
+      (sin *)))
+#+end_src
+
+#+caption: The colored animation of Equinox
+#+RESULTS: equinox
+[[file:./img/equinox.gif]]
+
+*Explanation*
++ [[(equinox-rgb)][=(reshape (repeat light 3) (list size size 3))=]] the =light= is a 2-D grayscale image-like
+  =mlx-array=, repeating it triple times and reshape it like a RGB image of shape =(H W 3)=
++ [[(equinox-pharse)][=(+ (* dt i) rgb #(4 5 6))=]] the =#(4 5 6)= is the pharse value \(\phi\) in \(\sin (x + \phi)\),
+  this will ensure that R, G, B colors are starting with different initial pharse
+
+  Note if you change RGB pharse to =#(0 0 0)= (same pharse), you would see a black and white
+  sphere animation -- not so cool.
+
+#+html: <details><summary>The Original Shader</summary>
+The original shader code is from [[https://x.com/XorDev/status/1961150728262582560][Equinox]]:
+
+#+begin_src c
+  vec2 p=(FC.xy*2.-r)/r.y;
+  o=sin(t+p.y*(1.-sqrt(abs(1.-dot(p,p))))+vec4(4,5,6,0));
+#+end_src
 #+html: </details>
 
 * Appendix
@@ -118,19 +304,40 @@ if adding multiple waves all together:
 This tutorial is based on =mlx-cl.tutorial.drawings= package,
 which is generated by [[https://orgmode.org/manual/Extracting-Source-Code.html][org-tangle]].
 
+The package depends on some additional external packages: =cl-str=.
+You could load them via:
+
+#+begin_src lisp
+  (ql:quickload '(:str))
+#+end_src
+
 #+html: <details><summary>The <code>drawings.lisp</code> overview</summary>
 #+header: :tangle drawings.lisp :noweb yes no-export
 #+begin_src lisp
   ;;;; drawings.lisp --- Just draw something for fun
 
   (uiop:define-package #:mlx-cl.tutorial.drawings
-    (:use :mlx-cl))
+    (:use :mlx-cl)
+    (:local-nicknames (:la :mlx-cl.linalg)))
 
   (in-package :mlx-cl.tutorial.drawings)
 
-  ;;; Helper tools
+  ;;; Utils
+  (eval-when (:compile-toplevel :load-toplevel :execute)
+    <<filter-plist>>
+    )
+
+  ;;; Creating `mlx-array'
+  <<fc>>
+  <<rotate2d>>
+
+  ;;; Normalize `mlx-array'
   <<ensure-mlx-array-as-rgb-img>>
-  <<arrows>>
+  <<fc-xy>>
+
+  ;;; Arrows
+  <<->o>>
+  <<->frame>>
 
   ;;;; drawings.lisp ends here
 #+end_src
@@ -138,33 +345,23 @@ which is generated by [[https://orgmode.org/manual/Extracting-Source-Code.html][
 
 You could find the full script at [[file:drawings.lisp][drawings.lisp]].
 
-*** =mlx-array=
-+ as RGB =mlx-array= (H W C)
+*** Utils
++ =filter-plist=
 
-  #+name: ensure-mlx-array-as-rgb-img
+  #+name: filter-plist
   #+begin_src lisp
-    (defun ensure-mlx-array-as-rgb-img (arr)
-      "Ensure input ARR is (H W 3) `mlx-array' of dtype `:uint8'.
-    Return the formatted `mlx-array'.
-
-    Rule:
-    + ARR (H W)   -> (H W 3)
-    + ARR (H W 3) -> (H W 3)
-    + ARR (H W 3) :uint8   -> ARR (H W 3) :uint8
-    + ARR (H W 3) :float32 -> 255*ARR (H W 3) :uint8
-    "
-      (declare (type mlx-array arr))
-      (->* (ecase (dim arr)
-             (2 (reshape (repeat arr 3) `(,@(shape arr) 3)))
-             (3 (ecase (len arr 2)
-                  (1 (reshape (repeat arr 3) `(,@(shape arr) 3)))
-                  (3 arr))))
-        (ecase (dtype arr)
-          (:uint8   arr)
-          (:float32 (as-dtype (* * 255) :uint8)))))
+    (defun filter-plist (plist &rest keys)
+      "Remove KEYS from PLIST.
+    Return a new plist with KEYS removed. "
+      (loop :for (key val) :on plist :by #'cddr
+            :if (not (member key keys))
+              :collect key :and :collect val))
   #+end_src
+
+*** Creating =mlx-array=
 + =fc= for [[https://registry.khronos.org/OpenGL-Refpages/gl4/html/gl_FragCoord.xhtml][=gl_FragCoord=]]
 
+  #+name: fc
   #+begin_src lisp
     (defun fc (size &key (w size) (h size) (scale 1) (center nil)
                       (xmin (if center (/ w -2 scale) 0))
@@ -177,17 +374,14 @@ You could find the full script at [[file:drawings.lisp][drawings.lisp]].
                     (linspace ymax ymin h :dtype :float32))
         (stack x y :axis 2)))
   #+end_src
-+ Getting subpart of =mlx-array=
 
-  #+begin_src lisp
-    (defmacro x (fc)
-      "Get X part of FC (gl_FragCoord.x). "
-      `(at ,fc :* :* 0))
-
-    (defmacro y (fc)
-      "Get Y part of FC (gl_FragCoord.y). "
-      `(at ,fc :* :* 1))
-  #+end_src
+  *Explanation*:
+  + =(linspace start stop &optional num)= return a =mlx-array= of =(NUM)= shape
+    with elements distributed linearly from =start= to =stop=
+  + =(meshgrid arrays... &key indexing spares)= generates multidimensional coordinate grids,
+    by default it use =:xy= as indexing method
+  + [[https://registry.khronos.org/OpenGL-Refpages/gl4/html/gl_FragCoord.xhtml][=gl_FragCoord=]] is origin at left-bottom, so you should notice that for y-coordinate,
+    it's =(linspace ymax ymin h)= (reversed as =mlx-array= is origin at left-top)
 + Rotation Matrix \(\left(\begin{matrix} \cos \theta & -\sin \theta \\ \sin \theta & \cos \theta \end{matrix}\right)\)
 
   #+name: rotate2d
@@ -197,53 +391,228 @@ You could find the full script at [[file:drawings.lisp][drawings.lisp]].
       (stack (stack (cos theta) (- (sin theta)))
              (stack (sin theta) (cos theta))))
   #+end_src
-+ Matrix Multiplication
 
+  See [[waves-rotate-x]] for an example of "rotation".
++ Rotated base vector for direction
+
+  #+name: dirvec2
   #+begin_src lisp
-    (defun ensure-h-w-2-1 (matrix-of-vec2)
-      "Ensure MATRIX-OF-VEC2. "
-      (ecase (dim matrix-of-vec2)
-        (2
-         (assert (len= matrix-of-vec2 2 2))
-         (expand-dims matrix-of-vec2 -2))
-        (3
-         (assert (len= matrix-of-vec2 1 2))
-         (assert (len= matrix-of-vec2 2 3))
-         matrix-of-vec2)))
+    (defun dirvec2 (theta)
+      "Rotate #(1 0) by THETA (radians). "
+      (stack (cos theta) (sin theta)))
+  #+end_src
 
-    (defun vec2@ (rotation matrix-of-vec2)
-      "Multiply ROTATION matrix on MATRIX-OF-VEC2.
-    Return matrix of rotated vec2.
+*** Normalize =mlx-array=
++ as RGB =mlx-array= (H W C)
+
+  #+name: ensure-mlx-array-as-rgb-img
+  #+begin_src lisp
+    (defun ensure-mlx-array-as-rgb-img (arr)
+      "Ensure input ARR is (H W 3) `mlx-array' of dtype `:uint8'.
+    Return the formatted `mlx-array'.
+
+    Rule:
+    1. ARR :uint8   -> ARR
+       ARR :float32 -> ARR*255
+    2. ARR (H W)    -> (H W 3) ; repeat 3
+       ARR (H W 3)  -> ARR
+       ARR (H W 4)  -> (H W 3) ; RGB*A + RGB*(1-A)
+    "
+      (declare (type mlx-array arr))
+      (->* (ecase (dtype arr)
+             (:uint8   (/ arr 255.0))
+             (:float32 arr))
+        (ecase (dim *)
+          (2 (reshape (repeat * 3) `(,@(shape *) 3)))
+          (3 (ecase (len * 2)
+               (1 (reshape (repeat * 3) `(,@(shape * :axes #(0 1)) 3)))
+               (3 arr)
+               (4 (destructuring-bind (r g b a) (split * 4 :axis 2)
+                    (->* (clip a :max 1 :min 0)
+                      (stack (* r *)
+                             (* g *)
+                             (* b *)
+                             :axis 2)
+                      (squeeze *)))))))
+        (as-dtype (* * 255) :uint8)))
+  #+end_src
++ Getting subpart of =mlx-array=
+
+  #+name: fc-xy
+  #+begin_src lisp
+    (defmacro x (fc)
+      "Get X part of FC (gl_FragCoord.x). "
+      `(at ,fc :* :* 0))
+
+    (defmacro y (fc)
+      "Get Y part of FC (gl_FragCoord.y). "
+      `(at ,fc :* :* 1))
+  #+end_src
+
+*** Arrows
++ chain-calling into single image
+
+  #+name: ->o
+  #+begin_src lisp
+    (defmacro ->o (expr &body bodys-output)
+      "Enhanced `->*' arrow to write image to OUTPUT.
+    Return OUTPUT file path.
+
+    Syntax:
+
+        (->o EXPRS...
+          OUTPUT)
 
     Parameters:
-    + ROTATION: should be (M M) matrix
-    + MATRIX-OF-VEC2: should be (H W 2) or (H W 2 1)
-    "
-      (assert (equal (shape rotation) '(2 2)))
-      (matmul rotation (ensure-h-w-2-1 matrix-of-vec2)))
+    + EXPRS: chained expressions, see `->*'
+    + OUTPUT: image output path"
+      `(->* ,expr
+         ,@(butlast bodys-output)
+         (ensure-mlx-array-as-rgb-img *)
+         (save * :output ,@(last bodys-output))))
   #+end_src
-*** Arrows
-#+name: arrows
-#+begin_src lisp
-  (defmacro ->o (expr &body bodys-output)
-    "Enhanced `->*' arrow to write image to OUTPUT.
-  Return OUTPUT file path.
++ chain-calling into animation
 
-  Syntax:
+  #+name: ->frame
+  #+begin_src lisp
+    (defmacro ->frame ((i frames output &rest keys
+                        &key (tmp "./tmp/animated%d.ppm")
+                        &allow-other-keys)
+                       &body body)
+      "Enhanced `->*' arrow to write image of frames to OUTPUT as animation.
+    Return OUTPUT file path.
 
-      (->o EXPRS...
-        OUTPUT)
+    Syntax:
 
-  Parameters:
-  + EXPRS: chained expressions, see `->*'
-  + OUTPUT: image output path"
-    `(->* ,expr
-       ,@(butlast bodys-output)
-       (ensure-mlx-array-as-rgb-img *)
-       (save * :output ,@(last bodys-output))))
-#+end_src
+        (->frame (I FRAMES OUTPUT &key) &body)
+
+    Parameters:
+    + I: variable bind of current frame id (starting from 0)
+    + FRAMES: number of total frames
+    + OUTPUT: path of output
+    + TMP: pattern of temporary frame output (default \"./tmp/animated%2d.ppm\")
+      the format rules should follow FFMPEG file input formatting convention
+    + DEBUG: see `ffmpeg'
+    "
+      (declare (type symbol i))
+      (let ((res (gensym "RES"))
+            (pat (gensym "PAT"))
+            (out (gensym "OUT")))
+        `(let ((,res ())
+               (,pat (uiop:native-namestring ,tmp))
+               (,out (uiop:native-namestring ,output)))
+           (unwind-protect
+                (dotimes (,i ,frames (ffmpeg ,pat ,out ,@(filter-plist keys :tmp)))
+                  (->o ,@body
+                    (let ((tmp (ffmpeg-fmt ,pat ,i)))
+                      (push tmp ,res)
+                      tmp))
+                  ;; this is used to avoid cache expanding too fast
+                  (gc-all))
+             (dolist (tmp ,res) (uiop:delete-file-if-exists tmp))))))
+  #+end_src
+
+*** FFMPEG
++ Call [[https://www.ffmpeg.org][FFMPEG]] command
+
+  #+name: ffmpeg
+  #+begin_src lisp
+    (defparameter *ffmpeg-vfs* (make-hash-table :test 'cl:equal)
+      "Video filter of FFMPEG.
+    Key: file extension
+    Val: string as vf")
+
+    (defparameter *ffmpeg-vf* "")
+
+    (defun ffmpeg-vf (ext)
+      (gethash ext *ffmpeg-vfs* *ffmpeg-vf*))
+
+    (defun def-ffmpeg-vf (ext vf)
+      (setf (gethash ext *ffmpeg-vfs*) vf))
+
+    (defun ffmpeg (input output &rest keys
+                   &key debug (vf (ffmpeg-vf (pathname-type output))) (framerate 6)
+                   &allow-other-keys)
+      "Call external FFMPEG command.
+
+    Parameters:
+    + INPUT: FFMPEG input
+    + OUTPUT: FFMPEG output
+    + DEBUG: t for debug, or `:debug-only'
+    + other keys will be used for FFMPEG parameters
+    "
+      (let ((cmd `("ffmpeg"
+                   "-y"
+                   ,@(when framerate `("-framerate" ,(format nil "~A" framerate)))
+                   "-i"  ,(uiop:native-namestring input)
+                   "-vf" ,vf
+                   ,@(loop :for (key val) :on (filter-plist keys :debug) :by #'cddr
+                           :collect (format nil "-~(~A~)" key)
+                           :collect (format nil "~A" val))
+
+                   ,(uiop:native-namestring output))))
+        (cond ((eql debug t)           (uiop:run-program (print cmd)))
+              ((eql debug :debug-only) (print cmd))
+              (t                       (uiop:run-program cmd)))
+        output))
+
+    (def-ffmpeg-vf "gif"
+        (concatenate 'string
+                     "split[s0][s1];"
+                     "[s0]palettegen=max_colors=64[p];"
+                     "[s1][p]paletteuse=dither=sierra2_4a"))
+  #+end_src
++ FFMPEG input file formating
+
+  #+name: ffmpeg-fmt
+  #+begin_src lisp
+    (defun decode-ffmpeg-fmt (string)
+      "Decode STRING as Lisp `format' control string.
+    Return the control string. "
+      (declare (type string string))
+      (let ((pivot 0))
+        (with-output-to-string (fmt)
+          (ppcre:do-matches (start end "%(%|\\d*[dD])" string)
+            (write-string (subseq string pivot start) fmt)
+            (case (aref string (1+ start))
+              (#\%       (write-char #\% fmt))
+              ((#\d #\D) (write-string "~D" fmt))
+              (#\0       (format fmt "~~~A,'0D" (subseq string (2+ start) (1- end))))
+              (otherwise (format fmt "~~~AD"    (subseq string (1+ start) (1- end)))))
+            (setf pivot end))
+          (write-string (subseq string pivot) fmt))))
+
+    (defun ffmpeg-fmt (control-string &rest args)
+      "Format using FFMPEG CONTROL-STRING and ARGS.
+    Return a formatted string. "
+      (apply #'format nil (decode-ffmpeg-fmt control-string) args))
+  #+end_src
+
+** Reference
++ [[https://www.xordev.com/arsenal][Xor's Shader Arsenal]]
 
 * Footnotes
+[fn:colorspace] You could view the documentation of [[../../image/colors/][=mlx-cl.image=]].
+
+[fn:color-and-gamma] there's a few notes on this:
+if you read the [[ensure-mlx-array-as-rgb-img][=ensure-mlx-array-as-rgb-img=]] implementation,
+you would notice that for the =mlx-array= of shape =(H W 1)=,
+I just repeat it triple times to generate RGB color channels,
+which is often called linear RGB color model. It's easy to implement,
+but not a model that correctly matches with human's eye -- the value
+is linearly increasing, while your eye is not thinking so.
+
+#+html: <br>
+
+Well, it would not be too hard to implement =:srgb= colorspace in [[../../image/][=mlx-cl.image=]].
+Since this tutorial is not based on =mlx-cl/image= subsystem
++I haven't finished that yet actually+, just using RGB is fine.
+
+#+html: <br>
+
+Oh, all most forgot, if you spot the corner of the [[img-of-r][output image]],
+which should be \(\Vert \boldsymbol{r} \Vert = \sqrt{2} \approx 1.414 > 1\). So the value is clipped while
+generating image output.
 
 [fn:a-sad-story] this can also serve as a test for MLX-CL library at some points...
 In short, it works terribly great: the MLX library use a cache method for the

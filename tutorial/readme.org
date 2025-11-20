@@ -12,5 +12,7 @@
 * About
 These should be a collection of tutorial for MLX-CL.
 
+Contributions are welcomed. 
+
 * Contents
 + [[./drawings/][drawings]]: Just draw something for fun

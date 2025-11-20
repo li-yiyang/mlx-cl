@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-11-19 Wed 19:00 -->
+<!-- 2025-11-20 Thu 17:57 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>MLX-CL</title>
@@ -213,30 +213,31 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org0318a13">1. About</a></li>
-<li><a href="#orgee1ba73">2. Usage</a>
+<li><a href="#orgf61cd80">1. About</a></li>
+<li><a href="#org61282f0">2. Tutorials</a></li>
+<li><a href="#org4cebc39">3. Usage</a>
 <ul>
-<li><a href="#org464f0db">2.1. Installation</a></li>
-<li><a href="#org64913c6">2.2. Systems and Packages</a></li>
-<li><a href="#orgd8515e1">2.3. Basic Operations</a>
+<li><a href="#org84c6311">3.1. Installation</a></li>
+<li><a href="#org1ffce4f">3.2. Systems and Packages</a></li>
+<li><a href="#orgeaeed25">3.3. Basic Operations</a>
 <ul>
-<li><a href="#orgf0e4d57">2.3.1. Convert</a></li>
-<li><a href="#org24ae033">2.3.2. Alloc <code>mlx-array</code></a></li>
-<li><a href="#orgc508696">2.3.3. Indexing <code>mlx-array</code></a></li>
-<li><a href="#org6dc0c75">2.3.4. Operations</a></li>
+<li><a href="#orgfafa395">3.3.1. Convert</a></li>
+<li><a href="#org69baa02">3.3.2. Alloc <code>mlx-array</code></a></li>
+<li><a href="#org9ae3b7f">3.3.3. Indexing <code>mlx-array</code></a></li>
+<li><a href="#org8d18c63">3.3.4. Operations</a></li>
 </ul>
 </li>
-<li><a href="#org1fd1055">2.4. Random</a></li>
-<li><a href="#org07f5568">2.5. FFT</a></li>
-<li><a href="#org8f201aa">2.6. I/O</a></li>
+<li><a href="#org9bd76c0">3.4. Random</a></li>
+<li><a href="#org54ecb5e">3.5. FFT</a></li>
+<li><a href="#org7793b32">3.6. I/O</a></li>
 </ul>
 </li>
-<li><a href="#org872f435">3. Contributing and Developing</a></li>
+<li><a href="#org17a8261">4. Contributing and Developing</a></li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org0318a13" class="outline-2">
-<h2 id="org0318a13"><span class="section-number-2">1.</span> About</h2>
+<div id="outline-container-orgf61cd80" class="outline-2">
+<h2 id="orgf61cd80"><span class="section-number-2">1.</span> About</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 MLX-CL is a Common Lisp binding for MLX, together with a set of trivial
@@ -255,13 +256,26 @@ an issue.
 </p>
 </div>
 </div>
-<div id="outline-container-orgee1ba73" class="outline-2">
-<h2 id="orgee1ba73"><span class="section-number-2">2.</span> Usage</h2>
+<div id="outline-container-org61282f0" class="outline-2">
+<h2 id="org61282f0"><span class="section-number-2">2.</span> Tutorials</h2>
 <div class="outline-text-2" id="text-2">
+<p>
+If you're in hurry, skim through the <a href="#org4cebc39">Usage</a> and read the documentation string
+of each MLX-CL function (for example, <code>(documentation 'mlx:add 'function)</code>).
+</p>
+
+<p>
+But you could also try some <a href="./tutorial/">Tutorial</a> of MLX with some more specific topics.
+</p>
 </div>
-<div id="outline-container-org464f0db" class="outline-3">
-<h3 id="org464f0db"><span class="section-number-3">2.1.</span> Installation</h3>
-<div class="outline-text-3" id="text-2-1">
+</div>
+<div id="outline-container-org4cebc39" class="outline-2">
+<h2 id="org4cebc39"><span class="section-number-2">3.</span> Usage</h2>
+<div class="outline-text-2" id="text-3">
+</div>
+<div id="outline-container-org84c6311" class="outline-3">
+<h3 id="org84c6311"><span class="section-number-3">3.1.</span> Installation</h3>
+<div class="outline-text-3" id="text-3-1">
 <p>
 You need:
 a Common Lisp distribution (tested on SBCL 2.5.8, LispWorks Personal Edition 8.0.1),
@@ -276,7 +290,7 @@ Here's a possible installation process:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-shell" id="org9b2834d">&gt; mkdir -pv ~/common-lisp/
+<pre class="src src-shell" id="orgb2859f0">&gt; mkdir -pv ~/common-lisp/
 &gt; git clone --recursive https://github.com/li-yiyang/mlx-cl.git ~/common-lisp/mlx-cl
 ...
 &gt; sbcl
@@ -310,9 +324,9 @@ array([3, 4, 5], dtype=float32)
 </details>
 </div>
 </div>
-<div id="outline-container-org64913c6" class="outline-3">
-<h3 id="org64913c6"><span class="section-number-3">2.2.</span> Systems and Packages</h3>
-<div class="outline-text-3" id="text-2-2">
+<div id="outline-container-org1ffce4f" class="outline-3">
+<h3 id="org1ffce4f"><span class="section-number-3">3.2.</span> Systems and Packages</h3>
+<div class="outline-text-3" id="text-3-2">
 <p>
 The core functionalities are provided within system <code>mlx-cl</code>:
 </p>
@@ -341,9 +355,9 @@ if you are about to develop new packages, you should
 note that the API of <code>mlx-cl</code> overwrites <code>cl</code>'s functions,
 which makes <code>(:use :cl :mlx-cl)</code> difficult
 </p></li>
-<li><code>mlx-cl.fft</code> see <a href="#org07f5568">FFT</a> for examples</li>
+<li><code>mlx-cl.fft</code> see <a href="#org54ecb5e">FFT</a> for examples</li>
 <li><code>mlx-cl.linalg</code></li>
-<li><code>mlx-cl.random</code> see <a href="#org1fd1055">Random</a> for examples</li>
+<li><code>mlx-cl.random</code> see <a href="#org9bd76c0">Random</a> for examples</li>
 <li><p>
 <code>mlx-user</code> the following documentation are assumed to be written
 under <code>mlx-user</code> package.
@@ -373,16 +387,16 @@ above <code>mlx-cl</code>:
 </ul>
 </div>
 </div>
-<div id="outline-container-orgd8515e1" class="outline-3">
-<h3 id="orgd8515e1"><span class="section-number-3">2.3.</span> Basic Operations</h3>
-<div class="outline-text-3" id="text-2-3">
+<div id="outline-container-orgeaeed25" class="outline-3">
+<h3 id="orgeaeed25"><span class="section-number-3">3.3.</span> Basic Operations</h3>
+<div class="outline-text-3" id="text-3-3">
 <p>
 See tests in <code>test/core/api.lisp</code> for more examples.
 </p>
 </div>
-<div id="outline-container-orgf0e4d57" class="outline-4">
-<h4 id="orgf0e4d57"><span class="section-number-4">2.3.1.</span> Convert</h4>
-<div class="outline-text-4" id="text-2-3-1">
+<div id="outline-container-orgfafa395" class="outline-4">
+<h4 id="orgfafa395"><span class="section-number-4">3.3.1.</span> Convert</h4>
+<div class="outline-text-4" id="text-3-3-1">
 <ol class="org-ol">
 <li><p>
 Convert from Lisp to <code>mlx-array</code>
@@ -485,14 +499,14 @@ print(np.load("./res/tmp/example.npy"))
 </div>
 
 <p>
-See <a href="#org8f201aa">I/O</a> for more detailed description.
+See <a href="#org7793b32">I/O</a> for more detailed description.
 </p></li>
 </ol>
 </div>
 </div>
-<div id="outline-container-org24ae033" class="outline-4">
-<h4 id="org24ae033"><span class="section-number-4">2.3.2.</span> Alloc <code>mlx-array</code></h4>
-<div class="outline-text-4" id="text-2-3-2">
+<div id="outline-container-org69baa02" class="outline-4">
+<h4 id="org69baa02"><span class="section-number-4">3.3.2.</span> Alloc <code>mlx-array</code></h4>
+<div class="outline-text-4" id="text-3-3-2">
 <ul class="org-ul">
 <li>Generate by range:
 <ul class="org-ul">
@@ -560,9 +574,9 @@ array([[2333, 2333, 2333, 2333, 2333],
 </ul>
 </div>
 </div>
-<div id="outline-container-orgc508696" class="outline-4">
-<h4 id="orgc508696"><span class="section-number-4">2.3.3.</span> Indexing <code>mlx-array</code></h4>
-<div class="outline-text-4" id="text-2-3-3">
+<div id="outline-container-org9ae3b7f" class="outline-4">
+<h4 id="org9ae3b7f"><span class="section-number-4">3.3.3.</span> Indexing <code>mlx-array</code></h4>
+<div class="outline-text-4" id="text-3-3-3">
 <ul class="org-ul">
 <li><p>
 <code>at</code>: API like Python's <code>arr[...]</code>
@@ -689,9 +703,9 @@ Return (~ 0 SHAPE 1).
 </ul>
 </div>
 </div>
-<div id="outline-container-org6dc0c75" class="outline-4">
-<h4 id="org6dc0c75"><span class="section-number-4">2.3.4.</span> Operations</h4>
-<div class="outline-text-4" id="text-2-3-4">
+<div id="outline-container-org8d18c63" class="outline-4">
+<h4 id="org8d18c63"><span class="section-number-4">3.3.4.</span> Operations</h4>
+<div class="outline-text-4" id="text-3-3-4">
 <p>
 MLX-CL overwrites a few of Common Lisp's methods (<code>cl:+</code>, <code>cl:-</code>, <code>cl:*</code>, <code>cl:/</code>, &#x2026;)
 as generic functions. So if you don't worry about some speed lost, you can do
@@ -741,9 +755,9 @@ array([[1.47169e-05, 0.00380683, 1.47169e-05],
 </div>
 </div>
 </div>
-<div id="outline-container-org1fd1055" class="outline-3">
-<h3 id="org1fd1055"><span class="section-number-3">2.4.</span> Random</h3>
-<div class="outline-text-3" id="text-2-4">
+<div id="outline-container-org9bd76c0" class="outline-3">
+<h3 id="org9bd76c0"><span class="section-number-3">3.4.</span> Random</h3>
+<div class="outline-text-3" id="text-3-4">
 <p>
 The package <code>mlx-cl.random</code> is a collection of PRNG processes in MLX.
 </p>
@@ -768,9 +782,9 @@ array([[1.27809, 2.80545, 6.38505, 6.99261],
 </pre>
 </div>
 </div>
-<div id="outline-container-org07f5568" class="outline-3">
-<h3 id="org07f5568"><span class="section-number-3">2.5.</span> FFT</h3>
-<div class="outline-text-3" id="text-2-5">
+<div id="outline-container-org54ecb5e" class="outline-3">
+<h3 id="org54ecb5e"><span class="section-number-3">3.5.</span> FFT</h3>
+<div class="outline-text-3" id="text-3-5">
 <p>
 The package <code>mlx-cl.fft</code> is a collection of FFT processes binding in MLX.
 </p>
@@ -794,9 +808,9 @@ Note: in order to acclerate, <code>mlx.fft:1dfft</code>, <code>mlx.fft:2dfft</co
 </p>
 </div>
 </div>
-<div id="outline-container-org8f201aa" class="outline-3">
-<h3 id="org8f201aa"><span class="section-number-3">2.6.</span> I/O</h3>
-<div class="outline-text-3" id="text-2-6">
+<div id="outline-container-org7793b32" class="outline-3">
+<h3 id="org7793b32"><span class="section-number-3">3.6.</span> I/O</h3>
+<div class="outline-text-3" id="text-3-6">
 <p>
 The high-level API of reading and writing <code>mlx-array</code> is:
 </p>
@@ -824,7 +838,7 @@ If you want to define your own format reading and writing functionalities,
 you can use the: <code>(defmlx-extension (format . extensions) &amp;rest options)</code>.
 </p>
 
-<pre class="example" id="orgdfd369a">
+<pre class="example" id="orgbdca071">
 Define the implementation of mlx FORMAT.
 Add EXTENSIONS to `*mlx-supported-extensions*' as FORMAT.
 
@@ -858,9 +872,9 @@ Currently implemented io submodules are:
 </div>
 </div>
 </div>
-<div id="outline-container-org872f435" class="outline-2">
-<h2 id="org872f435"><span class="section-number-2">3.</span> Contributing and Developing</h2>
-<div class="outline-text-2" id="text-3">
+<div id="outline-container-org17a8261" class="outline-2">
+<h2 id="org17a8261"><span class="section-number-2">4.</span> Contributing and Developing</h2>
+<div class="outline-text-2" id="text-4">
 <p>
 <b>DEV Note</b>:
 </p>
@@ -881,7 +895,7 @@ read more in <a href="./dev/elisp/">MLX-CL/DEV/ELISP</a>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: 凉凉</p>
-<p class="date">Created: 2025-11-19 Wed 19:00</p>
+<p class="date">Created: 2025-11-20 Thu 17:57</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

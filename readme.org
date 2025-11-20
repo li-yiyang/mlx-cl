@@ -24,6 +24,12 @@ class, variable in =mlx-cl= should came with feature-rich documentation.
 If you've found documentation missing or not clear, it is DEFINITELY
 an issue.
 
+* Tutorials
+If you're in hurry, skim through the [[Usage][Usage]] and read the documentation string
+of each MLX-CL function (for example, =(documentation 'mlx:add 'function)=).
+
+But you could also try some [[./tutorial/][Tutorial]] of MLX with some more specific topics.
+
 * Usage
 ** Installation
 You need:
