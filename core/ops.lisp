@@ -1017,6 +1017,15 @@ Either or both input arrays can also be scalars.
              (reduce #',reduce more-elem :initial-value ,initial-value))))
   ((@ matmul) "Matrix multiplication of ELEMS. "))
 
+;; TEST: #dot
+(defmlx-method dot (array1 array2 &key (axis -1))
+  "Dot product of ARRAY1 and ARRAY2. "
+  :return "(sum (* ARRAY1 ARRAY2) :axis AXIS :keep-dim-p nil)"
+  :parameters ((array1 "input `mlx-array'")
+               (array2 "input `mlx-array'")
+               (axis   "sum axis"))
+  (sum (* array1 array2) :keep-dim-p nil :axis axis))
+
 ;; TODO: #mlx-cl #optimize
 ;; a compiler macro for the `+' and `add'
 ;; Example:

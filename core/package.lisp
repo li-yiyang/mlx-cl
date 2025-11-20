@@ -137,6 +137,7 @@
    #:matmul #:@
    #:inner
    #:outer
+   #:dot
    #:kron
    #:tensordot
    #:lognot
