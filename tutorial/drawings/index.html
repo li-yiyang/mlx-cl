@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2025-11-20 Thu 18:09 -->
+<!-- 2025-11-20 Thu 19:58 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>MLX-CL.TUTORIAL.DRAWINGS</title>
@@ -245,70 +245,71 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org7e1cef5">1. About</a></li>
-<li><a href="#org04daa10">2. Waves</a>
+<li><a href="#org162b9c7">1. About</a></li>
+<li><a href="#org7d9e7ec">2. Waves</a>
 <ul>
-<li><a href="#org4842725">2.1. Wave on x-axis</a></li>
-<li><a href="#org29b9c09">2.2. Matrix that performs rotation transformation</a></li>
-<li><a href="#orgfa11f6f">2.3. Waves interference</a></li>
-<li><a href="#org0f2b845">2.4. The Waves</a></li>
+<li><a href="#org8de4d6f">2.1. Wave on x-axis</a></li>
+<li><a href="#org18ae0df">2.2. Matrix that performs rotation transformation</a></li>
+<li><a href="#orgabbe24c">2.3. Waves interference</a></li>
+<li><a href="#org714b0ac">2.4. The Waves</a></li>
 </ul>
 </li>
-<li><a href="#org88f9209">3. Equinox</a>
+<li><a href="#org5b18aaf">3. Equinox</a>
 <ul>
-<li><a href="#orgcfa060d">3.1. Linear \(\Vert \boldsymbol{r} \Vert\)</a></li>
-<li><a href="#org18df6df">3.2. Sphere</a></li>
-<li><a href="#org66ee64b">3.3. Lighting along y-axis</a></li>
-<li><a href="#org9c8446a">3.4. The Equinox</a></li>
+<li><a href="#org28d9c8d">3.1. Linear \(\Vert \boldsymbol{r} \Vert\)</a></li>
+<li><a href="#orgdf0a33c">3.2. Sphere</a></li>
+<li><a href="#org127589c">3.3. Lighting along y-axis</a></li>
+<li><a href="#org7b02bd7">3.4. The Equinox</a></li>
 </ul>
 </li>
-<li><a href="#org83ebf35">4. Appendix</a>
+<li><a href="#org812f1e0">4. Plasma</a></li>
+<li><a href="#org9e6f752">5. Appendix</a>
 <ul>
-<li><a href="#orgb4c3bfd">4.1. Package</a>
+<li><a href="#orgb26184c">5.1. Package</a>
 <ul>
-<li><a href="#org615b812">4.1.1. Utils</a></li>
-<li><a href="#orgc7e17bf">4.1.2. Creating <code>mlx-array</code></a></li>
-<li><a href="#org807a019">4.1.3. Normalize <code>mlx-array</code></a></li>
-<li><a href="#org4e0a436">4.1.4. Arrows</a></li>
-<li><a href="#org9cf9b45">4.1.5. FFMPEG</a></li>
+<li><a href="#orgf9d78a5">5.1.1. Utils</a></li>
+<li><a href="#org313d5cc">5.1.2. Creating <code>mlx-array</code></a></li>
+<li><a href="#orgef9e697">5.1.3. Normalize <code>mlx-array</code></a></li>
+<li><a href="#org8ecf12e">5.1.4. Arrows</a></li>
+<li><a href="#orga8f6bc6">5.1.5. FFMPEG</a></li>
 </ul>
 </li>
-<li><a href="#org9a00f45">4.2. Reference</a></li>
+<li><a href="#org16a98ef">5.2. Reference</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org7e1cef5" class="outline-2">
-<h2 id="org7e1cef5"><span class="section-number-2">1.</span> About</h2>
+<div id="outline-container-org162b9c7" class="outline-2">
+<h2 id="org162b9c7"><span class="section-number-2">1.</span> About</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 This is some trivial implementation and explanation of <a href="https://www.xordev.com/arsenal">XorDev's shader arts</a>. <sup><a id="fnr.a-sad-story" class="footref" href="#fn.a-sad-story" role="doc-backlink">1</a></sup>
-To run the example codes, you should load the <a href="#orgb4c3bfd">package</a> and switch to
+To run the example codes, you should load the <a href="#orgb26184c">package</a> and switch to
 <code>mlx-cl.tutorial.drawings</code> package.
 </p>
 </div>
 </div>
-<div id="outline-container-org04daa10" class="outline-2">
-<h2 id="org04daa10"><span class="section-number-2">2.</span> Waves</h2>
+<div id="outline-container-org7d9e7ec" class="outline-2">
+<h2 id="org7d9e7ec"><span class="section-number-2">2.</span> Waves</h2>
 <div class="outline-text-2" id="text-2">
 </div>
-<div id="outline-container-org4842725" class="outline-3">
-<h3 id="org4842725"><span class="section-number-3">2.1.</span> Wave on x-axis</h3>
+<div id="outline-container-org8de4d6f" class="outline-3">
+<h3 id="org8de4d6f"><span class="section-number-3">2.1.</span> Wave on x-axis</h3>
 <div class="outline-text-3" id="text-2-1">
 <p>
 Consider a wave on x-axis: \(\mathrm{e}^{- \boldsymbol{k} \boldsymbol{x}}\), aka, \(\cos x\).
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org28458d9">(-&gt;o (fc size :scale scale :center t)
+<pre class="src src-lisp" id="orgdb3f902">(-&gt;o (fc size :scale scale :center t)
   (cos (x *))
   output)
 </pre>
 </div>
 
 
-<div id="org825681e" class="figure">
+<div id="orge9aa8c2" class="figure">
 <p><img src="./img/waves-x.png" alt="waves-x.png" />
 </p>
 <p><span class="figure-number">Figure 1: </span>pattern of \(\cos x\) (<code>size = 200</code>, <code>scale = 2</code>)</p>
@@ -318,23 +319,23 @@ Consider a wave on x-axis: \(\mathrm{e}^{- \boldsymbol{k} \boldsymbol{x}}\), aka
 <b>Explanation</b>:
 </p>
 <ul class="org-ul">
-<li><a href="#org1bea41c"><code>-&gt;o</code></a> is a wrapper of <code>(-&gt;* ... ensure-mlx-array-as-rgb-img (save :output output))</code></li>
-<li><a href="#org0dfa6cf"><code>fc</code></a> generate a 2-D matrix of coordinates \(\left(\begin{matrix} x \\ y \end{matrix}\right)\),
-and <a href="#org145c49f"><code>x</code></a> returns a 2-D matrix of \(x\)</li>
+<li><a href="#orgbed7375"><code>-&gt;o</code></a> is a wrapper of <code>(-&gt;* ... ensure-mlx-array-as-rgb-img (save :output output))</code></li>
+<li><a href="#orgb2dc3c1"><code>fc</code></a> generate a 2-D matrix of coordinates \(\left(\begin{matrix} x \\ y \end{matrix}\right)\),
+and <a href="#orge92aae4"><code>x</code></a> returns a 2-D matrix of \(x\)</li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org29b9c09" class="outline-3">
-<h3 id="org29b9c09"><span class="section-number-3">2.2.</span> Matrix that performs rotation transformation</h3>
+<div id="outline-container-org18ae0df" class="outline-3">
+<h3 id="org18ae0df"><span class="section-number-3">2.2.</span> Matrix that performs rotation transformation</h3>
 <div class="outline-text-3" id="text-2-2">
 <p>
-Considering the coordinates multiplied with the rotation matrix <a href="#orgc95635f"><code>rotate2d</code></a>:
+Considering the coordinates multiplied with the rotation matrix <a href="#org3569a62"><code>rotate2d</code></a>:
 \(\left(\begin{matrix} \cos \theta & -\sin \theta \\ \sin \theta & \cos \theta \end{matrix}\right) \left(\begin{matrix} x \\ y \end{matrix}\right)\), which is equal to appling a rotation transformation
 on the original coordinates:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org1581872">(-&gt;o (fc size :scale scale :center t)
+<pre class="src src-lisp" id="orgfe76d46">(-&gt;o (fc size :scale scale :center t)
   (cos (x (matmul (rotate2d (radians 30))
                   (expand-dims * -1))))
   output)
@@ -342,7 +343,7 @@ on the original coordinates:
 </div>
 
 
-<div id="orga6d65ed" class="figure">
+<div id="orga39690a" class="figure">
 <p><img src="./img/waves-rotate-x.png" alt="waves-rotate-x.png" />
 </p>
 <p><span class="figure-number">Figure 2: </span>Rotation of \(30^{\circ}\) of coordinates</p>
@@ -352,21 +353,21 @@ on the original coordinates:
 <b>Explanation</b>:
 </p>
 <ul class="org-ul">
-<li><a href="#orgc95635f"><code>rotate2d</code></a> generates the rotation matrix</li>
+<li><a href="#org3569a62"><code>rotate2d</code></a> generates the rotation matrix</li>
 <li><code>matmul</code> is taking on the last two axis (axis <code>-2</code>, <code>-1</code>) by default,
 so we should reshape the <code>fc</code> from <code>(H W 2)</code> into <code>(H W 2 1)</code> first (<code>expand-dims</code>)</li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orgfa11f6f" class="outline-3">
-<h3 id="orgfa11f6f"><span class="section-number-3">2.3.</span> Waves interference</h3>
+<div id="outline-container-orgabbe24c" class="outline-3">
+<h3 id="orgabbe24c"><span class="section-number-3">2.3.</span> Waves interference</h3>
 <div class="outline-text-3" id="text-2-3">
 <p>
 If adding two waves together, it would generate a pattern of interference fringes:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org783164a">(-&gt;o (fc size :scale scale :center t)
+<pre class="src src-lisp" id="org3a44c52">(-&gt;o (fc size :scale scale :center t)
   (+ (cos (x (matmul (rotate2d (radians 30))
                      (expand-dims * -1))))
      (cos (x *)))
@@ -375,22 +376,22 @@ If adding two waves together, it would generate a pattern of interference fringe
 </div>
 
 
-<div id="org60e40f9" class="figure">
+<div id="orgc9623ef" class="figure">
 <p><img src="./img/waves-2x.png" alt="waves-2x.png" />
 </p>
 <p><span class="figure-number">Figure 3: </span>Interference fringes of two waves</p>
 </div>
 </div>
 </div>
-<div id="outline-container-org0f2b845" class="outline-3">
-<h3 id="org0f2b845"><span class="section-number-3">2.4.</span> The Waves</h3>
+<div id="outline-container-org714b0ac" class="outline-3">
+<h3 id="org714b0ac"><span class="section-number-3">2.4.</span> The Waves</h3>
 <div class="outline-text-3" id="text-2-4">
 <p>
 So, if adding multiple waves all together:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org6908abc">(-&gt;o (loop :repeat repeat
+<pre class="src src-lisp" id="orgc767724">(-&gt;o (loop :repeat repeat
            :with r := (rotate2d (atanh (/ 6 8)))
            :for  p := (expand-dims (fc size :scale scale :center t) -1)
              :then (@ r p)
@@ -402,7 +403,7 @@ So, if adding multiple waves all together:
 </div>
 
 
-<div id="org75e9f8c" class="figure">
+<div id="org8e87f32" class="figure">
 <p><img src="./img/waves.png" alt="waves.png" width="200px" />
 </p>
 <p><span class="figure-number">Figure 4: </span>40 waves adding together, each rotating \(\tan^{-1} \frac{6}{8}\) (<code>size = 400</code>, <code>scale=0.8</code>)</p>
@@ -416,7 +417,7 @@ So, if adding multiple waves all together:
 </p>
 
 
-<div id="org07e0dcb" class="figure">
+<div id="org2805cff" class="figure">
 <p><img src="./img/waves-repeat10.png" alt="waves-repeat10.png" width="200px" />
 </p>
 <p><span class="figure-number">Figure 5: </span>10 waves adding together, each rotating \(\tan^{-1} \frac{6}{8}\) (<code>size = 400</code>, <code>scale=0.8</code>)</p>
@@ -426,7 +427,7 @@ So, if adding multiple waves all together:
 </p>
 
 
-<div id="orgbfde4c4" class="figure">
+<div id="org92a722f" class="figure">
 <p><img src="./img/waves-repeat20.png" alt="waves-repeat20.png" width="200px" />
 </p>
 <p><span class="figure-number">Figure 6: </span>20 waves adding together, each rotating \(\tan^{-1} \frac{6}{8}\) (<code>size = 400</code>, <code>scale=0.8</code>)</p>
@@ -448,20 +449,20 @@ The original shader code is from <a href="https://x.com/XorDev/status/1702764934
 </div>
 </div>
 </div>
-<div id="outline-container-org88f9209" class="outline-2">
-<h2 id="org88f9209"><span class="section-number-2">3.</span> Equinox</h2>
+<div id="outline-container-org5b18aaf" class="outline-2">
+<h2 id="org5b18aaf"><span class="section-number-2">3.</span> Equinox</h2>
 <div class="outline-text-2" id="text-3">
 </div>
-<div id="outline-container-orgcfa060d" class="outline-3">
-<h3 id="orgcfa060d"><span class="section-number-3">3.1.</span> Linear \(\Vert \boldsymbol{r} \Vert\)</h3>
+<div id="outline-container-org28d9c8d" class="outline-3">
+<h3 id="org28d9c8d"><span class="section-number-3">3.1.</span> Linear \(\Vert \boldsymbol{r} \Vert\)</h3>
 <div class="outline-text-3" id="text-3-1">
 <p>
-Recall that the <a href="#org0dfa6cf"><code>fc</code></a> give us a 2-D matrix of coordinates \(\left(\begin{matrix} x \\ y \end{matrix}\right)\),
+Recall that the <a href="#orgb2dc3c1"><code>fc</code></a> give us a 2-D matrix of coordinates \(\left(\begin{matrix} x \\ y \end{matrix}\right)\),
 so if we take <code>la:norm</code> on the coordinates, we'd get \(\Vert \boldsymbol{r} \Vert = \sqrt{x^2 + y^2}\):
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org0930b64">(-&gt;o (fc size :xmin (- scale) :xmax scale
+<pre class="src src-lisp" id="orgab08ae5">(-&gt;o (fc size :xmin (- scale) :xmax scale
               :ymin (- scale) :ymax scale)
   (la:norm * nil :axis -1)
   output)
@@ -469,7 +470,7 @@ so if we take <code>la:norm</code> on the coordinates, we'd get \(\Vert \boldsym
 </div>
 
 
-<div id="org3c4f193" class="figure">
+<div id="orgf9deb16" class="figure">
 <p><img src="./img/img-of-r.png" alt="img-of-r.png" />
 </p>
 <p><span class="figure-number">Figure 7: </span>Image of \(\Vert \boldsymbol{r} \Vert\)</p>
@@ -482,7 +483,7 @@ And it "literally" transforms into outter white color linearly <sup><a id="fnr.c
 
 <details><summary>How does <code>scale</code> parameter affect the output?</summary>
 <div class="org-src-container">
-<pre class="src src-lisp" id="org1ab8718">(-&gt;frame (i 30 output :framerate 6)
+<pre class="src src-lisp" id="org02d8860">(-&gt;frame (i 30 output :framerate 6)
   (+ (* i ds) smin)                     ; scale
   (fc size :xmin (- *) :xmax *
            :ymin (- *) :ymax *)
@@ -491,7 +492,7 @@ And it "literally" transforms into outter white color linearly <sup><a id="fnr.c
 </div>
 
 
-<div id="orgc288878" class="figure">
+<div id="org4661de1" class="figure">
 <p><img src="./img/img-of-r-by-scale.gif" alt="img-of-r-by-scale.gif" />
 </p>
 <p><span class="figure-number">Figure 8: </span><code>scale</code> from <code>0.5</code> to <code>3.5</code>, which controls the size of the sphere clipping radius</p>
@@ -499,8 +500,8 @@ And it "literally" transforms into outter white color linearly <sup><a id="fnr.c
 </details>
 </div>
 </div>
-<div id="outline-container-org18df6df" class="outline-3">
-<h3 id="org18df6df"><span class="section-number-3">3.2.</span> Sphere</h3>
+<div id="outline-container-orgdf0a33c" class="outline-3">
+<h3 id="orgdf0a33c"><span class="section-number-3">3.2.</span> Sphere</h3>
 <div class="outline-text-3" id="text-3-2">
 <p>
 Considering the shape of a sphere \(\boldsymbol{r}^2 = 1\), we could calculate the depth of the
@@ -508,7 +509,7 @@ sphere by \(\sqrt{1 - r^2}\), where \(r\) is the linear \(\Vert r \Vert\) we cal
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org26df0f5">(let ((p (fc size :xmin (- scale) :xmax scale
+<pre class="src src-lisp" id="org681b39d">(let ((p (fc size :xmin (- scale) :xmax scale
                   :ymin (- scale) :ymax scale)))
 <span id="coderef-linear-r" class="coderef-off">  (-&gt;o (la:norm p nil :axis -1)         ; (linear-r)</span>
     (sqrt (abs (- 1 (square *))))       ; sqrt(1 - r^2)
@@ -518,7 +519,7 @@ sphere by \(\sqrt{1 - r^2}\), where \(r\) is the linear \(\Vert r \Vert\) we cal
 </div>
 
 
-<div id="org5c5714a" class="figure">
+<div id="org3ff4f80" class="figure">
 <p><img src="./img/img-of-sphere.png" alt="img-of-sphere.png" />
 </p>
 <p><span class="figure-number">Figure 9: </span>Image of sphere (with color inverted)</p>
@@ -533,11 +534,11 @@ sphere by \(\sqrt{1 - r^2}\), where \(r\) is the linear \(\Vert r \Vert\) we cal
 </ul>
 </div>
 </div>
-<div id="outline-container-org66ee64b" class="outline-3">
-<h3 id="org66ee64b"><span class="section-number-3">3.3.</span> Lighting along y-axis</h3>
+<div id="outline-container-org127589c" class="outline-3">
+<h3 id="org127589c"><span class="section-number-3">3.3.</span> Lighting along y-axis</h3>
 <div class="outline-text-3" id="text-3-3">
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgd5d78d1">(let ((p (fc size :xmin (- scale) :xmax scale
+<pre class="src src-lisp" id="orgdff6bab">(let ((p (fc size :xmin (- scale) :xmax scale
                   :ymin (- scale) :ymax scale)))
   (-&gt;o (la:norm p nil :axis -1)
     (- 1 (sqrt (abs (- 1 (square *)))))
@@ -548,7 +549,7 @@ sphere by \(\sqrt{1 - r^2}\), where \(r\) is the linear \(\Vert r \Vert\) we cal
 </div>
 
 
-<div id="org34873fc" class="figure">
+<div id="org2866f92" class="figure">
 <p><img src="./img/sphere-y-lighting.png" alt="sphere-y-lighting.png" />
 </p>
 <p><span class="figure-number">Figure 10: </span>Sphere lighting on y-axis</p>
@@ -559,13 +560,13 @@ sphere by \(\sqrt{1 - r^2}\), where \(r\) is the linear \(\Vert r \Vert\) we cal
 </p>
 <ul class="org-ul">
 <li><p>
-<a href="#coderef-sphere-y" class="coderef" onmouseover="CodeHighlightOn(this, 'coderef-sphere-y');" onmouseout="CodeHighlightOff(this, 'coderef-sphere-y');"><code>(* (y p) *)</code></a> multiply the sphere by <a href="#org145c49f"><code>(y p)</code></a>,
+<a href="#coderef-sphere-y" class="coderef" onmouseover="CodeHighlightOn(this, 'coderef-sphere-y');" onmouseout="CodeHighlightOff(this, 'coderef-sphere-y');"><code>(* (y p) *)</code></a> multiply the sphere by <a href="#orge92aae4"><code>(y p)</code></a>,
 which modifies the intensity of the sphere, resulting
 </p>
 
 <details><summary>Example for not using y-axis direction</summary>
 <div class="org-src-container">
-<pre class="src src-lisp" id="org41bf3b8">(let ((p (fc size :xmin (- scale) :xmax scale
+<pre class="src src-lisp" id="org7a81d50">(let ((p (fc size :xmin (- scale) :xmax scale
                   :ymin (- scale) :ymax scale)))
   (-&gt;frame (i 60 output :framerate 10)
     (dot p p)
@@ -576,7 +577,7 @@ which modifies the intensity of the sphere, resulting
 </div>
 
 
-<div id="org7b58b4f" class="figure">
+<div id="org59e9d67" class="figure">
 <p><img src="./img/sphere-any-direction-lighting.gif" alt="sphere-any-direction-lighting.gif" />
 </p>
 <p><span class="figure-number">Figure 11: </span>Animation of different <code>theta</code> (<code>(dot (dirvec2 (* dt i)) p)</code>)</p>
@@ -595,7 +596,7 @@ and <code>sin</code> makes sure that the intensity of color is periodic.
 
 <details><summary>How <code>offset</code> affects the result</summary>
 <div class="org-src-container">
-<pre class="src src-lisp" id="org6e9e57c">(let ((p (fc size :xmin (- scale) :xmax scale
+<pre class="src src-lisp" id="orgd246c92">(let ((p (fc size :xmin (- scale) :xmax scale
                   :ymin (- scale) :ymax scale)))
   (-&gt;frame (i 60 output :framerate 10)
     (dot p p)
@@ -606,7 +607,7 @@ and <code>sin</code> makes sure that the intensity of color is periodic.
 </div>
 
 
-<div id="org4ba9578" class="figure">
+<div id="orgc263a47" class="figure">
 <p><img src="./img/sphere-offset.gif" alt="sphere-offset.gif" />
 </p>
 <p><span class="figure-number">Figure 12: </span>Animation of different <code>offset</code> (<code>(* dt i)</code>)</p>
@@ -619,8 +620,8 @@ Note that \(\sin \theta < 0\ \mathrm{if}\ \theta \in [\pi, 2 \pi]\), which resul
 </ul>
 </div>
 </div>
-<div id="outline-container-org9c8446a" class="outline-3">
-<h3 id="org9c8446a"><span class="section-number-3">3.4.</span> The Equinox</h3>
+<div id="outline-container-org7b02bd7" class="outline-3">
+<h3 id="org7b02bd7"><span class="section-number-3">3.4.</span> The Equinox</h3>
 <div class="outline-text-3" id="text-3-4">
 <p>
 An colorful RGB image can be considered as mixing of R, G, B channel grayscale
@@ -628,7 +629,7 @@ images <sup><a id="fnr.colorspace" class="footref" href="#fn.colorspace" role="d
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgffbee05">(let* ((p      (fc size :xmin (- scale) :xmax scale
+<pre class="src src-lisp" id="orgcb14279">(let* ((p      (fc size :xmin (- scale) :xmax scale
                         :ymin (- scale) :ymax scale))
        (sphere (- 1 (sqrt (abs (- 1 (dot p p))))))
        (light  (* (dot (dirvec2 (radians theta)) p) sphere))
@@ -640,7 +641,7 @@ images <sup><a id="fnr.colorspace" class="footref" href="#fn.colorspace" role="d
 </div>
 
 
-<div id="orge670bbf" class="figure">
+<div id="orga05de08" class="figure">
 <p><img src="./img/equinox.gif" alt="equinox.gif" />
 </p>
 <p><span class="figure-number">Figure 13: </span>The colored animation of Equinox</p>
@@ -677,13 +678,48 @@ o=sin(t+p.y*(1.-sqrt(abs(1.-dot(p,p))))+vec4(4,5,6,0));
 </div>
 </div>
 </div>
-<div id="outline-container-org83ebf35" class="outline-2">
-<h2 id="org83ebf35"><span class="section-number-2">4.</span> Appendix</h2>
+<div id="outline-container-org812f1e0" class="outline-2">
+<h2 id="org812f1e0"><span class="section-number-2">4.</span> Plasma</h2>
 <div class="outline-text-2" id="text-4">
+<div class="org-src-container">
+<pre class="src src-lisp" id="org3ab00bd">(let* ((p (fc size :xmin -1 :xmax 1
+                   :ymin -1 :ymax 1))
+       (l (abs (- 0.6 (dot p p))))
+       (v (/ (* p (reshape (repeat (- 1 l) 2) (list size size 2))) 0.2)))
+  (-&gt;o (dot v v)
+    (/ * 10)
+    output))
+</pre>
 </div>
-<div id="outline-container-orgb4c3bfd" class="outline-3">
-<h3 id="orgb4c3bfd"><span class="section-number-3">4.1.</span> Package</h3>
-<div class="outline-text-3" id="text-4-1">
+
+
+<div id="org4bda69f" class="figure">
+<p><img src="./img/plasma.png" alt="plasma.png" />
+</p>
+</div>
+
+<details><summary>The Original Shader</summary>
+<p>
+The original shader is from <a href="https://x.com/XorDev/status/1894123951401378051">Plasma</a>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-c">vec2 p=(FC.xy*2.-r)/r.y,l,v=p*(1.-(l+=abs(.7-dot(p,p))))/.2;
+for(float i;i++&lt;8.;o+=(sin(v.xyyx)+1.)*abs(v.x-v.y)*.2)
+  v+=cos(v.yx*i+vec2(0,i)+t)/i+.7;
+o=tanh(exp(p.y*vec4(1,-1,-2,0))*exp(-4.*l.x)/o);
+</pre>
+</div>
+</details>
+</div>
+</div>
+<div id="outline-container-org9e6f752" class="outline-2">
+<h2 id="org9e6f752"><span class="section-number-2">5.</span> Appendix</h2>
+<div class="outline-text-2" id="text-5">
+</div>
+<div id="outline-container-orgb26184c" class="outline-3">
+<h3 id="orgb26184c"><span class="section-number-3">5.1.</span> Package</h3>
+<div class="outline-text-3" id="text-5-1">
 <p>
 This tutorial is based on <code>mlx-cl.tutorial.drawings</code> package,
 which is generated by <a href="https://orgmode.org/manual/Extracting-Source-Code.html">org-tangle</a>.
@@ -834,16 +870,16 @@ Parameters:
 You could find the full script at <a href="drawings.lisp">drawings.lisp</a>.
 </p>
 </div>
-<div id="outline-container-org615b812" class="outline-4">
-<h4 id="org615b812"><span class="section-number-4">4.1.1.</span> Utils</h4>
-<div class="outline-text-4" id="text-4-1-1">
+<div id="outline-container-orgf9d78a5" class="outline-4">
+<h4 id="orgf9d78a5"><span class="section-number-4">5.1.1.</span> Utils</h4>
+<div class="outline-text-4" id="text-5-1-1">
 <ul class="org-ul">
 <li><p>
 <code>filter-plist</code>
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgddc19f7">(defun filter-plist (plist &amp;rest keys)
+<pre class="src src-lisp" id="orgb0a18d3">(defun filter-plist (plist &amp;rest keys)
   "Remove KEYS from PLIST.
 Return a new plist with KEYS removed. "
   (loop :for (key val) :on plist :by #'cddr
@@ -854,16 +890,16 @@ Return a new plist with KEYS removed. "
 </ul>
 </div>
 </div>
-<div id="outline-container-orgc7e17bf" class="outline-4">
-<h4 id="orgc7e17bf"><span class="section-number-4">4.1.2.</span> Creating <code>mlx-array</code></h4>
-<div class="outline-text-4" id="text-4-1-2">
+<div id="outline-container-org313d5cc" class="outline-4">
+<h4 id="org313d5cc"><span class="section-number-4">5.1.2.</span> Creating <code>mlx-array</code></h4>
+<div class="outline-text-4" id="text-5-1-2">
 <ul class="org-ul">
 <li><p>
 <code>fc</code> for <a href="https://registry.khronos.org/OpenGL-Refpages/gl4/html/gl_FragCoord.xhtml"><code>gl_FragCoord</code></a>
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org0dfa6cf">(defun fc (size &amp;key (w size) (h size) (scale 1) (center nil)
+<pre class="src src-lisp" id="orgb2dc3c1">(defun fc (size &amp;key (w size) (h size) (scale 1) (center nil)
                   (xmin (if center (/ w -2 scale) 0))
                   (xmax (if center (/ w  2 scale) scale))
                   (ymin (if center (/ h -2 scale) 0))
@@ -892,7 +928,7 @@ Rotation Matrix \(\left(\begin{matrix} \cos \theta & -\sin \theta \\ \sin \theta
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgc95635f">(defun rotate2d (theta)
+<pre class="src src-lisp" id="org3569a62">(defun rotate2d (theta)
   "Generate a 2-D vector rotation matrix. "
   (stack (stack (cos theta) (- (sin theta)))
          (stack (sin theta) (cos theta))))
@@ -900,14 +936,14 @@ Rotation Matrix \(\left(\begin{matrix} \cos \theta & -\sin \theta \\ \sin \theta
 </div>
 
 <p>
-See <a href="#orga6d65ed">2</a> for an example of "rotation".
+See <a href="#orga39690a">2</a> for an example of "rotation".
 </p></li>
 <li><p>
 Rotated base vector for direction
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org7980e0a">(defun dirvec2 (theta)
+<pre class="src src-lisp" id="org41850dd">(defun dirvec2 (theta)
   "Rotate #(1 0) by THETA (radians). "
   (stack (cos theta) (sin theta)))
 </pre>
@@ -915,16 +951,16 @@ Rotated base vector for direction
 </ul>
 </div>
 </div>
-<div id="outline-container-org807a019" class="outline-4">
-<h4 id="org807a019"><span class="section-number-4">4.1.3.</span> Normalize <code>mlx-array</code></h4>
-<div class="outline-text-4" id="text-4-1-3">
+<div id="outline-container-orgef9e697" class="outline-4">
+<h4 id="orgef9e697"><span class="section-number-4">5.1.3.</span> Normalize <code>mlx-array</code></h4>
+<div class="outline-text-4" id="text-5-1-3">
 <ul class="org-ul">
 <li><p>
 as RGB <code>mlx-array</code> (H W C)
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org7a35efe">(defun ensure-mlx-array-as-rgb-img (arr)
+<pre class="src src-lisp" id="org418989a">(defun ensure-mlx-array-as-rgb-img (arr)
   "Ensure input ARR is (H W 3) `mlx-array' of dtype `:uint8'.
 Return the formatted `mlx-array'.
 
@@ -959,7 +995,7 @@ Getting subpart of <code>mlx-array</code>
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org145c49f">(defmacro x (fc)
+<pre class="src src-lisp" id="orge92aae4">(defmacro x (fc)
   "Get X part of FC (gl_FragCoord.x). "
   `(at ,fc :* :* 0))
 
@@ -971,16 +1007,16 @@ Getting subpart of <code>mlx-array</code>
 </ul>
 </div>
 </div>
-<div id="outline-container-org4e0a436" class="outline-4">
-<h4 id="org4e0a436"><span class="section-number-4">4.1.4.</span> Arrows</h4>
-<div class="outline-text-4" id="text-4-1-4">
+<div id="outline-container-org8ecf12e" class="outline-4">
+<h4 id="org8ecf12e"><span class="section-number-4">5.1.4.</span> Arrows</h4>
+<div class="outline-text-4" id="text-5-1-4">
 <ul class="org-ul">
 <li><p>
 chain-calling into single image
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org1bea41c">(defmacro -&gt;o (expr &amp;body bodys-output)
+<pre class="src src-lisp" id="orgbed7375">(defmacro -&gt;o (expr &amp;body bodys-output)
   "Enhanced `-&gt;*' arrow to write image to OUTPUT.
 Return OUTPUT file path.
 
@@ -1003,7 +1039,7 @@ chain-calling into animation
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org0552fc8">(defmacro -&gt;frame ((i frames output &amp;rest keys
+<pre class="src src-lisp" id="orgf57092e">(defmacro -&gt;frame ((i frames output &amp;rest keys
                     &amp;key (tmp "./tmp/animated%d.ppm")
                     &amp;allow-other-keys)
                    &amp;body body)
@@ -1043,16 +1079,16 @@ Parameters:
 </ul>
 </div>
 </div>
-<div id="outline-container-org9cf9b45" class="outline-4">
-<h4 id="org9cf9b45"><span class="section-number-4">4.1.5.</span> FFMPEG</h4>
-<div class="outline-text-4" id="text-4-1-5">
+<div id="outline-container-orga8f6bc6" class="outline-4">
+<h4 id="orga8f6bc6"><span class="section-number-4">5.1.5.</span> FFMPEG</h4>
+<div class="outline-text-4" id="text-5-1-5">
 <ul class="org-ul">
 <li><p>
 Call <a href="https://www.ffmpeg.org">FFMPEG</a> command
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org0ce79a6">(defparameter *ffmpeg-vfs* (make-hash-table :test 'cl:equal)
+<pre class="src src-lisp" id="orgf86a4dd">(defparameter *ffmpeg-vfs* (make-hash-table :test 'cl:equal)
   "Video filter of FFMPEG.
 Key: file extension
 Val: string as vf")
@@ -1103,7 +1139,7 @@ FFMPEG input file formating
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org53f5f09">(defun decode-ffmpeg-fmt (string)
+<pre class="src src-lisp" id="org22c32f2">(defun decode-ffmpeg-fmt (string)
   "Decode STRING as Lisp `format' control string.
 Return the control string. "
   (declare (type string string))
@@ -1129,9 +1165,9 @@ Return a formatted string. "
 </div>
 </div>
 </div>
-<div id="outline-container-org9a00f45" class="outline-3">
-<h3 id="org9a00f45"><span class="section-number-3">4.2.</span> Reference</h3>
-<div class="outline-text-3" id="text-4-2">
+<div id="outline-container-org16a98ef" class="outline-3">
+<h3 id="org16a98ef"><span class="section-number-3">5.2.</span> Reference</h3>
+<div class="outline-text-3" id="text-5-2">
 <ul class="org-ul">
 <li><a href="https://www.xordev.com/arsenal">Xor's Shader Arsenal</a></li>
 </ul>
@@ -1162,7 +1198,7 @@ actively freeing up it's memory?
 
 <div class="footdef"><sup><a id="fn.color-and-gamma" class="footnum" href="#fnr.color-and-gamma" role="doc-backlink">2</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
 there's a few notes on this:
-if you read the <a href="#org7a35efe"><code>ensure-mlx-array-as-rgb-img</code></a> implementation,
+if you read the <a href="#org418989a"><code>ensure-mlx-array-as-rgb-img</code></a> implementation,
 you would notice that for the <code>mlx-array</code> of shape <code>(H W 1)</code>,
 I just repeat it triple times to generate RGB color channels,
 which is often called linear RGB color model. It's easy to implement,
@@ -1181,7 +1217,7 @@ Since this tutorial is not based on <code>mlx-cl/image</code> subsystem
 <br>
 
 <p class="footpara">
-Oh, all most forgot, if you spot the corner of the <a href="#org3c4f193">output image</a>,
+Oh, all most forgot, if you spot the corner of the <a href="#orgf9deb16">output image</a>,
 which should be \(\Vert \boldsymbol{r} \Vert = \sqrt{2} \approx 1.414 > 1\). So the value is clipped while
 generating image output.
 </p></div></div>
@@ -1195,7 +1231,7 @@ You could view the documentation of <a href="../../image/colors/"><code>mlx-cl.i
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: 凉凉</p>
-<p class="date">Created: 2025-11-20 Thu 18:09</p>
+<p class="date">Created: 2025-11-20 Thu 19:58</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
